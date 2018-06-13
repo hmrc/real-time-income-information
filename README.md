@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/hmrc/real-time-income-information.svg)](https://travis-ci.org/hmrc/real-time-income-information) [ ![Download](https://api.bintray.com/packages/hmrc/releases/real-time-income-information/images/download.svg) ](https://bintray.com/hmrc/releases/real-time-income-information/_latestVersion)
 
-This is a placeholder README.md for a new repository
+API microservice placeholder readme
 
 ### License
 
