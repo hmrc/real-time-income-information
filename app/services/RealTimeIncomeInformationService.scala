@@ -21,17 +21,18 @@ import play.api.libs.json.{JsValue, Json, _}
 
 class RealTimeIncomeInformationService {
 
-  def pickOneValue(key: String, desResponse: DesSuccessResponse): Map[String, JsValue] = {
-    val json = Json.toJson(desResponse.response)
-    val jsonTransformer = (__ \\ key).json.pick[JsValue]
-    json.transform(jsonTransformer).asOpt match {
-      case Some(x) => Map(key -> x)
-      case None => Map(key -> JsString("undefined"))
+  def pickOneValue(key: String, json: JsValue): (String, JsValue) = {
+    json.transform((__ \\ key).json.pick[JsValue]).asOpt match {
+      case Some(x) => key -> x
+      case None => key -> JsString("undefined")
     }
   }
 
-  def pickAll(keys: List[String],desResponse: DesSuccessResponse): JsObject = {
-    JsObject(keys.flatMap((key: String) => pickOneValue(key, desResponse)))
+  def pickAll(keys: List[String], desResponse: DesSuccessResponse): JsValue = {
+    val transformedJson = desResponse.response.transform((__ \\ "taxYears").json.pick[JsArray])
+    val listOfTaxYears = transformedJson.get.as[List[JsValue]]
+    val requestedValues = listOfTaxYears.map(taxYear => keys.map(key =>  pickOneValue(key, taxYear)).toMap)
+    Json.toJson(Map("taxYears" -> requestedValues))
   }
 
 }

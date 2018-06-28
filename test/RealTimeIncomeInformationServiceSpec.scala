@@ -30,28 +30,79 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
     "pickOneValue is called" must {
 
       "return the corresponding value if the requested key is present in the given DesSuccessResponse object" in {
-        val result = service.pickOneValue("surname", desResponse)
-        result mustBe Map("surname" -> JsString("Surname"))
+        val result = service.pickOneValue("surname", desResponse.response)
+        result mustBe "surname" -> JsString("Surname")
       }
 
       "return a value of 'undefined' if the requested key is not present in the given DesSuccessResponse object" in {
-        val result = service.pickOneValue("test", desResponse)
-        result mustBe Map("test" -> JsString("undefined"))
+        val result = service.pickOneValue("test", desResponse.response)
+        result mustBe "test" -> JsString("undefined")
       }
 
     }
 
-    "pickAll is called" must {
+    "pickAll is called" when {
 
-      "return all requested values when all keys are present" in {
-        val result = service.pickAll(List("surname", "nationalInsuranceNumber"), desResponse)
-        result mustBe JsObject(Map("surname" -> JsString("Surname"), "nationalInsuranceNumber" -> JsString("AB123456C")))
+      "when a single tax year is requested" must {
+
+        "return all requested values when all keys are present" in {
+          val result = service.pickAll(List("surname", "nationalInsuranceNumber"), desResponse)
+
+          result mustBe Json.parse(
+            """
+              |{
+              |"taxYears" : [ {
+              |"surname": "Surname",
+              |"nationalInsuranceNumber":"AB123456C"
+              |}
+              |]
+              |}
+            """.stripMargin)
+        }
+
+        "return all requested values plus an 'undefined' when all keys except one are present" in {
+          val result = service.pickAll(List("surname", "nationalInsuranceNumber", "test"), desResponse)
+
+          result mustBe Json.parse(
+            """
+              |{ "taxYears" : [ {
+              |"surname": "Surname",
+              |"nationalInsuranceNumber":"AB123456C",
+              |"test":"undefined"
+              |}
+              |]
+              |}
+            """.stripMargin)
+        }
+
       }
 
-      "return all requested values plus an 'undefined' when all keys except one are present" in {
-        val result = service.pickAll(List("surname", "nationalInsuranceNumber", "test"), desResponse)
-        result mustBe JsObject(Map("surname" -> JsString("Surname"), "nationalInsuranceNumber" -> JsString("AB123456C"),
-          "test" -> JsString("undefined")))
+      "when multiple tax years are requested" must {
+
+        "return all requested values when all keys are present and the data covers multiple years" in {
+          val desResponse = DesSuccessResponse(successMatchTwoYear)
+
+          val expectedJson = Json.parse(
+            """
+              |{
+              |"taxYears" : [
+              |{
+              |"surname": "Surname",
+              |"nationalInsuranceNumber":"AA123456C"
+              |},
+              |{
+              |"surname": "Surname",
+              |"nationalInsuranceNumber":"AA123456C"
+              |}
+              |]
+              |}
+            """.stripMargin)
+
+          val result = service.pickAll(List("surname", "nationalInsuranceNumber"), desResponse)
+
+          result mustBe expectedJson
+        }
+
       }
 
     }
