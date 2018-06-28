@@ -24,18 +24,17 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
 
   "RealTimeIncomeInformationService" when {
 
+    val service = new RealTimeIncomeInformationService
+    val desResponse = DesSuccessResponse(successMatchOneYear)
+
     "pickOneValue is called" must {
 
-      "return the request value if it is present in the given DesSuccessResponse object" in {
-        val service = new RealTimeIncomeInformationService
-        val desResponse = DesSuccessResponse(successMatchOneYear)
+      "return the corresponding value if the requested key is present in the given DesSuccessResponse object" in {
         val result = service.pickOneValue("surname", desResponse)
         result mustBe Map("surname" -> JsString("Surname"))
       }
 
-      "return a None if it the requested value is not present in the given DesSuccessResponse object" in {
-        val service = new RealTimeIncomeInformationService
-        val desResponse = DesSuccessResponse(successMatchOneYear)
+      "return a value of 'undefined' if the requested key is not present in the given DesSuccessResponse object" in {
         val result = service.pickOneValue("test", desResponse)
         result mustBe Map("test" -> JsString("undefined"))
       }
@@ -44,16 +43,12 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
 
     "pickAll is called" must {
 
-      "return all requested keys when all keys are present" in {
-        val service = new RealTimeIncomeInformationService
-        val desResponse = DesSuccessResponse(successMatchOneYear)
+      "return all requested values when all keys are present" in {
         val result = service.pickAll(List("surname", "nationalInsuranceNumber"), desResponse)
         result mustBe JsObject(Map("surname" -> JsString("Surname"), "nationalInsuranceNumber" -> JsString("AB123456C")))
       }
 
-      "return all requested keys when all keys except one are present" in {
-        val service = new RealTimeIncomeInformationService
-        val desResponse = DesSuccessResponse(successMatchOneYear)
+      "return all requested values plus an 'undefined' when all keys except one are present" in {
         val result = service.pickAll(List("surname", "nationalInsuranceNumber", "test"), desResponse)
         result mustBe JsObject(Map("surname" -> JsString("Surname"), "nationalInsuranceNumber" -> JsString("AB123456C"),
           "test" -> JsString("undefined")))
