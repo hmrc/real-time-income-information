@@ -75,6 +75,23 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
             """.stripMargin)
         }
 
+        "return an empty array when there is no values in tax years" in {
+          val response = DesSuccessResponse(Json.parse(
+            """
+              |{ "taxYears" : [
+              |]
+              |}
+            """.stripMargin))
+          val result = service.pickAll(List("surname", "nationalInsuranceNumber", "test"), response)
+
+          result mustBe Json.parse(
+            """
+              |{ "taxYears" : [
+              |]
+              |}
+            """.stripMargin)
+        }
+
       }
 
       "when multiple tax years are requested" must {

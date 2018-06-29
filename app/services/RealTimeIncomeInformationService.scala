@@ -17,6 +17,7 @@
 package services
 
 import models.response.DesSuccessResponse
+import play.api.Logger
 import play.api.libs.json.{JsValue, Json, _}
 
 class RealTimeIncomeInformationService {
