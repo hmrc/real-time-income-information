@@ -27,6 +27,7 @@ import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.domain.{Generator, Nino}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
+import play.api.libs.json._
 
 import scala.util.Random
 
@@ -44,7 +45,34 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
 
       "successfully retrieved citizen income data" in {
 
-        val expectedResponse = DesSuccessResponse(successMatchOneYear)
+        val taxYear = Json.parse("""{
+                         |      "taxYear": "16-17",
+                         |      "taxYearIndicator": "P",
+                         |      "hmrcOfficeNumber": "099",
+                         |      "employerPayeRef": "A1B2c3d4e5",
+                         |      "employerName1": "Employer",
+                         |      "nationalInsuranceNumber": "AB123456C",
+                         |      "surname": "Surname",
+                         |      "gender": "M",
+                         |      "uniqueEmploymentSequenceNumber": 9999,
+                         |      "taxablePayInPeriod": 999999.99,
+                         |      "taxDeductedOrRefunded": -12345.67,
+                         |      "grossEarningsForNICs": 888888.66,
+                         |      "taxablePayToDate": 999999.99,
+                         |      "totalTaxToDate": 654321.08,
+                         |      "numberOfNormalHoursWorked": "E",
+                         |      "payFrequency": "M1",
+                         |      "paymentDate": "2017-02-03",
+                         |      "earningsPeriodsCovered": 11,
+                         |      "uniquePaymentId": 777777,
+                         |      "paymentConfidenceStatus": "1",
+                         |      "taxCode": "11100L",
+                         |      "hmrcReceiptTimestamp": "2018-04-16T09:23:55Z",
+                         |      "rtiReceivedDate": "2018-04-16",
+                         |      "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
+                         |}""".stripMargin)
+
+        val expectedResponse = DesSuccessResponse(63, List(taxYear))
 
         val nino = randomNino
         server.stubFor(
@@ -158,8 +186,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
     "Return a DES unexpected response" when {
       "the DES response doesn't match the schema" in {
 
-        val response = DesUnexpectedResponse("INTERNAL_SERVER_ERROR",
-        "Internal Server Error")
+        val response = DesUnexpectedResponse()
 
         val nino = randomNino
         server.stubFor(

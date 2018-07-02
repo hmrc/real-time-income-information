@@ -25,17 +25,48 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
   "RealTimeIncomeInformationService" when {
 
     val service = new RealTimeIncomeInformationService
-    val desResponse = DesSuccessResponse(successMatchOneYear)
+
+    val taxYear = Json.parse("""
+                                     |    {
+                                     |      "taxYear": "16-17",
+                                     |      "taxYearIndicator": "P",
+                                     |      "hmrcOfficeNumber": "099",
+                                     |      "employerPayeRef": "A1B2c3d4e5",
+                                     |      "employerName1": "Employer",
+                                     |      "nationalInsuranceNumber": "AB123456C",
+                                     |      "surname": "Surname",
+                                     |      "gender": "M",
+                                     |      "uniqueEmploymentSequenceNumber": 9999,
+                                     |      "taxablePayInPeriod": 999999.99,
+                                     |      "taxDeductedOrRefunded": -12345.67,
+                                     |      "grossEarningsForNICs": 888888.66,
+                                     |      "taxablePayToDate": 999999.99,
+                                     |      "totalTaxToDate": 654321.08,
+                                     |      "numberOfNormalHoursWorked": "E",
+                                     |      "payFrequency": "M1",
+                                     |      "paymentDate": "2017-02-03",
+                                     |      "earningsPeriodsCovered": 11,
+                                     |      "uniquePaymentId": 777777,
+                                     |      "paymentConfidenceStatus": "1",
+                                     |      "taxCode": "11100L",
+                                     |      "hmrcReceiptTimestamp": "2018-04-16T09:23:55Z",
+                                     |      "rtiReceivedDate": "2018-04-16",
+                                     |      "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
+                                     |    }
+                                     """.stripMargin)
+
+    val desResponseWithOneTaxYear = DesSuccessResponse(63, List(taxYear))
+    val desResponseWithTwoTaxYears = DesSuccessResponse(63, List(taxYear,taxYear))
 
     "pickOneValue is called" must {
 
       "return the corresponding value if the requested key is present in the given DesSuccessResponse object" in {
-        val result = service.pickOneValue("surname", desResponse.response)
+        val result = service.pickOneValue("surname", taxYear)
         result mustBe "surname" -> JsString("Surname")
       }
 
       "return a value of 'undefined' if the requested key is not present in the given DesSuccessResponse object" in {
-        val result = service.pickOneValue("test", desResponse.response)
+        val result = service.pickOneValue("test", taxYear)
         result mustBe "test" -> JsString("undefined")
       }
 
@@ -46,7 +77,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
       "when a single tax year is requested" must {
 
         "return all requested values when all keys are present" in {
-          val result = service.pickAll(List("surname", "nationalInsuranceNumber"), desResponse)
+          val result = service.pickAll(List("surname", "nationalInsuranceNumber"), desResponseWithOneTaxYear)
 
           result mustBe Json.parse(
             """
@@ -61,7 +92,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
         }
 
         "return all requested values plus an 'undefined' when all keys except one are present" in {
-          val result = service.pickAll(List("surname", "nationalInsuranceNumber", "test"), desResponse)
+          val result = service.pickAll(List("surname", "nationalInsuranceNumber", "test"), desResponseWithOneTaxYear)
 
           result mustBe Json.parse(
             """
@@ -75,29 +106,11 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
             """.stripMargin)
         }
 
-        "return an empty array when there is no values in tax years" in {
-          val response = DesSuccessResponse(Json.parse(
-            """
-              |{ "taxYears" : [
-              |]
-              |}
-            """.stripMargin))
-          val result = service.pickAll(List("surname", "nationalInsuranceNumber", "test"), response)
-
-          result mustBe Json.parse(
-            """
-              |{ "taxYears" : [
-              |]
-              |}
-            """.stripMargin)
-        }
-
       }
 
       "when multiple tax years are requested" must {
 
         "return all requested values when all keys are present and the data covers multiple years" in {
-          val desResponse = DesSuccessResponse(successMatchTwoYear)
 
           val expectedJson = Json.parse(
             """
@@ -105,17 +118,17 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
               |"taxYears" : [
               |{
               |"surname": "Surname",
-              |"nationalInsuranceNumber":"AA123456C"
+              |"nationalInsuranceNumber":"AB123456C"
               |},
               |{
               |"surname": "Surname",
-              |"nationalInsuranceNumber":"AA123456C"
+              |"nationalInsuranceNumber":"AB123456C"
               |}
               |]
               |}
             """.stripMargin)
 
-          val result = service.pickAll(List("surname", "nationalInsuranceNumber"), desResponse)
+          val result = service.pickAll(List("surname", "nationalInsuranceNumber"), desResponseWithTwoTaxYears)
 
           result mustBe expectedJson
         }

@@ -17,23 +17,22 @@
 package services
 
 import models.response.DesSuccessResponse
-import play.api.Logger
 import play.api.libs.json.{JsValue, Json, _}
 
 class RealTimeIncomeInformationService {
 
-  def pickOneValue(key: String, json: JsValue): (String, JsValue) = {
-    json.transform((__ \\ key).json.pick[JsValue]).asOpt match {
+  def pickOneValue(key: String, taxYear: JsValue): (String, JsValue) = {
+    taxYear.transform((__ \\ key).json.pick[JsValue]).asOpt match {
       case Some(x) => key -> x
       case None => key -> JsString("undefined")
     }
   }
 
-  def pickAll(keys: List[String], desResponse: DesSuccessResponse): JsValue = {
-    val transformedJson = desResponse.response.transform((__ \\ "taxYears").json.pick[JsArray])
-    val listOfTaxYears = transformedJson.get.as[List[JsValue]]
-    val requestedValues = listOfTaxYears.map(taxYear => keys.map(key =>  pickOneValue(key, taxYear)).toMap)
-    Json.toJson(Map("taxYears" -> requestedValues))
+  def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): JsValue = {
+    Json.toJson(Map("taxYears" ->
+      desSuccessResponse.taxYears.map(
+        taxYear => keys.map(
+          key => pickOneValue(key, taxYear)).toMap)))
   }
 
 }

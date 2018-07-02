@@ -21,13 +21,23 @@ import play.api.libs.functional.syntax._
 
 sealed trait DesResponse
 
-case class DesSuccessResponse(response: JsValue) extends DesResponse
+case class DesSuccessResponse(matchPattern: Int, taxYears: List[JsValue]) extends DesResponse
 case class DesFailureResponse(code: String, reason: String) extends DesResponse
 case class DesUnexpectedResponse(code: String = "INTERNAL_SERVER_ERROR", reason: String = "Internal Server Error") extends DesResponse
 
 object DesResponse {
 
   implicit val desSuccessFormats = Json.format[DesSuccessResponse]
+
+  implicit val desSuccessReads: Reads[DesSuccessResponse] = (
+    (JsPath \ "matchPattern").read[Int] and
+    (JsPath \ "taxYears").read[List[JsValue]]
+  )(DesSuccessResponse.apply _)
+
+  implicit val desSuccessWrites: Writes[DesSuccessResponse] = (
+    (JsPath \ "matchPattern").write[Int] and
+      (JsPath \ "taxYears").write[List[JsValue]]
+    )(unlift(DesSuccessResponse.unapply))
 
   implicit val desFailureReads: Reads[DesFailureResponse] = (
     (JsPath \ "code").read[String] and
