@@ -53,7 +53,7 @@ class DesConnector @Inject()(httpClient: HttpClient,
     httpClient.POST(postUrl, matchingFields).flatMap {
     httpResponse =>
       httpResponse.status match {
-        case Status.OK => Future.successful(DesSuccessResponse(httpResponse.json))
+        case Status.OK => Future.successful(parseDesResponse[DesSuccessResponse](httpResponse))
         case _ => Future.successful(parseDesResponse[DesFailureResponse](httpResponse))
       }
     }
