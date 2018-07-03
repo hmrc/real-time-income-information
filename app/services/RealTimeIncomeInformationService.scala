@@ -19,12 +19,12 @@ package services
 import com.google.inject.{Inject, Singleton}
 import connectors.DesConnector
 import models.RequestDetails
-import models.response.{DesFailureResponse, DesSuccessResponse}
+import models.response.{DesFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
 import play.api.libs.json.{JsValue, Json, _}
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
@@ -47,9 +47,10 @@ class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector)
   }
 
   def retrieveCitizenIncome(nino: Nino, matchingDetails: RequestDetails) : Future[JsValue] = {
-    desConnector.retrieveCitizenIncome(nino, matchingDetails)(hc) map(x => x match {
-      case desSuccess:DesSuccessResponse => pickAll(matchingDetails.filterFields, desSuccess)
-      case desFailure:DesFailureResponse => Json.toJson(desFailure)
-  })
+    desConnector.retrieveCitizenIncome(nino, matchingDetails)(hc) map {
+      case desSuccess: DesSuccessResponse => pickAll(matchingDetails.filterFields, desSuccess)
+      case desFailure: DesFailureResponse => Json.toJson(desFailure)
+      case desUnexpected :DesUnexpectedResponse => Json.toJson(desUnexpected)
+    }
   }
 }

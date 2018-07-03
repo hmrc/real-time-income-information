@@ -22,21 +22,20 @@ import models.RequestDetails
 import models.response.{DesFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
 import play.api.libs.json.Json
 import play.api.mvc._
+import services.RealTimeIncomeInformationService
 import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class RealTimeIncomeInformationController @Inject()(val desConnector: DesConnector) extends BaseController {
+class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeIncomeInformationService) extends BaseController {
 
   def retrieveCitizenIncome(nino: String)= Action.async(parse.json) {
     implicit request =>
       withJsonBody[RequestDetails] { body =>
-          desConnector.retrieveCitizenIncome (Nino(nino), body) map {
-            case desSuccess: DesSuccessResponse => Ok(Json.toJson(desSuccess))
-            case desFailure: DesFailureResponse => BadRequest(Json.toJson(desFailure))
-            case _: DesUnexpectedResponse => InternalServerError
+          rtiiService.retrieveCitizenIncome (Nino(nino), body) map {
+            Ok(_)
           }
       }
   }
