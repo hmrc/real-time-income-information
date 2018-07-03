@@ -19,7 +19,7 @@ import java.util.UUID
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.DesConfig
 import connectors.DesConnector
-import models.MatchingDetails
+import models.RequestDetails
 import models.response.{DesFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
@@ -82,7 +82,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[MatchingDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
           result => result mustBe expectedResponse
         }
 
@@ -104,7 +104,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[MatchingDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
           result => result mustBe expectedResponse
         }
       }
@@ -122,7 +122,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[MatchingDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
           result => result mustBe expectedResponse
         }
       }
@@ -140,7 +140,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[MatchingDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
           result => result mustBe expectedResponse
         }
       }
@@ -158,7 +158,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[MatchingDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
           result => result mustBe expectedResponse
         }
 
@@ -177,7 +177,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[MatchingDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
           result => result mustBe expectedResponse
         }
 
@@ -196,7 +196,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[MatchingDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
           result => result mustBe response
         }
       }

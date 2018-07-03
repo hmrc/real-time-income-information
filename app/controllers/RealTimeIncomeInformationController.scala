@@ -18,7 +18,7 @@ package controllers
 
 import com.google.inject.{Inject, Singleton}
 import connectors.DesConnector
-import models.MatchingDetails
+import models.RequestDetails
 import models.response.{DesFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -32,7 +32,7 @@ class RealTimeIncomeInformationController @Inject()(val desConnector: DesConnect
 
   def retrieveCitizenIncome(nino: String)= Action.async(parse.json) {
     implicit request =>
-      withJsonBody[MatchingDetails] { body =>
+      withJsonBody[RequestDetails] { body =>
           desConnector.retrieveCitizenIncome (Nino(nino), body) map {
             case desSuccess: DesSuccessResponse => Ok(Json.toJson(desSuccess))
             case desFailure: DesFailureResponse => BadRequest(Json.toJson(desFailure))
