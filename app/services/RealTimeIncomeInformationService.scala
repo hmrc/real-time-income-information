@@ -30,8 +30,6 @@ import scala.concurrent.Future
 @Singleton
 class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector) {
 
-  private implicit val hc = HeaderCarrier()
-
   def pickOneValue(key: String, taxYear: JsValue): (String, JsValue) = {
     taxYear.transform((__ \\ key).json.pick[JsValue]).asOpt match {
       case Some(x) => key -> x
@@ -46,11 +44,11 @@ class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector)
           key => pickOneValue(key, taxYear)).toMap)))
   }
 
-  def retrieveCitizenIncome(nino: Nino, matchingDetails: RequestDetails) : Future[JsValue] = {
-    desConnector.retrieveCitizenIncome(nino, matchingDetails)(hc) map {
-      case desSuccess: DesSuccessResponse => pickAll(matchingDetails.filterFields, desSuccess)
+  def retrieveCitizenIncome(nino: Nino, requestDetails: RequestDetails)(implicit hc: HeaderCarrier) : Future[JsValue] = {
+    desConnector.retrieveCitizenIncome(nino, requestDetails)(hc) map {
+      case desSuccess: DesSuccessResponse => pickAll(requestDetails.filterFields, desSuccess)
       case desFailure: DesFailureResponse => Json.toJson(desFailure)
-      case desUnexpected :DesUnexpectedResponse => Json.toJson(desUnexpected)
+      case desUnexpected: DesUnexpectedResponse => Json.toJson(desUnexpected)
     }
   }
 }

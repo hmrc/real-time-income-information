@@ -17,21 +17,22 @@
 import connectors.DesConnector
 import models.RequestDetails
 import models.response.{DesFailureResponse, DesSuccessResponse}
+import org.mockito.Matchers._
+import org.mockito.Mockito._
 import org.scalatest.MustMatchers
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json._
 import services.RealTimeIncomeInformationService
-import org.mockito.Matchers
-import org.mockito.Matchers._
-import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
 import uk.gov.hmrc.domain.Nino
-import utils.WireMockHelper
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
 class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers with BaseSpec with MockitoSugar with ScalaFutures {
+
+  private implicit val hc = HeaderCarrier()
 
   "RealTimeIncomeInformationService" when {
 
@@ -153,7 +154,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
 
             "retrieve and filter data" in {
 
-              val matchingDetails = RequestDetails("2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
+              val requestDetails = RequestDetails("2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
               val mockDesConnector = mock[DesConnector]
 
               when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(1, List(taxYear))))
@@ -170,7 +171,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                   |}
                 """.stripMargin)
 
-              whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), matchingDetails)) {
+              whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), requestDetails)) {
                 result => result mustBe expectedJson
               }
             }

@@ -48,9 +48,9 @@ class DesConnector @Inject()(httpClient: HttpClient,
 
   def header: HeaderCarrier = HeaderCarrier(extraHeaders = commonHeaderValues)
 
-  def retrieveCitizenIncome(nino: Nino, matchingFields: RequestDetails)(implicit hc: HeaderCarrier): Future[DesResponse] = {
+  def retrieveCitizenIncome(nino: Nino, requestDetails: RequestDetails)(implicit hc: HeaderCarrier): Future[DesResponse] = {
     val postUrl = desPathUrl(nino)
-    httpClient.POST(postUrl, matchingFields).flatMap {
+    httpClient.POST(postUrl, requestDetails).flatMap {
     httpResponse =>
       httpResponse.status match {
         case Status.OK => Future.successful(parseDesResponse[DesSuccessResponse](httpResponse))

@@ -17,10 +17,7 @@
 package controllers
 
 import com.google.inject.{Inject, Singleton}
-import connectors.DesConnector
 import models.RequestDetails
-import models.response.{DesFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
-import play.api.libs.json.Json
 import play.api.mvc._
 import services.RealTimeIncomeInformationService
 import uk.gov.hmrc.domain.Nino
