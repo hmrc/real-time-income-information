@@ -5,5 +5,6 @@
   "firstName": "John",
   "gender": "M",
   "initials": "J B",
-  "dateOfBirth": "2000-03-29"
+  "dateOfBirth": "2000-03-29",
+  "filterFields": ["surname", "nationalInsuranceNumber"]
 }

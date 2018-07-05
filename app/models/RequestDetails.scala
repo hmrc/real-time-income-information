@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.Json
 
-case class MatchingDetails(
+case class RequestDetails(
   fromDate: String,
   toDate: String,
   surname: String,
@@ -26,9 +26,10 @@ case class MatchingDetails(
   middleName: Option[String],
   gender: Option[String],
   initials: Option[String],
-  dateOfBirth: Option[String]
+  dateOfBirth: Option[String],
+  filterFields: List[String]
 )
 
-object MatchingDetails {
-  implicit val formats = Json.format[MatchingDetails]
+object RequestDetails {
+  implicit val formats = Json.format[RequestDetails]
 }

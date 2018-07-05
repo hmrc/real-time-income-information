@@ -14,17 +14,29 @@
  * limitations under the License.
  */
 
-import models.response.DesSuccessResponse
+import connectors.DesConnector
+import models.RequestDetails
+import models.response.{DesFailureResponse, DesSuccessResponse}
+import org.mockito.Matchers._
+import org.mockito.Mockito._
 import org.scalatest.MustMatchers
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json._
 import services.RealTimeIncomeInformationService
+import uk.gov.hmrc.domain.Nino
+import uk.gov.hmrc.http.HeaderCarrier
 
-class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers with BaseSpec {
+import scala.concurrent.Future
+
+class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers with BaseSpec with MockitoSugar with ScalaFutures {
+
+  private implicit val hc = HeaderCarrier()
 
   "RealTimeIncomeInformationService" when {
 
-    val service = new RealTimeIncomeInformationService
+    def service(desConnector: DesConnector) = new RealTimeIncomeInformationService(desConnector)
 
     val taxYear = Json.parse("""
                                      |    {
@@ -61,12 +73,12 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
     "pickOneValue is called" must {
 
       "return the corresponding value if the requested key is present in the given DesSuccessResponse object" in {
-        val result = service.pickOneValue("surname", taxYear)
+        val result = service(mock[DesConnector]).pickOneValue("surname", taxYear)
         result mustBe "surname" -> JsString("Surname")
       }
 
       "return a value of 'undefined' if the requested key is not present in the given DesSuccessResponse object" in {
-        val result = service.pickOneValue("test", taxYear)
+        val result = service(mock[DesConnector]).pickOneValue("test", taxYear)
         result mustBe "test" -> JsString("undefined")
       }
 
@@ -77,7 +89,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
       "when a single tax year is requested" must {
 
         "return all requested values when all keys are present" in {
-          val result = service.pickAll(List("surname", "nationalInsuranceNumber"), desResponseWithOneTaxYear)
+          val result = service(mock[DesConnector]).pickAll(List("surname", "nationalInsuranceNumber"), desResponseWithOneTaxYear)
 
           result mustBe Json.parse(
             """
@@ -92,7 +104,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
         }
 
         "return all requested values plus an 'undefined' when all keys except one are present" in {
-          val result = service.pickAll(List("surname", "nationalInsuranceNumber", "test"), desResponseWithOneTaxYear)
+          val result = service(mock[DesConnector]).pickAll(List("surname", "nationalInsuranceNumber", "test"), desResponseWithOneTaxYear)
 
           result mustBe Json.parse(
             """
@@ -128,7 +140,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
               |}
             """.stripMargin)
 
-          val result = service.pickAll(List("surname", "nationalInsuranceNumber"), desResponseWithTwoTaxYears)
+          val result = service(mock[DesConnector]).pickAll(List("surname", "nationalInsuranceNumber"), desResponseWithTwoTaxYears)
 
           result mustBe expectedJson
         }
@@ -136,7 +148,47 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
       }
 
     }
+        "retrieve citizen income is called" when{
 
+          "given a DES success response" must {
+
+            "retrieve and filter data" in {
+
+              val requestDetails = RequestDetails("2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
+              val mockDesConnector = mock[DesConnector]
+
+              when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(1, List(taxYear))))
+
+              val expectedJson = Json.parse(
+                """
+                  |{
+                  |"taxYears" : [
+                  |{
+                  |"surname": "Surname",
+                  |"nationalInsuranceNumber":"AB123456C"
+                  |}
+                  |]
+                  |}
+                """.stripMargin)
+
+              whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), requestDetails)) {
+                result => result mustBe expectedJson
+              }
+            }
+          }
+
+          "given a DES failure response return an appropriate error message" in {
+
+            val matchingDetails = RequestDetails("2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
+            val mockDesConnector = mock[DesConnector]
+
+            when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
+
+            whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), matchingDetails)) {
+              result => result mustBe invalidNinoJson
+            }
+          }
+        }
   }
 
 }

@@ -25,6 +25,7 @@ import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.test.Helpers.{status, _}
 import play.api.test.{FakeHeaders, FakeRequest}
+import services.RealTimeIncomeInformationService
 import uk.gov.hmrc.domain.{Generator, Nino}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
@@ -35,7 +36,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
 
   override protected def portConfigKey: String = "microservice.services.des-hod.port"
 
-  protected lazy val connector: DesConnector = injector.instanceOf[DesConnector]
+  protected lazy val service: RealTimeIncomeInformationService = injector.instanceOf[RealTimeIncomeInformationService]
   protected lazy val controller: RealTimeIncomeInformationController = injector.instanceOf[RealTimeIncomeInformationController]
 
   "RealTimeIncomeInformationController" should {
@@ -52,7 +53,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(connector)
+        val sut = createSUT(service)
         val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
         status(result) mustBe 200
       }
@@ -60,8 +61,8 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
 
   }
 
-  def createSUT(desConnector: DesConnector) =
-    new RealTimeIncomeInformationController(desConnector)
+  def createSUT(rtiiService: RealTimeIncomeInformationService) =
+    new RealTimeIncomeInformationController(rtiiService)
 
   private implicit val hc = HeaderCarrier()
 

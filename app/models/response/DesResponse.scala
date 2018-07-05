@@ -29,6 +29,8 @@ object DesResponse {
 
   implicit val desSuccessFormats = Json.format[DesSuccessResponse]
 
+  implicit val desUnexpectedFormats = Json.format[DesUnexpectedResponse]
+
   implicit val desSuccessReads: Reads[DesSuccessResponse] = (
     (JsPath \ "matchPattern").read[Int] and
     (JsPath \ "taxYears").read[List[JsValue]]
