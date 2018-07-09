@@ -1,0 +1,12 @@
+{
+  "failures": [
+    {
+      "code": "INVALID_NINO",
+      "reason": "Submission has not passed validation. Invalid parameter nino."
+    },
+    {
+      "code": "INVALID_PAYLOAD",
+      "reason": "Submission has not passed validation. Invalid Payload."
+    }
+  ]
+}

@@ -18,6 +18,8 @@ package controllers
 
 import com.google.inject.{Inject, Singleton}
 import models.RequestDetails
+import models.response.{DesFilteredSuccessResponse, DesMultipleFailureResponse, DesSingleFailureResponse, DesUnexpectedResponse}
+import play.api.libs.json.Json
 import play.api.mvc._
 import services.RealTimeIncomeInformationService
 import uk.gov.hmrc.domain.Nino
@@ -32,7 +34,15 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
     implicit request =>
       withJsonBody[RequestDetails] { body =>
           rtiiService.retrieveCitizenIncome (Nino(nino), body) map {
-            Ok(_)
+            case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
+            case singleFailureResponse@ DesSingleFailureResponse(code, _) =>
+              if (code == "NOT_FOUND_NINO" || code == "NOT_FOUND")
+                NotFound(Json.toJson(singleFailureResponse)) else if (code == "SERVER_ERROR")
+                InternalServerError(Json.toJson(singleFailureResponse)) else if (code == "SERVICE_UNAVAILABLE")
+                ServiceUnavailable(Json.toJson(singleFailureResponse)) else
+                BadRequest(Json.toJson(singleFailureResponse))
+            case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
+            case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
           }
       }
   }

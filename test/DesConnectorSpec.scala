@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import config.DesConfig
 import connectors.DesConnector
 import models.RequestDetails
-import models.response.{DesFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
+import models.response.{DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -89,11 +89,11 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
       }
     }
 
-    "return a DesFailureResponse with the appropriate code and reason" when {
+    "return a single DesFailureResponse with the appropriate code and reason" when {
 
       "the remote endpoint has indicated that there is no data for the Nino" in {
 
-        val expectedResponse = DesFailureResponse("NOT_FOUND",
+        val expectedResponse = DesSingleFailureResponse("NOT_FOUND",
           "The remote endpoint has indicated that there is no data for the Nino.")
 
         val nino = randomNino
@@ -111,7 +111,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
 
       "the remote endpoint has indicated that the Nino cannot be found" in {
 
-        val expectedResponse = DesFailureResponse("NOT_FOUND_NINO",
+        val expectedResponse = DesSingleFailureResponse("NOT_FOUND_NINO",
           "The remote endpoint has indicated that the Nino cannot be found.")
 
         val nino = randomNino
@@ -129,7 +129,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
 
       "the remote endpoint has indicated that the correlation Id is invalid" in {
 
-        val expectedResponse = DesFailureResponse("INVALID_CORRELATIONID",
+        val expectedResponse = DesSingleFailureResponse("INVALID_CORRELATIONID",
           "Submission has not passed validation. Invalid header CorrelationId.")
 
         val nino = randomNino
@@ -147,7 +147,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
 
       "DES is currently experiencing problems that require live service intervention" in {
 
-        val expectedResponse = DesFailureResponse("SERVER_ERROR",
+        val expectedResponse = DesSingleFailureResponse("SERVER_ERROR",
           "DES is currently experiencing problems that require live service intervention.")
 
         val nino = randomNino
@@ -166,7 +166,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
 
       "Dependent systems are currently not responding" in {
 
-        val expectedResponse = DesFailureResponse("SERVICE_UNAVAILABLE",
+        val expectedResponse = DesSingleFailureResponse("SERVICE_UNAVAILABLE",
           "Dependent systems are currently not responding.")
 
         val nino = randomNino
@@ -183,6 +183,28 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
 
       }
     }
+
+    "Return multiple DESFailureResponse" when {
+      "the DES response contains a list of failures" in {
+        val responses = DesMultipleFailureResponse(List(
+          DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."),
+          DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")))
+
+        val nino = randomNino
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              badRequest().withBody(multipleErrors.toString)
+            )
+        )
+
+        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
+          result => result mustBe responses
+        }
+
+      }
+    }
+
     "Return a DES unexpected response" when {
       "the DES response doesn't match the schema" in {
 

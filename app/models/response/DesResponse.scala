@@ -16,20 +16,36 @@
 
 package models.response
 
-import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 sealed trait DesResponse
 
 case class DesSuccessResponse(matchPattern: Int, taxYears: List[JsValue]) extends DesResponse
-case class DesFailureResponse(code: String, reason: String) extends DesResponse
+case class DesFilteredSuccessResponse(requestedFields: JsValue) extends DesResponse
+case class DesSingleFailureResponse(code: String, reason: String) extends DesResponse
+case class DesMultipleFailureResponse(failures: List[DesSingleFailureResponse]) extends DesResponse
 case class DesUnexpectedResponse(code: String = "INTERNAL_SERVER_ERROR", reason: String = "Internal Server Error") extends DesResponse
 
 object DesResponse {
 
   implicit val desSuccessFormats = Json.format[DesSuccessResponse]
 
+  implicit val desFilteredSuccessFormats = Json.format[DesFilteredSuccessResponse]
+
   implicit val desUnexpectedFormats = Json.format[DesUnexpectedResponse]
+
+  implicit val desMultipleFailureFormats: Format[DesMultipleFailureResponse] = Format(
+    new Reads[DesMultipleFailureResponse] {
+    override def reads(json: JsValue): JsResult[DesMultipleFailureResponse] = {
+      JsSuccess(DesMultipleFailureResponse((json \ "failures").as[List[DesSingleFailureResponse]]))
+    }},
+    new Writes[DesMultipleFailureResponse] {
+      override def writes(desMultipleFailure: DesMultipleFailureResponse): JsValue = {
+        Json.obj("failures" -> desMultipleFailure.failures)
+      }
+    }
+  )
 
   implicit val desSuccessReads: Reads[DesSuccessResponse] = (
     (JsPath \ "matchPattern").read[Int] and
@@ -41,13 +57,13 @@ object DesResponse {
       (JsPath \ "taxYears").write[List[JsValue]]
     )(unlift(DesSuccessResponse.unapply))
 
-  implicit val desFailureReads: Reads[DesFailureResponse] = (
+  implicit val desSingleFailureReads: Reads[DesSingleFailureResponse] = (
     (JsPath \ "code").read[String] and
       (JsPath \ "reason").read[String]
-    )(DesFailureResponse.apply _)
+    )(DesSingleFailureResponse.apply _)
 
-  implicit val desFailureWrites: Writes[DesFailureResponse] = (
+  implicit val desSingleFailureWrites: Writes[DesSingleFailureResponse] = (
     (JsPath \ "code").write[String] and
       (JsPath \ "reason").write[String]
-    )(unlift(DesFailureResponse.unapply))
+    )(unlift(DesSingleFailureResponse.unapply))
 }

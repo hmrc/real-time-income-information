@@ -16,7 +16,7 @@
 
 import connectors.DesConnector
 import models.RequestDetails
-import models.response.{DesFailureResponse, DesSuccessResponse}
+import models.response.{DesFilteredSuccessResponse, DesSingleFailureResponse, DesSuccessResponse}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.MustMatchers
@@ -172,7 +172,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                 """.stripMargin)
 
               whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), requestDetails)) {
-                result => result mustBe expectedJson
+                result => result mustBe DesFilteredSuccessResponse(expectedJson)
               }
             }
           }
@@ -182,10 +182,10 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
             val matchingDetails = RequestDetails("2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
             val mockDesConnector = mock[DesConnector]
 
-            when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
+            when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
 
             whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), matchingDetails)) {
-              result => result mustBe invalidNinoJson
+              result => result mustBe DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")
             }
           }
         }

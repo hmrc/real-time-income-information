@@ -16,7 +16,7 @@
 
 import java.util.UUID
 
-import com.github.tomakehurst.wiremock.client.WireMock.{ok, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{badRequest, ok, post, urlEqualTo, notFound, serverError, serviceUnavailable}
 import connectors.DesConnector
 import controllers.RealTimeIncomeInformationController
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -41,7 +41,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
 
   "RealTimeIncomeInformationController" should {
     "Return 200" when {
-      "real time income information is available" in  {
+      "the service returns a successfully filtered response" in  {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
@@ -59,6 +59,117 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
       }
     }
 
+    "Return 400" when {
+      "the service returns a single error response" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              badRequest().withBody(invalidCorrelationIdJson.toString)
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        status(result) mustBe 400
+
+      }
+
+      "the service returns multiple error responses" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              badRequest().withBody(multipleErrors.toString)
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        status(result) mustBe 400
+
+      }
+    }
+    "Return 404 (NOT_FOUND)" when {
+      "The remote endpoint has indicated that there is no data for the Nino" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              notFound().withBody(notFoundNinoJson.toString)
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        status(result) mustBe 404
+      }
+    }
+
+    "Return 500 (SERVER_ERROR)" when {
+      "DES is currently experiencing problems that require live service intervention." in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              serverError().withBody(serverErrorJson.toString)
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        status(result) mustBe 500
+      }
+    }
+
+    "Return 503 (SERVICE_UNAVAILABLE)" when {
+      "Dependent systems are currently not responding" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              serviceUnavailable().withBody(serviceUnavailableJson.toString)
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        status(result) mustBe 503
+      }
+    }
+
+    "Return INTERNAL_SERVER_ERROR" when {
+      "DES has given an unexpected response" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              serverError().withBody("INTERNAL_SERVER_ERROR")
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        status(result) mustBe 500
+      }
+    }
   }
 
   def createSUT(rtiiService: RealTimeIncomeInformationService) =
