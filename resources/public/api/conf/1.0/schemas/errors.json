@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "API#1394 - Retrieve Citizen Income error response schema v1.0",
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "#/definitions/failureResponseElement"
+    },
+    {
+      "$ref": "#/definitions/failureResponseArray"
+    }
+  ],
+  "definitions": {
+    "failureResponseArray": {
+      "type": "object",
+      "required": [ "failures" ],
+      "properties": {
+        "failures": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/failureResponseElement"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "failureResponseElement": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "INVALID_NINO",
+            "INVALID_CORRELATIONID",
+            "INVALID_PAYLOAD",
+            "INVALID_DATE_RANGE",
+            "INVALID_DATES_EQUAL",
+            "NOT_FOUND_NINO",
+            "NOT_FOUND",
+            "SERVER_ERROR",
+            "SERVICE_UNAVAILABLE"
+          ],
+          "description": "Keys for all the errors returned"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "description": "A simple description for the failure"
+        }
+      },
+      "required": [
+        "code",
+        "reason"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

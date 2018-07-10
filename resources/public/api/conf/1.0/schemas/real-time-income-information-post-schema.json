@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Real time income information request schema v1.0",
+  "type": "object",
+  "required": [
+    "nino",
+    "serviceName",
+    "fromDate",
+    "toDate",
+    "surname",
+    "filterFields"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "nino": {
+      "$ref": "#/definitions/ninoType"
+    },
+    "serviceName": {
+      "$ref": "#/definitions/serviceNameType"
+    },
+    "fromDate": {
+      "$ref": "#/definitions/dateType"
+    },
+    "toDate": {
+      "$ref": "#/definitions/dateType"
+    },
+    "surname": {
+      "$ref": "#/definitions/nameType"
+    },
+    "firstName": {
+      "$ref": "#/definitions/nameType"
+    },
+    "middleName": {
+      "$ref": "#/definitions/nameType"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "M", "F"
+      ]
+    },
+    "initials": {
+      "$ref": "#/definitions/nameType"
+    },
+    "dateOfBirth": {
+      "$ref": "#/definitions/dateType"
+    },
+    "filterFields": {
+      "type": "array",
+      "items": {
+        "type" : "string"
+      }
+    }
+  },
+  "definitions": {
+    "ninoType": {
+      "type": "string",
+      "pattern": "^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D ]$"
+    },
+    "serviceNameType": {
+      "type": "string",
+      "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,128}$"
+    },
+    "dateType": {
+      "type": "string",
+      "pattern": "^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$"
+    },
+    "nameType": {
+      "type": "string",
+      "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$"
+    }
+  }
+}

@@ -19,14 +19,17 @@ uses:
   sec: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/securitySchemes.raml
   headers: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/headers.raml
 
+types:
+  correlationId:
+    pattern: "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+
 /real-time-income-information:
   /individuals:
     /{correlationId}:
       uriParameters:
         correlationId:
-          type: UUIDType
+          type: correlationId
           description: Identifier used to locate related transactions
-          example:
       /income:
         post:
           displayName: Real Time Income Information
@@ -35,18 +38,18 @@ uses:
           securedBy: [ sec.oauth_2_0: { scopes: [ "write:real-time-income-information" ] } ]
           body:
             application/json:
-              example: !include examples/real-time-income-information.post.json
-              type: !include schemas/real-time-income-information.post.schema.json
+              example: !include examples/real-time-income-information-post.json
+              type: !include schemas/real-time-income-information-post-schema.json
           responses:
             200:
               body:
                 application/json:
-                  type: !include schemas/real-time-income-information.json
+                  type: !include schemas/real-time-income-information-response-schema.json
                   examples:
                     example-1:
-                      value: !include examples/real-time-income-information-example-1.json
+                      value: !include examples/200-success-matched-one-year.json
                     example-2:
-                      value: !include examples/real-time-income-information-example-2.json
+                      value: !include examples/200-success-matched-two-years.json
             400:
               body:
                 application/json:
@@ -73,11 +76,11 @@ uses:
             404:
               body:
                 application/json:
-                  type: !include schema/errors.json
+                  type: !include schemas/errors.json
                   examples:
                     notFound:
                       description: No data found for Nino
                       value: !include examples/404-no-data-nino.json
                     notFoundNino:
                       description: Nino cannot be found
-                      value: !include examples/404-nino-not-found.json
+                      value: !include examples/404-not-found-nino.json
