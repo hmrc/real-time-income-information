@@ -70,13 +70,13 @@ class DesConnector @Inject()(httpClient: HttpClient,
         }
 
         Try(res.json.as[DesSingleFailureResponse]) match {
-          case Success(data) => Logger.info(s"DesFailureResponse from DES: $data")
+          case Success(data) => Logger.info(s"DesSingleFailureResponse from DES: $data")
             data
           case Failure(_) => Try(res.json.as[DesMultipleFailureResponse]) match {
             case Success(multipleFailures) => Logger.info(s"DesMultipleFailureResponse from DES: $multipleFailures")
               multipleFailures
             case Failure(unexpected) =>
-              Logger.error(s"Error from DES (parsing as DesFailureResponse): ${unexpected.getMessage}")
+              Logger.error(s"Error from DES (unable to parse as DesFailureResponse): ${unexpected.getMessage}")
               DesUnexpectedResponse()
           }
         }

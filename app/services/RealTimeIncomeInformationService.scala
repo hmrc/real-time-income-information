@@ -47,9 +47,7 @@ class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector)
   def retrieveCitizenIncome(nino: Nino, requestDetails: RequestDetails)(implicit hc: HeaderCarrier) : Future[DesResponse] = {
     desConnector.retrieveCitizenIncome(nino, requestDetails)(hc) map {
       case desSuccess: DesSuccessResponse => DesFilteredSuccessResponse(pickAll(requestDetails.filterFields, desSuccess))
-      case desSingleFailure: DesSingleFailureResponse => desSingleFailure
-      case desMultipleFailure: DesMultipleFailureResponse => desMultipleFailure
-      case desUnexpected: DesUnexpectedResponse => desUnexpected
+      case failure: DesResponse => failure
     }
   }
 }

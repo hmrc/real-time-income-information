@@ -169,6 +169,23 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
         status(result) mustBe 500
       }
+
+      "DES has given a failure code and reason that do not match schema" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              serverError().withBody("""{ "code": "error", "reason":"error"}""")
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        status(result) mustBe 500
+      }
     }
   }
 
