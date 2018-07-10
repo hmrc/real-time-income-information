@@ -32,6 +32,7 @@ trait BaseSpec {
   val successMatchOneYear = readJson("conf/resources/200-success-matched-one-year.json")
   val successMatchTwoYear = readJson("conf/resources/200-success-matched-two-years.json")
   val exampleRequest = readJson("conf/resources/example-request.json")
+  val multipleErrors = readJson("conf/resources/400-multiple-errors.json")
 
   private def readJson(path: String) = {
     Json.parse(Source.fromFile(path).getLines().mkString)

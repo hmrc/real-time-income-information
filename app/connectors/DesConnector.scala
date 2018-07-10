@@ -20,7 +20,7 @@ package connectors
 import com.google.inject.{Inject, Singleton}
 import config.DesConfig
 import models.RequestDetails
-import models.response.{DesFailureResponse, DesResponse, DesSuccessResponse, DesUnexpectedResponse}
+import models.response._
 import play.api.Logger
 import play.api.http.Status
 import play.api.libs.json.Reads
@@ -54,7 +54,7 @@ class DesConnector @Inject()(httpClient: HttpClient,
     httpResponse =>
       httpResponse.status match {
         case Status.OK => Future.successful(parseDesResponse[DesSuccessResponse](httpResponse))
-        case _ => Future.successful(parseDesResponse[DesFailureResponse](httpResponse))
+        case _ => Future.successful(parseDesResponse[DesSingleFailureResponse](httpResponse))
       }
     }
   }
@@ -69,11 +69,16 @@ class DesConnector @Inject()(httpClient: HttpClient,
           Logger.error(s"Error from DES (parsing as DesResponse): ${er.getMessage}")
         }
 
-        Try(res.json.as[DesFailureResponse]) match {
-          case Success(data) => Logger.info(s"DesFailureResponse from DES: $data")
+        Try(res.json.as[DesSingleFailureResponse]) match {
+          case Success(data) => Logger.info(s"DesSingleFailureResponse from DES: $data")
             data
-          case Failure(ex) => Logger.error(s"Error from DES (parsing as DesFailureResponse): ${ex.getMessage}")
-            DesUnexpectedResponse()
+          case Failure(_) => Try(res.json.as[DesMultipleFailureResponse]) match {
+            case Success(multipleFailures) => Logger.info(s"DesMultipleFailureResponse from DES: $multipleFailures")
+              multipleFailures
+            case Failure(unexpected) =>
+              Logger.error(s"Error from DES (unable to parse as DesFailureResponse): ${unexpected.getMessage}")
+              DesUnexpectedResponse()
+          }
         }
     }
   }
