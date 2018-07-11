@@ -1,0 +1,12 @@
+{
+  "nino": "AB123456C",
+  "serviceName": "RTI Disputes",
+  "fromDate": "2016-12-31",
+  "toDate": "2017-12-31",
+  "surname": "Smith",
+  "firstName": "John",
+  "gender": "M",
+  "initials": "J B",
+  "dateOfBirth": "2000-03-29",
+  "filterFields": ["surname", "nationalInsuranceNumber"]
+}
