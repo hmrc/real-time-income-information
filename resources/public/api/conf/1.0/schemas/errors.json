@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "API#1394 - Retrieve Citizen Income error response schema v1.0",
+  "title": "Real time income information error response schema v1.0",
   "type": "object",
   "oneOf": [
     {
