@@ -44,7 +44,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
       "the service returns a successfully filtered response" in  {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -54,7 +54,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service)
-        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
         status(result) mustBe 200
       }
     }
@@ -63,7 +63,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
       "the service returns a single error response" in {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -73,7 +73,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service)
-        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
         status(result) mustBe 400
 
       }
@@ -81,7 +81,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
       "the service returns multiple error responses" in {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -91,7 +91,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service)
-        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
         status(result) mustBe 400
 
       }
@@ -99,7 +99,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
     "Return 404 (NOT_FOUND)" when {
       "The remote endpoint has indicated that there is no data for the Nino" in {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -109,7 +109,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service)
-        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
         status(result) mustBe 404
       }
     }
@@ -118,7 +118,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
       "DES is currently experiencing problems that require live service intervention." in {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -128,7 +128,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service)
-        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
         status(result) mustBe 500
       }
     }
@@ -137,7 +137,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
       "Dependent systems are currently not responding" in {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -147,7 +147,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service)
-        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
         status(result) mustBe 503
       }
     }
@@ -156,7 +156,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
       "DES has given an unexpected response" in {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -166,14 +166,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service)
-        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
         status(result) mustBe 500
       }
 
       "DES has given a failure code and reason that do not match schema" in {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleRequest))
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -183,7 +183,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service)
-        val result = sut.retrieveCitizenIncome(nino)(fakeRequest)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
         status(result) mustBe 500
       }
     }
@@ -195,7 +195,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
   private implicit val hc = HeaderCarrier()
 
   private def randomNino: Nino = new Generator(new Random).nextNino
-  private val nino: String = randomNino.nino
+  private val nino: String = "AB123456C"
 
-  private val correlationId = UUID.randomUUID()
+  private val correlationId = UUID.randomUUID().toString
 }

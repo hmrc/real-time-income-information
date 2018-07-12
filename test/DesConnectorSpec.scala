@@ -19,7 +19,7 @@ import java.util.UUID
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.DesConfig
 import connectors.DesConnector
-import models.RequestDetails
+import models.{DesMatchingRequest, RequestDetails}
 import models.response.{DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
@@ -82,7 +82,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
           result => result mustBe expectedResponse
         }
 
@@ -104,7 +104,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
           result => result mustBe expectedResponse
         }
       }
@@ -122,7 +122,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
           result => result mustBe expectedResponse
         }
       }
@@ -140,7 +140,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
           result => result mustBe expectedResponse
         }
       }
@@ -158,7 +158,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
           result => result mustBe expectedResponse
         }
 
@@ -177,7 +177,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
           result => result mustBe expectedResponse
         }
 
@@ -198,7 +198,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
           result => result mustBe responses
         }
 
@@ -218,9 +218,19 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleRequest.as[RequestDetails])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
           result => result mustBe response
         }
+      }
+    }
+  }
+
+  "Request Details" must {
+    "Form a Des Matching request" when {
+      "Given a valid dwp request" in {
+        val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
+        val transformedRequest = RequestDetails.toMatchingRequest(requestDetails)
+        transformedRequest mustBe DesMatchingRequest("2016-12-31", "2017-12-31", "Smith", None, None, None, None, None)
       }
     }
   }

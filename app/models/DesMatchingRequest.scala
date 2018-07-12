@@ -18,9 +18,7 @@ package models
 
 import play.api.libs.json.Json
 
-case class RequestDetails(
-  nino: String,
-  serviceName: String,
+case class DesMatchingRequest(
   fromDate: String,
   toDate: String,
   surname: String,
@@ -28,15 +26,9 @@ case class RequestDetails(
   middleName: Option[String],
   gender: Option[String],
   initials: Option[String],
-  dateOfBirth: Option[String],
-  filterFields: List[String]
+  dateOfBirth: Option[String]
 )
 
-object RequestDetails {
-  implicit val formats = Json.format[RequestDetails]
-  def toMatchingRequest(r: RequestDetails): DesMatchingRequest =
-    DesMatchingRequest(r.fromDate, r.toDate,
-    r.surname, r.firstName,
-    r.middleName, r.gender,
-    r.initials, r.dateOfBirth)
+object DesMatchingRequest {
+  implicit val formats = Json.format[DesMatchingRequest]
 }

@@ -154,7 +154,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
 
             "retrieve and filter data" in {
 
-              val requestDetails = RequestDetails("2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
+              val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
               val mockDesConnector = mock[DesConnector]
 
               when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(1, List(taxYear))))
@@ -179,7 +179,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
 
           "given a DES failure response return an appropriate error message" in {
 
-            val matchingDetails = RequestDetails("2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
+            val matchingDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Surname", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
             val mockDesConnector = mock[DesConnector]
 
             when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
