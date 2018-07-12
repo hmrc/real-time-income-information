@@ -1,1 +1,1 @@
-POST      /individuals/:nino/income             @controllers.RealTimeIncomeInformationController.retrieveCitizenIncome(nino: String)
+POST      /individuals/:correlationId/income             @controllers.RealTimeIncomeInformationController.retrieveCitizenIncome(correlationId: String)

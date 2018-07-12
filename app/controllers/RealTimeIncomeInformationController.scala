@@ -33,10 +33,10 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeIncomeInformationService) extends BaseController {
 
-  def retrieveCitizenIncome(nino: String): Action[JsValue] = Action.async(parse.json) {
+  def retrieveCitizenIncome(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
       withJsonBody[RequestDetails] { body =>
-          rtiiService.retrieveCitizenIncome (Nino(nino), body) map {
+          rtiiService.retrieveCitizenIncome (Nino(body.nino), body) map {
             case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
             case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
             case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))

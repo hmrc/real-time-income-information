@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.{Inject, Singleton}
 import connectors.DesConnector
-import models.RequestDetails
+import models.{DesMatchingRequest, RequestDetails}
 import models.response._
 import play.api.libs.json.{JsValue, Json, _}
 import uk.gov.hmrc.domain.Nino
@@ -45,7 +45,7 @@ class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector)
   }
 
   def retrieveCitizenIncome(nino: Nino, requestDetails: RequestDetails)(implicit hc: HeaderCarrier) : Future[DesResponse] = {
-    desConnector.retrieveCitizenIncome(nino, requestDetails)(hc) map {
+    desConnector.retrieveCitizenIncome(nino, RequestDetails.toMatchingRequest(requestDetails))(hc) map {
       case desSuccess: DesSuccessResponse => DesFilteredSuccessResponse(pickAll(requestDetails.filterFields, desSuccess))
       case failure: DesResponse => failure
     }
