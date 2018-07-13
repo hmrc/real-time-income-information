@@ -19,7 +19,7 @@ package connectors
 
 import com.google.inject.{Inject, Singleton}
 import config.DesConfig
-import models.RequestDetails
+import models.{DesMatchingRequest, RequestDetails}
 import models.response._
 import play.api.Logger
 import play.api.http.Status
@@ -48,9 +48,9 @@ class DesConnector @Inject()(httpClient: HttpClient,
 
   def header: HeaderCarrier = HeaderCarrier(extraHeaders = commonHeaderValues)
 
-  def retrieveCitizenIncome(nino: Nino, requestDetails: RequestDetails)(implicit hc: HeaderCarrier): Future[DesResponse] = {
+  def retrieveCitizenIncome(nino: Nino, matchingRequest: DesMatchingRequest)(implicit hc: HeaderCarrier): Future[DesResponse] = {
     val postUrl = desPathUrl(nino)
-    httpClient.POST(postUrl, requestDetails).flatMap {
+    httpClient.POST(postUrl, matchingRequest).flatMap {
     httpResponse =>
       httpResponse.status match {
         case Status.OK => Future.successful(parseDesResponse[DesSuccessResponse](httpResponse))
