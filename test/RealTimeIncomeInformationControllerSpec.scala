@@ -40,7 +40,24 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
   protected lazy val controller: RealTimeIncomeInformationController = injector.instanceOf[RealTimeIncomeInformationController]
 
   "RealTimeIncomeInformationController" should {
-    "Return 200" when {
+    "return 400 provided an invalid request" in {
+
+      val fakeRequest = FakeRequest(method = "POST", uri = "",
+        headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpRequest))
+
+      server.stubFor(
+        post(urlEqualTo(s"/individuals/$nino/income"))
+          .willReturn(
+            ok(successMatchOneYear.toString())
+          )
+      )
+
+      val sut = createSUT(service)
+      val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+      status(result) mustBe 400
+    }
+
+    "Return 200 provided a valid request" when {
       "the service returns a successfully filtered response" in  {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
