@@ -110,6 +110,22 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         status(result) mustBe 400
       }
 
+      "the filter fields array contains an empty string field" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpEmptyStringField))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              ok(successMatchOneYear.toString())
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        status(result) mustBe 400
+      }
 
       "the service returns a single error response" in {
 
@@ -147,6 +163,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
 
       }
     }
+
     "Return 404 (NOT_FOUND)" when {
       "The remote endpoint has indicated that there is no data for the Nino" in {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
