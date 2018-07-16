@@ -37,8 +37,6 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
 
   def retrieveCitizenIncome(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
-
-
       schemaValidationHandler(request.body) match {
         case Right(JsSuccess(requestBody, _)) => withJsonBody[RequestDetails] {
           body =>

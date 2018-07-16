@@ -16,8 +16,6 @@
 
 package utils
 
-import java.io.File
-
 import com.eclipsesource.schema.{SchemaType, SchemaValidator}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 
@@ -34,9 +32,9 @@ trait SchemaValidationHandler {
         Json.parse(Source.fromFile(path).mkString)
     }
 
-    if (!validator.validate(Json.fromJson[SchemaType](schema).get)(jsonToValidate).isSuccess)
-      Left(JsError("Does not validate against any schema"))
-    else
+    if (validator.validate(Json.fromJson[SchemaType](schema).get)(jsonToValidate).isSuccess)
       Right(JsSuccess(jsonToValidate))
+    else
+      Left(JsError("Does not validate against any schema"))
   }
 }

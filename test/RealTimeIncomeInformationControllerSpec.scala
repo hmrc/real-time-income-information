@@ -16,8 +16,7 @@
 
 import java.util.UUID
 
-import com.github.tomakehurst.wiremock.client.WireMock.{badRequest, ok, post, urlEqualTo, notFound, serverError, serviceUnavailable}
-import connectors.DesConnector
+import com.github.tomakehurst.wiremock.client.WireMock._
 import controllers.RealTimeIncomeInformationController
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
@@ -40,23 +39,6 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
   protected lazy val controller: RealTimeIncomeInformationController = injector.instanceOf[RealTimeIncomeInformationController]
 
   "RealTimeIncomeInformationController" should {
-    "return 400 provided an invalid request" in {
-
-      val fakeRequest = FakeRequest(method = "POST", uri = "",
-        headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpRequest))
-
-      server.stubFor(
-        post(urlEqualTo(s"/individuals/$nino/income"))
-          .willReturn(
-            ok(successMatchOneYear.toString())
-          )
-      )
-
-      val sut = createSUT(service)
-      val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
-      status(result) mustBe 400
-    }
-
     "Return 200 provided a valid request" when {
       "the service returns a successfully filtered response" in  {
 
@@ -77,6 +59,58 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
     }
 
     "Return 400" when {
+      "the request does not validate against the schema" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              ok(successMatchOneYear.toString())
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        status(result) mustBe 400
+      }
+
+      "the filter fields array is empty" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpEmptyFieldsRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              ok(successMatchOneYear.toString())
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        status(result) mustBe 400
+      }
+
+      "the filter fields array contains duplicate fields" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpDuplicateFields))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              ok(successMatchOneYear.toString())
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        status(result) mustBe 400
+      }
+
+
       "the service returns a single error response" in {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",

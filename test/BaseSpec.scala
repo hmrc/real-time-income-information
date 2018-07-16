@@ -35,6 +35,9 @@ trait BaseSpec {
   val exampleDesRequest = readJson("conf/resources/example-des-request.json")
   val multipleErrors = readJson("conf/resources/400-multiple-errors.json")
   val exampleInvalidDwpRequest = readJson("conf/resources/example-invalid-dwp-request.json")
+  val exampleInvalidDwpEmptyFieldsRequest = readJson("conf/resources/example-invalid-dwp-empty-fields-request.json")
+  val exampleInvalidDwpDuplicateFields = readJson("conf/resources/example-invalid-dwp-duplicate-fields.json")
+
 
   private def readJson(path: String) = {
     Json.parse(Source.fromFile(path).getLines().mkString)
