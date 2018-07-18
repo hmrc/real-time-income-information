@@ -7,8 +7,8 @@ object AppDependencies {
   val compile = Seq(
     ws,
     "uk.gov.hmrc" %% "bootstrap-play-25" % "1.6.0",
-    "uk.gov.hmrc" %% "domain" % "5.1.0"
-
+    "uk.gov.hmrc" %% "domain" % "5.1.0",
+    "com.eclipsesource" %% "play-json-schema-validator" % "0.8.9"
   )
 
   def test(scope: String = "test") = Seq(

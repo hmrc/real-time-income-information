@@ -47,9 +47,10 @@
     },
     "filterFields": {
       "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
       "items": {
-        "type" : "string"
-      }
+        "$ref": "#/definitions/filterType"
     }
   },
   "definitions": {
@@ -68,6 +69,11 @@
     "nameType": {
       "type": "string",
       "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$"
+    },
+    "filterType": {
+      "type": "string",
+      "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$"
+    }
     }
   }
 }
