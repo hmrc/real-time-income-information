@@ -16,6 +16,8 @@
 
 package app
 
+import models.response.DesSingleFailureResponse
+
 object Constants {
 
   val errorCodeNotFoundNino = "NOT_FOUND_NINO"
@@ -26,5 +28,6 @@ object Constants {
   val errorCodeInvalidPayload = "INVALID_PAYLOAD"
   val errorCodeServerError = "SERVER_ERROR"
   val errorCodeServiceUnavailable = "SERVICE_UNAVAILABLE"
+  val responseErrorCodeInvalidPayload = DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")
 
 }
