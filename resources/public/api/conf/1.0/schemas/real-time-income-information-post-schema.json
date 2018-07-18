@@ -51,7 +51,7 @@
       "uniqueItems": true,
       "items": {
         "type":"string",
-        "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$"
+        "pattern": "^[a-zA-Z 1-2 &`\\-\\'\\.^]{1,38}$"
     }
   },
   "definitions": {
