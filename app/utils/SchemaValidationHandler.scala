@@ -28,7 +28,7 @@ trait SchemaValidationHandler {
     val validator = new SchemaValidator()
 
     val schema: JsValue = {
-      val path = ("resources/public/api/conf/1.0/schemas/real-time-income-information-post-schema.json")
+      val path = ("public/api/conf/1.0/schemas/real-time-income-information-post-schema.json")
         Json.parse(Source.fromFile(path).mkString)
     }
 
