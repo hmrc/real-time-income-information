@@ -180,6 +180,22 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
         status(result) mustBe 404
       }
+
+      "The remote endpoint has indicated a 200 no match" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              ok().withBody(successsNoMatch.toString)
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        status(result) mustBe 404
+      }
     }
 
     "Return 500 (SERVER_ERROR)" when {

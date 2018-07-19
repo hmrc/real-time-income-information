@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.{Inject, Singleton}
 import connectors.DesConnector
-import models.{DesMatchingRequest, RequestDetails}
+import models.RequestDetails
 import models.response._
 import play.api.libs.json.{JsValue, Json, _}
 import uk.gov.hmrc.domain.Nino
@@ -39,14 +39,18 @@ class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector)
 
   def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): JsValue = {
     Json.toJson(Map("taxYears" ->
-      desSuccessResponse.taxYears.map(
+      desSuccessResponse.taxYears.getOrElse(Nil).map(
         taxYear => keys.map(
           key => pickOneValue(key, taxYear)).toMap)))
   }
 
   def retrieveCitizenIncome(nino: Nino, requestDetails: RequestDetails)(implicit hc: HeaderCarrier) : Future[DesResponse] = {
     desConnector.retrieveCitizenIncome(nino, RequestDetails.toMatchingRequest(requestDetails))(hc) map {
-      case desSuccess: DesSuccessResponse => DesFilteredSuccessResponse(pickAll(requestDetails.filterFields, desSuccess))
+      case desSuccess: DesSuccessResponse => if(desSuccess.matchPattern > 0) {
+        DesFilteredSuccessResponse(pickAll(requestDetails.filterFields, desSuccess))
+      } else {
+        DesSuccessResponse(0, None)
+      }
       case failure: DesResponse => failure
     }
   }

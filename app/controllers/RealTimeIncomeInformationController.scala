@@ -19,7 +19,7 @@ package controllers
 import app.Constants
 import com.google.inject.{Inject, Singleton}
 import models.RequestDetails
-import models.response.{DesFilteredSuccessResponse, DesMultipleFailureResponse, DesSingleFailureResponse, DesUnexpectedResponse}
+import models.response._
 import play.api.Logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
@@ -38,16 +38,17 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
   def retrieveCitizenIncome(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
       schemaValidationHandler(request.body) match {
-        case Right(JsSuccess(requestBody, _)) => withJsonBody[RequestDetails] {
+        case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
           body =>
-            rtiiService.retrieveCitizenIncome (Nino (body.nino), body) map {
-              case filteredResponse: DesFilteredSuccessResponse => Ok (Json.toJson (filteredResponse))
-              case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult (singleFailureResponse)
-              case multipleFailureResponse: DesMultipleFailureResponse => BadRequest (Json.toJson(multipleFailureResponse))
-              case unexpectedResponse: DesUnexpectedResponse => InternalServerError (Json.toJson(unexpectedResponse))
-          }
+            rtiiService.retrieveCitizenIncome(Nino(body.nino), body) map {
+              case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
+              case noMatchResponse: DesSuccessResponse => NotFound(Json.toJson(Constants.responseNotFound))
+              case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
+              case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
+              case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
+            }
         }
-        case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseErrorCodeInvalidPayload)))
+        case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseInvalidPayload)))
       }
   }
 
