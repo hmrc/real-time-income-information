@@ -21,7 +21,7 @@ import play.api.libs.json._
 
 sealed trait DesResponse
 
-case class DesSuccessResponse(matchPattern: Int, taxYears: List[JsValue]) extends DesResponse
+case class DesSuccessResponse(matchPattern: Int, taxYears: Option[List[JsValue]]) extends DesResponse
 case class DesFilteredSuccessResponse(requestedFields: JsValue) extends DesResponse
 case class DesSingleFailureResponse(code: String, reason: String) extends DesResponse
 case class DesMultipleFailureResponse(failures: List[DesSingleFailureResponse]) extends DesResponse
@@ -49,12 +49,12 @@ object DesResponse {
 
   implicit val desSuccessReads: Reads[DesSuccessResponse] = (
     (JsPath \ "matchPattern").read[Int] and
-    (JsPath \ "taxYears").read[List[JsValue]]
+    (JsPath \ "taxYears").readNullable[List[JsValue]]
   )(DesSuccessResponse.apply _)
 
   implicit val desSuccessWrites: Writes[DesSuccessResponse] = (
     (JsPath \ "matchPattern").write[Int] and
-      (JsPath \ "taxYears").write[List[JsValue]]
+      (JsPath \ "taxYears").writeNullable[List[JsValue]]
     )(unlift(DesSuccessResponse.unapply))
 
   implicit val desSingleFailureReads: Reads[DesSingleFailureResponse] = (

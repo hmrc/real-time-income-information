@@ -31,6 +31,7 @@ trait BaseSpec {
   val serviceUnavailableJson = readJson("conf/resources/503-service-unavailable.json")
   val successMatchOneYear = readJson("conf/resources/200-success-matched-one-year.json")
   val successMatchTwoYear = readJson("conf/resources/200-success-matched-two-years.json")
+  val successsNoMatch = readJson("conf/resources/200-success-no-match.json")
   val exampleDwpRequest = readJson("conf/resources/example-dwp-request.json")
   val exampleDesRequest = readJson("conf/resources/example-des-request.json")
   val multipleErrors = readJson("conf/resources/400-multiple-errors.json")
