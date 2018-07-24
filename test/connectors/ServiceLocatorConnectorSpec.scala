@@ -16,18 +16,18 @@
 
 package connectors
 
-import config.BaseConfig
+import config.ApplicationConfig
+import org.mockito.Matchers.{any, eq => eqs}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar
-import play.api.http.HeaderNames.CONTENT_TYPE
+import play.api.{Configuration,Environment}
 import play.api.http.ContentTypes.JSON
+import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.libs.json.Writes
-import play.api.{Configuration, Environment}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.test.UnitSpec
-import org.mockito.Matchers.{any, eq => eqs}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -38,12 +38,12 @@ class ServiceLocatorConnectorSpec  extends UnitSpec with MockitoSugar with Scala
     val serviceLocatorException = new RuntimeException
 
     val mockHttpClient = mock[HttpClient]
-    val mockConfig = mock[BaseConfig]
+    val mockConfig = mock[Configuration]
     val mockEnv = mock[Environment]
     val appUrl = "http://real-time-income-information.service"
     val appName = "real-time-income-information"
     val serviceUrl = "https://SERVICE_LOCATOR"
-    class TestConfig extends BaseConfig(mockEnv) {
+    class TestConfig extends ApplicationConfig(mockConfig, mockEnv) {
 
       override def getString(key: String): String = key match {
         case "appUrl" => appUrl
@@ -53,7 +53,7 @@ class ServiceLocatorConnectorSpec  extends UnitSpec with MockitoSugar with Scala
         serviceUrl
       }
 
-      override protected def runModeConfiguration: Configuration = mock[Configuration]
+//      override protected val runModeConfiguration: Configuration = mock[Configuration]
     }
     val connector: ServiceLocatorConnector = new ServiceLocatorConnector(mockHttpClient, new TestConfig) {
       override val handlerOK: () => Unit = mock[() => Unit]
