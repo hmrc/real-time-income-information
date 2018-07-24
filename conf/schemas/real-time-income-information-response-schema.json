@@ -1,0 +1,458 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Real time income information response schema v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "taxYears": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "additionalItems": false,
+      "items": {
+        "$ref": "#/definitions/taxYearItem"
+      }
+    }
+  },
+  "definitions": {
+    "taxYearItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "taxYear": {
+          "type": "string",
+          "description": "The tax year to which the earnings information in this record applies",
+          "pattern": "^[0-9]{2}\\-[0-9]{2}$"
+        },
+        "taxYearIndicator": {
+          "type": "string",
+          "description": "Previous or Current tax year",
+          "pattern": "^[PC]$"
+        },
+        "hmrcOfficeNumber": {
+          "type": "string",
+          "description": "HMRC Office Number",
+          "pattern": "^(00[1-9]|0[1-9][0-9]|[1-9][0-9][0-9])$"
+        },
+        "employerPayeRef": {
+          "type": "string",
+          "description": "Unique identifier for the Scheme making the payment",
+          "pattern": "^[^ ].{1,9}$"
+        },
+        "employerName1": {
+          "type": "string",
+          "description": "Name of the Scheme employing the individual (part 1)",
+          "pattern": "^.{1,28}$"
+        },
+        "employerName2": {
+          "type": "string",
+          "description": "Name of the Scheme employing the individual (part 2)",
+          "pattern": "^.{0,28}$"
+        },
+        "employerTradeName1": {
+          "type": "string",
+          "description": "Trade Name of the Scheme employing the individual (part 1)",
+          "pattern": "^.{0,28}$"
+        },
+        "employerTradeName2": {
+          "type": "string",
+          "description": "Trade Name of the Scheme employing the individual (part 2)",
+          "pattern": "^.{0,28}$"
+        },
+        "nationalInsuranceNumber": {
+          "type": "string",
+          "description": "The NINO of the Individual for which the Payment Data is being issued",
+          "pattern": "^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D]?$"
+        },
+        "surname": {
+          "description": "Surname of the person for whom the Payment Data has been received",
+          "$ref": "#/definitions/nameType"
+        },
+        "forename": {
+          "description": "Forename of the person for whom the Payment Data has been received",
+          "$ref": "#/definitions/nameType"
+        },
+        "secondForename": {
+          "description": "Second Forename of the person for whom the Payment Data has been received",
+          "$ref": "#/definitions/nameType"
+        },
+        "initials": {
+          "type": "string",
+          "description": "Initials of the person for whom the Payment Data has been received",
+          "pattern": "^[A-Za-z][A-Za-z ]{0,4}$"
+        },
+        "dateOfBirth": {
+          "$ref": "#/definitions/dateString",
+          "description": "Date of Birth of the person for whom the Payment Data has been received"
+        },
+        "gender": {
+          "type": "string",
+          "description": "Gender for whom the Payment Data has been received",
+          "pattern": "^[MF]$"
+        },
+        "uniqueEmploymentSequenceNumber": {
+          "type": "integer",
+          "description": "The NPS Employment Sequence Number",
+          "minimum": 1,
+          "maximum": 9999
+        },
+        "payrollId": {
+          "type": "string",
+          "description": "Identifier assigned by the employer to the individual",
+          "pattern": "^[^ ].{0,34}$"
+        },
+        "employmentStartDate": {
+          "$ref": "#/definitions/dateString",
+          "description": "Start Date of the Employment for which the Payment Data"
+        },
+        "employmentEndDate": {
+          "$ref": "#/definitions/dateString",
+          "description": "End Date of the Employment for which the Payment Data"
+        },
+        "taxablePayInPeriod": {
+          "description": "Taxable pay in this pay period including payrolled benefits in kind",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "paymentsNotSubjectToTaxOrNICS": {
+          "description": "Value of payments not subject to tax or NICs in pay period",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "valueOfDeductions": {
+          "description": "Value of deductions from net pay in pay period",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "payAfterStatutoryDeductions": {
+          "description": "Pay After Statutory Deductions",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "benefitsTaxedViaPayroll": {
+          "description": "Value of benefits taxed via the payroll in pay period",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "employeePensionContributions": {
+          "description": "Value of employee pension contributions paid under net pay arrangements in pay period",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "itemsSubjectToClass1NIC": {
+          "description": "Items subject to Class 1 NIC but not taxed under PAYE regulations excluding pension contributions in pay period",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "employeePensionContributionsNotPaid": {
+          "description": "Value of employee pension contributions that are not paid under a net pay arrangement",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "taxDeductedOrRefunded": {
+          "description": "Value of tax deducted or refunded from this payment",
+          "$ref": "#/definitions/monetaryPosNeg12Digits"
+        },
+        "grossEarningsForNICs": {
+          "description": "Gross earnings for NICs in this pay period",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "employeesContributionsInPeriod": {
+          "description": "Employees contributions due on all earnings in this pay period",
+          "$ref": "#/definitions/monetaryPosNeg12Digits"
+        },
+        "taxablePayToDate": {
+          "description": "Taxable pay to date in this employment including payrolled benefits in kind",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "totalTaxToDate": {
+          "description": "Total tax to date in this employment",
+          "$ref": "#/definitions/monetaryPosNeg12Digits"
+        },
+        "employeesContributionsYearToDate": {
+          "description": "Employees contributions due on all earnings year to date",
+          "$ref": "#/definitions/monetaryPosNeg12Digits"
+        },
+        "numberOfNormalHoursWorked": {
+          "type": "string",
+          "description": "Code for number of normal hours worked",
+          "pattern": "^[ABCDE]$"
+        },
+        "payFrequency": {
+          "type": "string",
+          "description": "Code for pay frequency",
+          "pattern": "^(W1|W2|W4|M1|M3|M6|MA|IO|IR)$"
+        },
+        "paymentDate": {
+          "$ref": "#/definitions/dateString",
+          "description": "Date of the payment"
+        },
+        "weeklyPeriodNumber": {
+          "type": "integer",
+          "description": "Tax Week Number between 1 and 56 excluding 55",
+          "minimum": 1,
+          "maximum": 56
+        },
+        "monthlyPeriodNumber": {
+          "type": "integer",
+          "description": "Tax Month Number",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "earningsPeriodsCovered": {
+          "type": "integer",
+          "description": "Number of earnings period(s) covered by payment",
+          "minimum": 1,
+          "maximum": 99
+        },
+        "paymentAfterLeaving": {
+          "type": "string",
+          "description": "Indicator that the payment is a payment after date of notification of contract ending",
+          "pattern": "^Y$"
+        },
+        "irregularPayment": {
+          "type": "string",
+          "description": "Irregular Employment Payment Pattern Indicator",
+          "pattern": "^Y$"
+        },
+        "uniquePaymentId": {
+          "type": "number",
+          "description": "Unique Id sent with a payment",
+          "minimum": 1,
+          "maximum": 99999999999999999999999999999999999999,
+          "multipleOf": 1
+        },
+        "paymentConfidenceStatus": {
+          "type": "string",
+          "description": "Indicates the Payment Confidence Status at the time of sending the Payment to DWP",
+          "pattern": "^[12345]$"
+        },
+        "occPenIndicator": {
+          "type": "string",
+          "description": "Occupational Pension Indicator",
+          "pattern": "^Y$"
+        },
+        "onStrikeWithinPayPeriod": {
+          "type": "string",
+          "description": "On Strike Within Pay Period",
+          "pattern": "^Y$"
+        },
+        "unpaidAbsencePayPeriod": {
+          "type": "string",
+          "description": "Identification that an Individual has been on unpaid absence within the RTI Payment Period",
+          "pattern": "^Y$"
+        },
+        "benefitsTaxedYeartoDate": {
+          "description": "Value of benefits taxed via the payroll year to date",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "pensionContributionsYearToDate": {
+          "description": "Value of employee pension Contributions paid under Net pay arrangements YTD",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "pensionContributionsNotPaidYeartoDate": {
+          "description": "Value of Employee Pension Contributions That Are Not Paid Under Net Pay Arrangements YTD",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "taxCode": {
+          "type": "string",
+          "description": "Tax Code Operated on the Payment",
+          "pattern": "^([1-9][0-9]{0,5}[LMNPTY])|(BR)|(0T)|(NT)|(FT)|(D[0-8])|([K][1-9][0-9]{0,5})$"
+        },
+        "multipleIPSIndicator": {
+          "type": "string",
+          "description": "Multiple IPS records used to determine payment confidence status of Payment Confirmed Amount Differs",
+          "pattern": "^[YN]$"
+        },
+        "bacsPaymentAmount": {
+          "type": "number",
+          "description": "The BACS payment amount (in pence) used in determining the payment confidence status",
+          "minimum": 0,
+          "maximum": 99999999999,
+          "multipleOf": 1
+        },
+        "statutoryMaternityPayYeartoDate": {
+          "description": "Statutory Maternity Pay Year to Date",
+          "$ref": "#/definitions/monetaryPos8Digits"
+        },
+        "niLetter": {
+          "type": "string",
+          "description": "NI Letter",
+          "pattern": "^[ABCDEGHIJKLMNOPQRTVWXYZ]$"
+        },
+        "directorsNIC": {
+          "type": "string",
+          "description": "Director's NIC - Annual or Alternative",
+          "pattern": "^(AN|AL)$"
+        },
+        "latePayeReportingReason": {
+          "type": "string",
+          "description": "Code for Late PAYE Reporting Reason",
+          "pattern": "^[ABCDEFGH]$"
+        },
+        "schemeExemptFromElectronicFiling": {
+          "type": "string",
+          "description": "Scheme Exempt from Electronic Filing",
+          "pattern": "^[YN]$"
+        },
+        "flexiblyAccessingPensionRights": {
+          "type": "string",
+          "description": "Flexibly Accessing Pension Rights",
+          "pattern": "^Y$"
+        },
+        "pensionsDeathBenefit": {
+          "type": "string",
+          "description": "Pensions Death Benefit",
+          "pattern": "^Y$"
+        },
+        "flexibleDrawdownTaxablePayment": {
+          "description": "Flexible Drawdown Taxable Payment",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "flexibleDrawdownNonTaxablePayment": {
+          "description": "Flexible Drawdown Non-Taxable Payment",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "taxRegime": {
+          "type": "string",
+          "description": "Tax Regime",
+          "pattern": "^S$"
+        },
+        "annualAmountOfOccupationalPension": {
+          "description": "Annual Amount of Occupational Pension",
+          "$ref": "#/definitions/monetaryPos"
+        },
+        "taxCodeBasisisNonCumulative": {
+          "type": "string",
+          "description": "Tax Code Basis is Non Cumulative",
+          "pattern": "^Y$"
+        },
+        "statutoryPaternityPayYearToDate": {
+          "type": "number",
+          "description": "Statutory Paternity Pay Year to Date",
+          "$ref": "#/definitions/monetaryPos8Digits"
+        },
+        "valueofStatutoryAdoptionPayYearToDate": {
+          "description": "Value of Statutory Adoption Pay Year to Date",
+          "$ref": "#/definitions/monetaryPos8Digits"
+        },
+        "sharedParentalPayYearToDate": {
+          "description": "Shared Parental Pay Year to Date",
+          "$ref": "#/definitions/monetaryPos8Digits"
+        },
+        "partnerSurnameOrFamilyName": {
+          "description": "Partner's surname or family name for Additional Statutory Paternity Pay / Shared Parental Pay claim",
+          "$ref": "#/definitions/nameType"
+        },
+        "partnerForenameOrGivenName": {
+          "description": "Partner's forename for Additional Statutory Paternity Pay / Shared Parental Pay claim",
+          "$ref": "#/definitions/nameType"
+        },
+        "partnerInitials": {
+          "type": "string",
+          "description": "Partner's initials for Additional Statutory Paternity Pay / Shared Parental Pay claim",
+          "pattern": "^[A-Za-z][A-Za-z ]{0,4}$"
+        },
+        "partnerSecondForename": {
+          "description": "Partner's second forename for Additional Statutory Paternity Pay / Shared Parental Pay claim",
+          "$ref": "#/definitions/nameType"
+        },
+        "partnerNINO": {
+          "type": "string",
+          "description": "The NINO of the employee's social partner",
+          "pattern": "^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D ]?$"
+        },
+        "grossEarningsForNICsYearToDate": {
+          "description": "Gross Earnings for NICs Year to Date",
+          "$ref": "#/definitions/monetaryPos"
+        },
+        "taxWeekNumberOfAppointmentOfDirector": {
+          "type": "integer",
+          "description": "Tax Week Number of Appointment of Director",
+          "minimum": 1,
+          "maximum": 56
+        },
+        "totalEmployerNIContributionsInPeriod": {
+          "description": "Total Employer NI Contributions in Period",
+          "$ref": "#/definitions/monetaryPosNeg11Digits"
+        },
+        "trivialCommutationPaymentTypeA": {
+          "description": "Trivial Commutation Payment Type A",
+          "$ref": "#/definitions/monetaryPosNeg7Digits"
+        },
+        "trivialCommutationPaymentTypeB": {
+          "description": "Trivial Commutation Payment Type B",
+          "$ref": "#/definitions/monetaryPosNeg7Digits"
+        },
+        "trivialCommutationPaymentTypeC": {
+          "description": "Trivial Commutation Payment Type C",
+          "$ref": "#/definitions/monetaryPosNeg7Digits"
+        },
+        "seriousillHealthLumpSum": {
+          "type": "string",
+          "description": "Indicate yes if any part of the payment is a serious ill health lump sum",
+          "pattern": "^[Y]$"
+        },
+        "hmrcReceiptTimestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time that the submission was received from the employer at the government gateway"
+        },
+        "rtiReceivedDate": {
+          "type": "string",
+          "$ref": "#/definitions/dateString",
+          "description": "The date that the submission was received by the RTI core service"
+        },
+        "apiAvailableTimestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time this information was available to the API"
+        },
+        "paymentNoLongerValid": {
+          "type": "string",
+          "$ref": "#/definitions/dateString",
+          "description": "The date on which the payment was no longer linked to the employment"
+        }
+      }
+    },
+    "nameType": {
+      "type": "string",
+      "description": "Between 0 and 34 constrained characters",
+      "pattern": "^[A-Za-z][A-Za-z '-]{0,34}$"
+    },
+    "monetaryPosNeg11Digits": {
+      "type": "number",
+      "minimum": -999999999.99,
+      "maximum": 999999999.99,
+      "multipleOf": 0.01
+    },
+    "monetaryPos": {
+      "type": "number",
+      "minimum": 0.00,
+      "maximum": 999999999.99,
+      "multipleOf": 0.01
+    },
+    "monetaryPosNeg7Digits": {
+      "description": "Values between -99999.00 and 99999.00 in whole numbers only",
+      "type": "number",
+      "minimum": -99999.00,
+      "maximum": 99999.00,
+      "multipleOf": 1.00
+    },
+    "monetaryPosNeg8Digits": {
+      "type": "number",
+      "minimum": -999999.99,
+      "maximum": 999999.99,
+      "multipleOf": 0.01
+    },
+    "monetaryPos8Digits": {
+      "type": "number",
+      "minimum": 0.00,
+      "maximum": 999999.99,
+      "multipleOf": 0.01
+    },
+    "monetaryPosNeg12Digits": {
+      "type": "number",
+      "minimum": -9999999999.99,
+      "maximum": 9999999999.99,
+      "multipleOf": 0.01
+    },
+    "dateString": {
+      "type": "string",
+      "description": "Format CCYY-MM-DD",
+      "pattern": "^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+    }
+  }
+}

@@ -67,8 +67,8 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                                      |    }
                                      """.stripMargin)
 
-    val desResponseWithOneTaxYear = DesSuccessResponse(63, List(taxYear))
-    val desResponseWithTwoTaxYears = DesSuccessResponse(63, List(taxYear,taxYear))
+    val desResponseWithOneTaxYear = DesSuccessResponse(63, Some(List(taxYear)))
+    val desResponseWithTwoTaxYears = DesSuccessResponse(63, Some(List(taxYear,taxYear)))
 
     "pickOneValue is called" must {
 
@@ -148,16 +148,16 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
       }
 
     }
-        "retrieve citizen income is called" when{
+        "retrieve citizen income is called" when {
 
-          "given a DES success response" must {
+          "given a DES success response with a match" must {
 
-            "retrieve and filter data" in {
+            "retrieve and filter data to return as a DesFilteredSuccessResponse" in {
 
               val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
               val mockDesConnector = mock[DesConnector]
 
-              when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(1, List(taxYear))))
+              when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(63, Some(List(taxYear)))))
 
               val expectedJson = Json.parse(
                 """
@@ -175,6 +175,31 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                 result => result mustBe DesFilteredSuccessResponse(expectedJson)
               }
             }
+
+          }
+
+            "given a DES success response with no match" must {
+
+              "return an unfiltered DesSuccessResponse" in {
+
+                val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
+                val mockDesConnector = mock[DesConnector]
+
+                when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(0, None)))
+
+                val expectedJson = Json.parse(
+                  """
+                    |{
+                      "matchPattern": 0
+                    |}
+                  """.stripMargin)
+
+                whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), requestDetails)) {
+                  result => result mustBe DesSuccessResponse(0, None)
+                }
+
+              }
+
           }
 
           "given a DES failure response return an appropriate error message" in {

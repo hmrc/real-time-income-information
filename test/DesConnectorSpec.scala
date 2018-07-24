@@ -72,13 +72,31 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
                          |      "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
                          |}""".stripMargin)
 
-        val expectedResponse = DesSuccessResponse(63, List(taxYear))
+        val expectedResponse = DesSuccessResponse(63, Some(List(taxYear)))
 
         val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
               ok(successMatchOneYear.toString())
+            )
+        )
+
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
+          result => result mustBe expectedResponse
+        }
+
+      }
+
+      "received a 200 No match response from DES" in {
+
+        val expectedResponse = DesSuccessResponse(0, None)
+
+        val nino = randomNino
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              ok(successsNoMatch.toString())
             )
         )
 
