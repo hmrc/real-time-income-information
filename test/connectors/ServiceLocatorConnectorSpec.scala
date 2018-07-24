@@ -53,7 +53,6 @@ class ServiceLocatorConnectorSpec  extends UnitSpec with MockitoSugar with Scala
         serviceUrl
       }
 
-//      override protected val runModeConfiguration: Configuration = mock[Configuration]
     }
     val connector: ServiceLocatorConnector = new ServiceLocatorConnector(mockHttpClient, new TestConfig) {
       override val handlerOK: () => Unit = mock[() => Unit]
