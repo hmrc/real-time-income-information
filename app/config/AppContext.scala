@@ -23,7 +23,9 @@ import play.api.Configuration
 class AppContext @Inject()(configuration: Configuration) {
   private val apiScopeConfigKey = "api.definition.scope"
   private val apiContextConfigKey = "api.context"
+  private val apiWhitelistedServicesConfigKey = "api.whitelistedServices"
   private def apiConfigException(apiConfigKey: String) = new IllegalStateException(s"$apiConfigKey is not configured")
   lazy val apiScopeKey: String = configuration.getString(apiScopeConfigKey).getOrElse(throw apiConfigException(apiScopeConfigKey))
+  lazy val apiWhitelistKey: String = configuration.getString(apiWhitelistedServicesConfigKey).getOrElse(throw apiConfigException(apiWhitelistedServicesConfigKey))
   lazy val apiContext: String = configuration.getString(apiContextConfigKey).getOrElse(throw apiConfigException(apiContextConfigKey))
 }

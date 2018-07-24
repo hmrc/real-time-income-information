@@ -1,5 +1,5 @@
 @import play.api.libs.json.Json
-@(apiContext: String)
+@(apiContext: String, whitelist: String)
 {
   "scopes":[
       {
@@ -16,7 +16,8 @@
         "version": "1.0",
         "status": "UNPUBLISHED",
         "access": {
-          "type": "private"
+          "type": "private",
+          "whitelistedApplicationIds": "@whitelist"
         }
       }
     ]
