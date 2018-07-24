@@ -15,7 +15,7 @@
  */
 
 import app.ApplicationRegistration
-import config.BaseConfig
+import config.ApplicationConfig
 import connectors.ServiceLocatorConnector
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
@@ -24,10 +24,8 @@ import uk.gov.hmrc.play.test.UnitSpec
 
 class ApplicationRegistrationSpec extends UnitSpec with MockitoSugar {
 
-  case class TestServiceConfiguration(outcome: Boolean) extends BaseConfig(mock[Environment]) {
+  case class TestServiceConfiguration(outcome: Boolean) extends ApplicationConfig(mock[Configuration], mock[Environment]) {
     override def getConfBool(confKey: String, defBool: => Boolean): Boolean = outcome
-
-    override protected def runModeConfiguration: Configuration = mock[Configuration]
   }
 
   trait Setup {
