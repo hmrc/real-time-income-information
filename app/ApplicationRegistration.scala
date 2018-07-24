@@ -16,13 +16,13 @@
 
 package app
 
-import config.BaseConfig
+import config.ApplicationConfig
 import connectors.ServiceLocatorConnector
 import javax.inject.{Inject, Singleton}
 
 
 @Singleton
-class ApplicationRegistration @Inject()(serviceLocatorConnector: ServiceLocatorConnector, config: BaseConfig) {
+class ApplicationRegistration @Inject()(serviceLocatorConnector: ServiceLocatorConnector, config: ApplicationConfig) {
   val registrationEnabled: Boolean = config.getConfBool("service-locator.enabled", defBool = true)
 
   if (registrationEnabled) serviceLocatorConnector.register()

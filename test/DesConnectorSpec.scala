@@ -17,7 +17,7 @@
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import config.DesConfig
+import config.ApplicationConfig
 import connectors.DesConnector
 import models.{DesMatchingRequest, RequestDetails}
 import models.response.{DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
@@ -37,7 +37,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
   override protected def portConfigKey: String = "microservice.services.des-hod.port"
 
   protected lazy val connector: DesConnector = injector.instanceOf[DesConnector]
-  protected lazy val desConfig: DesConfig = injector.instanceOf[DesConfig]
+  protected lazy val desConfig: ApplicationConfig = injector.instanceOf[ApplicationConfig]
 
   "DesConnector" must {
 

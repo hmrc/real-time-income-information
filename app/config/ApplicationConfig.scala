@@ -18,7 +18,6 @@ package config
 
 import com.google.inject.Inject
 import javax.inject.Singleton
-import play.api.Play.current
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.play.config.ServicesConfig
 
@@ -28,12 +27,9 @@ trait HodConfig {
   val authorization: String
 }
 
-abstract class BaseConfig(playEnv: Environment) extends ServicesConfig {
-  override val mode = playEnv.mode
-}
-
 @Singleton
-class DesConfig @Inject() (val runModeConfiguration: Configuration, playEnv: Environment) extends BaseConfig(playEnv) with HodConfig {
+class ApplicationConfig @Inject()(val runModeConfiguration: Configuration, playEnv: Environment) extends HodConfig with ServicesConfig {
+  override protected def mode = playEnv.mode
   lazy val baseURL: String = baseUrl("des-hod")
   lazy val environment: String = runModeConfiguration.getString(s"$rootServices.des-hod.env").getOrElse("local")
   lazy val authorization: String = "Bearer " + runModeConfiguration.getString(s"$rootServices.des-hod.authorizationToken").getOrElse("local")

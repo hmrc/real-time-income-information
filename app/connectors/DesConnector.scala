@@ -18,7 +18,7 @@ package connectors
 
 
 import com.google.inject.{Inject, Singleton}
-import config.DesConfig
+import config.ApplicationConfig
 import models.{DesMatchingRequest, RequestDetails}
 import models.response._
 import play.api.Logger
@@ -34,7 +34,7 @@ import scala.util.{Failure, Success, Try}
 
 @Singleton
 class DesConnector @Inject()(httpClient: HttpClient,
-                             desConfig: DesConfig) extends RawReads {
+                             desConfig: ApplicationConfig) extends RawReads {
 
   def desPathUrl(nino: Nino) = s"${desConfig.baseURL}/individuals/$nino/income"
 
