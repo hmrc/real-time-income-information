@@ -17,7 +17,7 @@
 package connectors
 
 import com.google.inject.Inject
-import config.BaseConfig
+import config.ApplicationConfig
 import play.api.Logger
 import play.api.http.{ContentTypes, HeaderNames}
 import play.api.libs.json.Json
@@ -33,7 +33,7 @@ object Registration {
   implicit val regFormat = Json.format[Registration]
 }
 
-class ServiceLocatorConnector @Inject()(http: HttpClient, configuration: BaseConfig) {
+class ServiceLocatorConnector @Inject()(http: HttpClient, configuration: ApplicationConfig) {
 
   private lazy val appName: String = configuration.getString("appName")
   private lazy val appUrl: String = configuration.getString("appUrl")
