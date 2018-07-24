@@ -1,5 +1,7 @@
 # Add all the application routes to the app.routes file
-->         /real-time-income-information              app.Routes
+->         /                          definition.Routes
 ->         /                          health.Routes
+
+->         /real-time-income-information              app.Routes
 
 GET        /admin/metrics             com.kenshoo.play.metrics.MetricsController.metrics

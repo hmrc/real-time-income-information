@@ -29,7 +29,7 @@ trait SchemaValidationHandler {
 
     val schema: JsValue = {
       val path = getClass.getResource("/schemas/real-time-income-information-post-schema.json").getPath
-        Json.parse(Source.fromFile(path).mkString)
+      Json.parse(Source.fromFile(path).mkString)
     }
 
     if (validator.validate(Json.fromJson[SchemaType](schema).get)(jsonToValidate).isSuccess)

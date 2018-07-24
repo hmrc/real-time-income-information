@@ -18,6 +18,7 @@ package config
 
 import com.google.inject.Inject
 import javax.inject.Singleton
+import play.api.Play.current
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.play.config.ServicesConfig
 
@@ -37,3 +38,5 @@ class DesConfig @Inject() (val runModeConfiguration: Configuration, playEnv: Env
   lazy val environment: String = runModeConfiguration.getString(s"$rootServices.des-hod.env").getOrElse("local")
   lazy val authorization: String = "Bearer " + runModeConfiguration.getString(s"$rootServices.des-hod.authorizationToken").getOrElse("local")
 }
+
+
