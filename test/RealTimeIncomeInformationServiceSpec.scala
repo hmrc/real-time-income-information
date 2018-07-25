@@ -175,7 +175,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                   |}
                 """.stripMargin)
 
-              whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), requestDetails, correlationId)) {
+              whenReady(service(mockDesConnector).retrieveCitizenIncome(requestDetails, correlationId)) {
                 result => result mustBe DesFilteredSuccessResponse(expectedJson)
               }
             }
@@ -198,7 +198,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                     |}
                   """.stripMargin)
 
-                whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), requestDetails, correlationId)) {
+                whenReady(service(mockDesConnector).retrieveCitizenIncome(requestDetails, correlationId)) {
                   result => result mustBe DesSuccessResponse(0, None)
                 }
 
@@ -213,7 +213,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
 
             when(mockDesConnector.retrieveCitizenIncome(any(), any(), any())(any())).thenReturn(Future.successful(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
 
-            whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), matchingDetails, correlationId)) {
+            whenReady(service(mockDesConnector).retrieveCitizenIncome(matchingDetails, correlationId)) {
               result => result mustBe DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")
             }
           }
