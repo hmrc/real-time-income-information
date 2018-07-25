@@ -82,7 +82,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
           result => result mustBe expectedResponse
         }
 
@@ -100,7 +100,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
           result => result mustBe expectedResponse
         }
 
@@ -122,7 +122,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
           result => result mustBe expectedResponse
         }
       }
@@ -140,7 +140,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
           result => result mustBe expectedResponse
         }
       }
@@ -158,7 +158,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid")) {
           result => result mustBe expectedResponse
         }
       }
@@ -176,7 +176,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
           result => result mustBe expectedResponse
         }
 
@@ -195,7 +195,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
           result => result mustBe expectedResponse
         }
 
@@ -216,7 +216,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
           result => result mustBe responses
         }
 
@@ -236,7 +236,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])) {
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
           result => result mustBe response
         }
       }
@@ -257,5 +257,5 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
 
   private def randomNino: Nino = new Generator(new Random).nextNino
 
-  private val correlationId = UUID.randomUUID()
+  private val correlationId = UUID.randomUUID().toString
 }

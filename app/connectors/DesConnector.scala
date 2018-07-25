@@ -42,14 +42,16 @@ class DesConnector @Inject()(httpClient: HttpClient,
     override def read(method: String, url: String, response: HttpResponse) = response
   }
 
-  def commonHeaderValues = Seq(
+  def commonHeaderValues(correlationId: String) = Seq(
+    "Authorization" -> desConfig.authorization,
     "Environment" -> desConfig.environment,
-    "Authorization" -> desConfig.authorization)
+    "CorrelationId" -> correlationId)
 
-  def header: HeaderCarrier = HeaderCarrier(extraHeaders = commonHeaderValues)
+  def header(correlationID: String): HeaderCarrier = HeaderCarrier(extraHeaders = commonHeaderValues(correlationID))
 
-  def retrieveCitizenIncome(nino: Nino, matchingRequest: DesMatchingRequest)(implicit hc: HeaderCarrier): Future[DesResponse] = {
+  def retrieveCitizenIncome(nino: Nino, matchingRequest: DesMatchingRequest, correlationId: String)(implicit hc: HeaderCarrier): Future[DesResponse] = {
     val postUrl = desPathUrl(nino)
+    implicit val hc: HeaderCarrier = header(correlationId)
     httpClient.POST(postUrl, matchingRequest).flatMap {
     httpResponse =>
       httpResponse.status match {
