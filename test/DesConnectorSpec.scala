@@ -147,7 +147,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
 
       "the remote endpoint has indicated that the correlation Id is invalid" in {
 
-        val expectedResponse = DesSingleFailureResponse("INVALID_CORRELATIONID",
+        val expectedResponse = DesSingleFailureResponse("INVALID_CORRELATION_ID",
           "Submission has not passed validation. Invalid header CorrelationId.")
 
         val nino = randomNino

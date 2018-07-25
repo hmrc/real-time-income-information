@@ -1,4 +1,4 @@
 {
-  "code": "INVALID_CORRELATIONID",
+  "code": "INVALID_CORRELATION_ID",
   "reason": "Submission has not passed validation. Invalid header CorrelationId."
 }
