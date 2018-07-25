@@ -255,7 +255,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
 
   private implicit val hc = HeaderCarrier()
 
-  private def randomNino: Nino = new Generator(new Random).nextNino
+  private def randomNino: String = new Generator(new Random).nextNino.toString()
 
   private val correlationId = UUID.randomUUID().toString
 }

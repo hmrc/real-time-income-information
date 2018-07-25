@@ -36,7 +36,7 @@ import scala.util.{Failure, Success, Try}
 class DesConnector @Inject()(httpClient: HttpClient,
                              desConfig: ApplicationConfig) extends RawReads {
 
-  def desPathUrl(nino: Nino) = s"${desConfig.baseURL}/individuals/$nino/income"
+  def desPathUrl(nino: String) = s"${desConfig.baseURL}/individuals/$nino/income"
 
   implicit val httpReads: HttpReads[HttpResponse] = new HttpReads[HttpResponse] {
     override def read(method: String, url: String, response: HttpResponse) = response
@@ -49,7 +49,7 @@ class DesConnector @Inject()(httpClient: HttpClient,
 
   def header(correlationID: String): HeaderCarrier = HeaderCarrier(extraHeaders = commonHeaderValues(correlationID))
 
-  def retrieveCitizenIncome(nino: Nino, matchingRequest: DesMatchingRequest, correlationId: String)(implicit hc: HeaderCarrier): Future[DesResponse] = {
+  def retrieveCitizenIncome(nino: String, matchingRequest: DesMatchingRequest, correlationId: String)(implicit hc: HeaderCarrier): Future[DesResponse] = {
     val postUrl = desPathUrl(nino)
     implicit val hc: HeaderCarrier = header(correlationId)
     httpClient.POST(postUrl, matchingRequest).flatMap {
