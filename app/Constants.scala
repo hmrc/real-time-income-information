@@ -22,7 +22,7 @@ object Constants {
 
   val errorCodeNotFoundNino = "NOT_FOUND_NINO"
   val errorCodeNotFound = "NOT_FOUND"
-  val errorCodeInvalidCorrelation = "INVALID_CORRELATIONID"
+  val errorCodeInvalidCorrelation = "INVALID_CORRELATION_ID"
   val errorCodeInvalidDateRange = "INVALID_DATE_RANGE"
   val errorCodeInvalidDatesEqual = "INVALID_DATES_EQUAL"
   val errorCodeInvalidPayload = "INVALID_PAYLOAD"
