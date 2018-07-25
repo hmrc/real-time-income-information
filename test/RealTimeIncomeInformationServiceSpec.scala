@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import java.util.UUID
+
 import connectors.DesConnector
 import models.RequestDetails
 import models.response.{DesFilteredSuccessResponse, DesSingleFailureResponse, DesSuccessResponse}
@@ -33,6 +35,8 @@ import scala.concurrent.Future
 class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers with BaseSpec with MockitoSugar with ScalaFutures {
 
   private implicit val hc = HeaderCarrier()
+
+  private val correlationId = UUID.randomUUID().toString
 
   "RealTimeIncomeInformationService" when {
 
@@ -157,7 +161,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
               val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
               val mockDesConnector = mock[DesConnector]
 
-              when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(63, Some(List(taxYear)))))
+              when(mockDesConnector.retrieveCitizenIncome(any(), any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(63, Some(List(taxYear)))))
 
               val expectedJson = Json.parse(
                 """
@@ -171,7 +175,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                   |}
                 """.stripMargin)
 
-              whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), requestDetails)) {
+              whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), requestDetails, correlationId)) {
                 result => result mustBe DesFilteredSuccessResponse(expectedJson)
               }
             }
@@ -185,7 +189,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                 val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
                 val mockDesConnector = mock[DesConnector]
 
-                when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(0, None)))
+                when(mockDesConnector.retrieveCitizenIncome(any(), any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(0, None)))
 
                 val expectedJson = Json.parse(
                   """
@@ -194,7 +198,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                     |}
                   """.stripMargin)
 
-                whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), requestDetails)) {
+                whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), requestDetails, correlationId)) {
                   result => result mustBe DesSuccessResponse(0, None)
                 }
 
@@ -207,9 +211,9 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
             val matchingDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Surname", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
             val mockDesConnector = mock[DesConnector]
 
-            when(mockDesConnector.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
+            when(mockDesConnector.retrieveCitizenIncome(any(), any(), any())(any())).thenReturn(Future.successful(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
 
-            whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), matchingDetails)) {
+            whenReady(service(mockDesConnector).retrieveCitizenIncome(Nino("AB123456C"), matchingDetails, correlationId)) {
               result => result mustBe DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")
             }
           }

@@ -40,7 +40,7 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
       schemaValidationHandler(request.body) match {
         case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
           body =>
-            rtiiService.retrieveCitizenIncome(Nino(body.nino), body) map {
+            rtiiService.retrieveCitizenIncome(Nino(body.nino), body, correlationId) map {
               case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
               case noMatchResponse: DesSuccessResponse => NotFound(Json.toJson(Constants.responseNotFound))
               case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
