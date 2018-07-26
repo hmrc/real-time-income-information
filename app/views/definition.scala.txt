@@ -1,23 +1,18 @@
 @import play.api.libs.json.Json
-@(apiContext: String, whitelist: String)
+@(apiContext: String)
 {
-  "scopes":[
-      {
-        "key":"write:real-time-income-information",
-        "name":"real-time-income-information",
-        "description":"Retrieve real time income information for an individual"
-      }],
+  "scopes":[],
   "api": {
-    "name":"Real Time Income Information",
-    "description":"The Real Time Income Information API retrieves specified income data for an individual",
+    "name": "Real Time Income Information",
+    "description": "Provides real time income information for an individual",
     "context": "@apiContext",
     "versions": [
       {
-        "version": "1.0",
-        "status": "UNPUBLISHED",
+        "version": "0.1",
+        "status": "BETA",
+        "endpointsEnabled": true,
         "access": {
-          "type": "private",
-          "whitelistedApplicationIds": "@whitelist"
+          "type": "PRIVATE"
         }
       }
     ]
