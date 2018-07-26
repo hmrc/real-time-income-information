@@ -1,20 +1,108 @@
 {
-  "scopes":[
-    {
-      "key":"write:real-time-income-information",
-      "name":"real-time-income-information",
-      "description":"Retrieve real time income information for an individual"
-    }
-  ],
-  "api":{
-    "name":"Real Time Income Information",
-    "description":"The Real Time Income Information API retrieves specified income data for an individual",
-    "context":"real-time-income-information",
-    "versions":[
-      {
-        "version":"1.0",
-        "status":"ALPHA"
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Real Time Income Information",
+  "type": "object",
+  "properties": {
+    "scopes": {
+      "description": "OAuth scopes used by this API",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "description": "The key used to refer to this scope",
+            "type": "string"
+          },
+          "name": {
+            "description": "The name for this scope shown to users in the OAuth journey",
+            "type": "string"
+          },
+          "description": {
+            "description": "The description for this scope",
+            "type": "string"
+          }
+        },
+        "required": ["key", "name", "description"]
       }
-    ]
+    },
+    "api": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "Real Time Income Information",
+          "type": "string"
+        },
+        "description": {
+          "description": "Real Time Income Information",
+          "type": "string"
+        },
+        "context": {
+          "description": "The unique context for the API",
+          "type": "string"
+        },
+        "versions": {
+          "description": "RTII versions",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "description": "The identifier for the version of the API",
+                "type": "string"
+              },
+              "status": {
+                "description": "The current lifecycle status for this API. Either ALPHA, BETA, STABLE, DEPRECATED or RETIRED",
+                "type": "string"
+              },
+              "endpointsEnabled": {
+                "description": "Whether the endpoints for this version are available to call",
+                "type": "boolean"
+              },
+              "access": {
+                "description": "Used to indicate whether this API is public or private. If absent, the API defaults to public",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "The access type for this API. Either PUBLIC or PRIVATE",
+                    "type": "string"
+                  },
+                  "whitelistedApplicationIds": {
+                    "description": "IDs of the applications that are whitelisted to access this API",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "fieldDefinitions": {
+                "description": "List of subscription fields for this API version",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "description": "The internal identifier for this field",
+                    "type": "string"
+                  },
+                  "description": {
+                    "description": "The description that will be shown to users for this field",
+                    "type": "string"
+                  },
+                  "type": {
+                    "description": "The type of value expected for this field",
+                    "type": "string"
+                  },
+                  "hint": {
+                    "description": "Hint text to display to users to help them provide a correct value for this field",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": ["version", "status", "endpointsEnabled"]
+          }
+        }
+      },
+      "required": ["name", "description", "context", "versions"]
+    }
   }
 }
