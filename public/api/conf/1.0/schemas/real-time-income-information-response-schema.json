@@ -7,7 +7,7 @@
     "taxYears": {
       "type": "array",
       "minItems": 1,
-      "uniqueItems": true,
+      "uniqueItems": false,
       "additionalItems": false,
       "items": {
         "$ref": "#/definitions/taxYearItem"
