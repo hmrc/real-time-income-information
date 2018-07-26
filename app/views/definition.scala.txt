@@ -12,7 +12,7 @@
         "status": "BETA",
         "endpointsEnabled": true,
         "access": {
-          "type": "PRIVATE"
+          "type": "PUBLIC"
         }
       }
     ]
