@@ -48,7 +48,7 @@ class DefinitionControllerSpec extends UnitSpec with WithFakeApplication {
     }
 
     "return definition in the body" in {
-      jsonBodyOf(result) shouldBe Json.parse(txt.definition(apiContext, apiWhitelist).toString())
+      jsonBodyOf(result) shouldBe Json.parse(txt.definition(apiContext).toString())
     }
   }
 
