@@ -38,8 +38,8 @@ types:
           securedBy: [ sec.oauth_2_0: { scopes: [ "write:real-time-income-information" ] } ]
           body:
             application/json:
-              example: !include examples/real-time-income-information-post.json
               type: !include schemas/real-time-income-information-post-schema.json
+              example: !include examples/real-time-income-information-post.json
           responses:
             200:
               body:
