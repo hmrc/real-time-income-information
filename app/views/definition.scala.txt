@@ -1,7 +1,13 @@
 @import play.api.libs.json.Json
 @(apiContext: String)
 {
-  "scopes":[],
+  "scopes":[
+    {
+        "key": "write:real-time-income-information",
+        "name": "access Real Time Income Information",
+        "description": "Access Real Time Income Information"
+    }
+  ],
   "api": {
     "name": "Real Time Income Information",
     "description": "Provides real time income information for an individual",
