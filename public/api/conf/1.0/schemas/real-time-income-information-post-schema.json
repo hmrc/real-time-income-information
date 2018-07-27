@@ -2,14 +2,6 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Real time income information request schema v1.0",
   "type": "object",
-  "required": [
-    "nino",
-    "serviceName",
-    "fromDate",
-    "toDate",
-    "surname",
-    "filterFields"
-  ],
   "additionalProperties": false,
   "properties": {
     "nino": {
@@ -36,7 +28,8 @@
     "gender": {
       "type": "string",
       "enum": [
-        "M", "F"
+        "M",
+        "F"
       ]
     },
     "initials": {
@@ -50,10 +43,19 @@
       "minItems": 1,
       "uniqueItems": true,
       "items": {
-        "type":"string",
+        "type": "string",
         "pattern": "^[a-zA-Z 1-2 &`\\-\\'\\.^]{1,38}$"
+      }
     }
   },
+  "required": [
+    "nino",
+    "serviceName",
+    "fromDate",
+    "toDate",
+    "surname",
+    "filterFields"
+  ],
   "definitions": {
     "ninoType": {
       "type": "string",
@@ -70,7 +72,6 @@
     "nameType": {
       "type": "string",
       "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$"
-    }
     }
   }
 }
