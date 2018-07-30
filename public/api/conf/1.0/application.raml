@@ -18,6 +18,7 @@ documentation:
 uses:
   sec: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/securitySchemes.raml
   headers: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/headers.raml
+  annotations: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/annotations.raml
 
 types:
   correlationId:
@@ -32,9 +33,10 @@ types:
           description: Identifier used to locate related transactions
       /income:
         post:
+          is: [headers.acceptHeader, headers.contentHeader]
           displayName: Real Time Income Information
           description: !include documentation/overview.md
-          is: [headers.acceptHeader, headers.contentHeader]
+          (annotations.scope): "write:real-time-income-information"
           securedBy: [ sec.oauth_2_0: { scopes: [ "write:real-time-income-information" ] } ]
           body:
             application/json:
