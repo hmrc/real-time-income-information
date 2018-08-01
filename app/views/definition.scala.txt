@@ -1,5 +1,7 @@
 @import play.api.libs.json.Json
-@(apiContext: String)
+@import api.APIAccess
+
+@(access: APIAccess, apiContext: String)
 {
   "scopes":[
     {
@@ -17,9 +19,7 @@
         "version": "1.0",
         "status": "BETA",
         "endpointsEnabled": true,
-        "access": {
-          "type": "PUBLIC"
-        }
+        "access": @Json.toJson(access)
       }
     ]
   }

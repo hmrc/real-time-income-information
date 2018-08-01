@@ -14,12 +14,30 @@
  * limitations under the License.
  */
 
-package models.api
+package config
 
-import play.api.libs.json.Json
+import play.api.Configuration
 
-case class  APIAccess(`type`: String, whitelistedApplicationIds: Option[Seq[String]])
+case class APIAccessConfig(value: Option[Configuration]) {
 
-object APIAccess {
-  implicit val apiAccessFormats = Json.format[APIAccess]
+  val PRIVATE = "PRIVATE"
+
+  def accessType: String = {
+    value match {
+      case Some(config) => config.getString("type").getOrElse(PRIVATE)
+      case None => PRIVATE
+    }
+  }
+
+  def whiteListedApplicationIds: Option[Seq[String]] = {
+    if(accessType == PRIVATE) {
+      value match {
+        case Some(config) => Some(config.getStringSeq("whitelistedServices").getOrElse(Seq()))
+        case None => Some(Seq())
+      }
+    } else {
+      None
+    }
+  }
+
 }
