@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+package test
+
 import play.api.libs.json.Json
 
 import scala.io.Source
