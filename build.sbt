@@ -1,8 +1,16 @@
 import TestPhases.oneForkedJvmPerTest
-import uk.gov.hmrc.DefaultBuildSettings.{addTestReportOption}
+import uk.gov.hmrc.DefaultBuildSettings.addTestReportOption
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
+import scoverage.ScoverageKeys
 
 val appName = "real-time-income-information"
+
+lazy val scoverageSettings = Seq(
+  ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;view.*;config.*;.*(BuildInfo|Routes).*",
+  ScoverageKeys.coverageMinimum := 95,
+  ScoverageKeys.coverageFailOnMinimum := false,
+  ScoverageKeys.coverageHighlighting := true
+)
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
@@ -27,3 +35,4 @@ lazy val microservice = Project(appName, file("."))
     resolvers += Resolver.jcenterRepo,
     resolvers += Resolver.bintrayRepo("emueller", "maven")
   )
+  .settings(scoverageSettings : _*)
