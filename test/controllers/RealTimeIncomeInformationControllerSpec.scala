@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
+package controllers
+
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import controllers.RealTimeIncomeInformationController
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -25,6 +26,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers.{status, _}
 import play.api.test.{FakeHeaders, FakeRequest}
 import services.RealTimeIncomeInformationService
+import test.BaseSpec
 import uk.gov.hmrc.domain.{Generator, Nino}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
@@ -278,7 +280,6 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
 
   private implicit val hc = HeaderCarrier()
 
-  private def randomNino: Nino = new Generator(new Random).nextNino
   private val nino: String = "AB123456C"
 
   private val correlationId = UUID.randomUUID().toString

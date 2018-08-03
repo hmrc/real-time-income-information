@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
+package connectors
+
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.ApplicationConfig
-import connectors.DesConnector
-import models.{DesMatchingRequest, RequestDetails}
 import models.response.{DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
+import models.{DesMatchingRequest, RequestDetails}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.domain.{Generator, Nino}
+import play.api.libs.json._
+import test.BaseSpec
+import uk.gov.hmrc.domain.Generator
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
-import play.api.libs.json._
 
 import scala.util.Random
-
 
 class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with IntegrationPatience with WireMockHelper with BaseSpec {
 
