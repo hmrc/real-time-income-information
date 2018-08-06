@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+package services
+
 import java.util.UUID
 
 import connectors.DesConnector
@@ -26,8 +28,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json._
-import services.RealTimeIncomeInformationService
-import uk.gov.hmrc.domain.Nino
+import test.BaseSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
