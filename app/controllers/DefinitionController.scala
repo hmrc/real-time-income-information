@@ -16,8 +16,10 @@
 
 package controllers
 
-import config.AppContext
+import config.{APIAccessConfig, AppContext}
 import javax.inject.{Inject, Singleton}
+
+import models.api.APIAccess
 import play.api.mvc.{Action, AnyContent}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import views.txt
@@ -28,7 +30,12 @@ import scala.concurrent.Future
 class DefinitionController @Inject()(appContext: AppContext) extends BaseController {
 
   def get(): Action[AnyContent] = Action.async {
-    Future.successful(Ok(txt.definition(appContext.apiContext)).as("application/json").withHeaders(CONTENT_TYPE -> JSON))
+    Future.successful(Ok(txt.definition(buildAccess(), appContext.apiContext)).as("application/json").withHeaders(CONTENT_TYPE -> JSON))
+  }
+
+  private def buildAccess(): APIAccess = {
+    val access = APIAccessConfig(appContext.apiAccess)
+    APIAccess(access.accessType, access.whiteListedApplicationIds)
   }
 
 }
