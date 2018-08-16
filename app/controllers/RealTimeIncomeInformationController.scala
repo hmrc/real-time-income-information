@@ -21,6 +21,7 @@ import com.google.inject.{Inject, Singleton}
 import models.RequestDetails
 import models.response._
 import play.api.Logger
+import play.api.data.validation.Constraint
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
 import services.RealTimeIncomeInformationService
@@ -37,19 +38,22 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
 
   def retrieveCitizenIncome(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
-      schemaValidationHandler(request.body) match {
-        case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
-          body =>
-            rtiiService.retrieveCitizenIncome(body, correlationId) map {
-              case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
-              case noMatchResponse: DesSuccessResponse => NotFound(Json.toJson(Constants.responseNotFound))
-              case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
-              case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
-              case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
-            }
+      if(validateCorrelationId(correlationId)) {
+        schemaValidationHandler(request.body) match {
+          case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
+            body =>
+              rtiiService.retrieveCitizenIncome(body, correlationId) map {
+                case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
+                case noMatchResponse: DesSuccessResponse => NotFound(Json.toJson(Constants.responseNotFound))
+                case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
+                case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
+                case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
+              }
+          }
+          case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseInvalidPayload)))
         }
-        case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseInvalidPayload)))
-      }
+      } else
+        Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
   }
 
   private def failureResponseToResult(r: DesSingleFailureResponse): Result = {
@@ -72,4 +76,12 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
     }
   }
 
+  private def validateCorrelationId(correlationId: String): Boolean = {
+    val correlationIdRegex = """^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$""".r
+
+    correlationId match {
+      case correlationIdRegex(_*) => true
+      case _ => false
+    }
+  }
 }

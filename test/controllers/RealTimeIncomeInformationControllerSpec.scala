@@ -164,6 +164,16 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         status(result) mustBe 400
 
       }
+
+      "the correlationId is invalid" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(invalidCorrelationId)(fakeRequest)
+        status(result) mustBe 400
+      }
     }
 
     "Return 404 (NOT_FOUND)" when {
@@ -283,4 +293,5 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
   private val nino: String = "AB123456C"
 
   private val correlationId = UUID.randomUUID().toString
+  private val invalidCorrelationId = "invalidCorrelationId"
 }
