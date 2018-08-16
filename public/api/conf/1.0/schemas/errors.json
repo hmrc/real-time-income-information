@@ -32,7 +32,6 @@
         "code": {
           "type": "string",
           "enum": [
-            "INVALID_NINO",
             "INVALID_CORRELATIONID",
             "INVALID_PAYLOAD",
             "INVALID_DATE_RANGE",

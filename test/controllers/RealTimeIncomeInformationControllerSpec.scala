@@ -174,6 +174,15 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         val result = sut.retrieveCitizenIncome(invalidCorrelationId)(fakeRequest)
         status(result) mustBe 400
       }
+
+      "the nino is invalid" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequestInvalidNino))
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        status(result) mustBe 400
+      }
     }
 
     "Return 404 (NOT_FOUND)" when {

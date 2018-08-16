@@ -28,7 +28,6 @@ object Constants {
   val errorCodeInvalidPayload = "INVALID_PAYLOAD"
   val errorCodeServerError = "SERVER_ERROR"
   val errorCodeServiceUnavailable = "SERVICE_UNAVAILABLE"
-  val errorCodeInvalidNino = "INVALID_NINO"
   val responseInvalidCorrelationId = DesSingleFailureResponse(errorCodeInvalidCorrelation, "Submission has not passed validation. Invalid header CorrelationId.")
   val responseInvalidPayload = DesSingleFailureResponse(errorCodeInvalidPayload, "Submission has not passed validation. Invalid Payload.")
   val responseNotFound = DesSingleFailureResponse(errorCodeNotFound, "The remote endpoint has indicated that there is no data for the Nino.")

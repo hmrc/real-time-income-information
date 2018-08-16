@@ -65,8 +65,7 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
       Constants.errorCodeInvalidCorrelation -> BadRequest(Json.toJson(r)),
       Constants.errorCodeInvalidDateRange -> BadRequest(Json.toJson(r)),
       Constants.errorCodeInvalidDatesEqual -> BadRequest(Json.toJson(r)),
-      Constants.errorCodeInvalidPayload -> BadRequest(Json.toJson(r)),
-      Constants.errorCodeInvalidNino -> BadRequest(Json.toJson(r))
+      Constants.errorCodeInvalidPayload -> BadRequest(Json.toJson(r))
     )
 
     Try(results(r.code)) match {
