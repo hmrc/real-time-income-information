@@ -22,7 +22,6 @@ import scala.io.Source
 
 trait BaseSpec {
 
-  val invalidNinoJson = readJson("conf/resources/400-invalid-nino.json")
   val invalidCorrelationIdJson = readJson("conf/resources/400-invalid-correlation-id.json")
   val invalidPayload = readJson("conf/resources/400-invalid-payload.json")
   val invalidDateRange = readJson("conf/resources/400-invalid-date-range.json")
