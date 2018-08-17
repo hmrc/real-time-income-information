@@ -2,7 +2,7 @@ This API allows a third party to retrieve real time income information for an in
 
 This version of the API is in development and is very likely to change.
 
-The current API allows the a consuming service to retrieve an individuals income information by providing a list of required fields
+The current API allows the a consuming service to retrieve an individuals income information by providing a list of required fields.
 
 To use this API, several matching fields are required as well as a list of filter field keys. This will determine which values are returned as part of the response. The list of keys which can be requested can be found in the request schema below.
 
