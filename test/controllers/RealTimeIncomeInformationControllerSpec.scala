@@ -61,10 +61,27 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
     }
 
     "Return 400" when {
-      "the request does not validate against the schema" in {
+      "the request contains an unexpected matching field" in {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpRequest))
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidMatchingFieldDwpRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              ok(successMatchOneYear.toString())
+            )
+        )
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        status(result) mustBe 400
+      }
+
+      "the request contains an unexpected filter field" in {
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidFilterFieldDwpRequest))
 
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
