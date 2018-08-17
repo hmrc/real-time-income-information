@@ -134,15 +134,7 @@
           "hmrcReceiptTimestamp",
           "rtiReceivedDate",
           "apiAvailableTimestamp",
-          "paymentNoLongerValid",
-          "nameType",
-          "monetaryPosNeg11Digits",
-          "monetaryPos",
-          "monetaryPosNeg7Digits",
-          "monetaryPosNeg8Digits",
-          "monetaryPos8Digits",
-          "monetaryPosNeg12Digits",
-          "dateString"
+          "paymentNoLongerValid"
         ]
     }
   },

@@ -83,8 +83,8 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
       }
 
       "return a value of 'undefined' if the requested key is not present in the given DesSuccessResponse object" in {
-        val result = service(mock[DesConnector]).pickOneValue("monetaryPos8Digits", taxYear)
-        result mustBe "monetaryPos8Digits" -> JsString("undefined")
+        val result = service(mock[DesConnector]).pickOneValue("paymentNoLongerValid", taxYear)
+        result mustBe "paymentNoLongerValid" -> JsString("undefined")
       }
 
     }
@@ -109,14 +109,14 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
         }
 
         "return all requested values plus an 'undefined' when all keys except one are present" in {
-          val result = service(mock[DesConnector]).pickAll(List("surname", "nationalInsuranceNumber", "monetaryPos8Digits"), desResponseWithOneTaxYear)
+          val result = service(mock[DesConnector]).pickAll(List("surname", "nationalInsuranceNumber", "paymentNoLongerValid"), desResponseWithOneTaxYear)
 
           result mustBe Json.parse(
             """
               |{ "taxYears" : [ {
               |"surname": "Surname",
               |"nationalInsuranceNumber":"AB123456C",
-              |"monetaryPos8Digits":"undefined"
+              |"paymentNoLongerValid":"undefined"
               |}
               |]
               |}
