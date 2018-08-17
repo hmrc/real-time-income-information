@@ -1,1 +1,3 @@
-2xx range indicates success, 4xx range indicates failure
+Specific error codes are documented below. The possible error codes are:
+
+404, 400, 500
