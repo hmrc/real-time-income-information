@@ -28,8 +28,7 @@
     "gender": {
       "type": "string",
       "enum": [
-        "M",
-        "F"
+        "M", "F"
       ]
     },
     "initials": {
@@ -43,35 +42,119 @@
       "minItems": 1,
       "uniqueItems": true,
       "items": {
-        "type": "string",
-        "pattern": "^[a-zA-Z 1-2 &`\\-\\'\\.^]{1,38}$"
+        "type":"string",
+        "pattern": "^[a-zA-Z 1-2 &`\\-\\'\\.^]{1,38}$",
+        "enum": [ "taxYear",
+          "taxYearIndicator",
+          "hmrcOfficeNumber",
+          "employerPayeRef",
+          "employerName1",
+          "employerName2",
+          "employerTradeName1",
+          "employerTradeName2",
+          "nationalInsuranceNumber",
+          "surname",
+          "forename",
+          "secondForename",
+          "initials",
+          "dateOfBirth",
+          "gender",
+          "uniqueEmploymentSequenceNumber",
+          "payrollId",
+          "employmentStartDate",
+          "employmentEndDate",
+          "taxablePayInPeriod",
+          "paymentsNotSubjectToTaxOrNICS",
+          "valueOfDeductions",
+          "payAfterStatutoryDeductions",
+          "benefitsTaxedViaPayroll",
+          "employeePensionContributions",
+          "itemsSubjectToClass1NIC",
+          "employeePensionContributionsNotPaid",
+          "taxDeductedOrRefunded",
+          "grossEarningsForNICs",
+          "employeesContributionsInPeriod",
+          "taxablePayToDate",
+          "totalTaxToDate",
+          "employeesContributionsYearToDate",
+          "numberOfNormalHoursWorked",
+          "payFrequency",
+          "paymentDate",
+          "weeklyPeriodNumber",
+          "monthlyPeriodNumber",
+          "earningsPeriodsCovered",
+          "paymentAfterLeaving",
+          "irregularPayment",
+          "uniquePaymentId",
+          "paymentConfidenceStatus",
+          "occPenIndicator",
+          "onStrikeWithinPayPeriod",
+          "unpaidAbsencePayPeriod",
+          "benefitsTaxedYeartoDate",
+          "pensionContributionsYearToDate",
+          "pensionContributionsNotPaidYeartoDate",
+          "taxCode",
+          "multipleIPSIndicator",
+          "bacsPaymentAmount",
+          "statutoryMaternityPayYeartoDate",
+          "niLetter",
+          "directorsNIC",
+          "latePayeReportingReason",
+          "schemeExemptFromElectronicFiling",
+          "flexiblyAccessingPensionRights",
+          "pensionsDeathBenefit",
+          "flexibleDrawdownTaxablePayment",
+          "flexibleDrawdownNonTaxablePayment",
+          "taxRegime",
+          "annualAmountOfOccupationalPension",
+          "taxCodeBasisisNonCumulative",
+          "statutoryPaternityPayYearToDate",
+          "valueofStatutoryAdoptionPayYearToDate",
+          "sharedParentalPayYearToDate",
+          "partnerSurnameOrFamilyName",
+          "partnerForenameOrGivenName",
+          "partnerInitials",
+          "partnerSecondForename",
+          "partnerNINO",
+          "grossEarningsForNICsYearToDate",
+          "taxWeekNumberOfAppointmentOfDirector",
+          "totalEmployerNIContributionsInPeriod",
+          "trivialCommutationPaymentTypeA",
+          "trivialCommutationPaymentTypeB",
+          "trivialCommutationPaymentTypeC",
+          "seriousillHealthLumpSum",
+          "hmrcReceiptTimestamp",
+          "rtiReceivedDate",
+          "apiAvailableTimestamp",
+          "paymentNoLongerValid"
+        ]
       }
-    }
-  },
-  "required": [
-    "nino",
-    "serviceName",
-    "fromDate",
-    "toDate",
-    "surname",
-    "filterFields"
-  ],
-  "definitions": {
-    "ninoType": {
-      "type": "string",
-      "pattern": "^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D ]$"
     },
-    "serviceNameType": {
-      "type": "string",
-      "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,128}$"
-    },
-    "dateType": {
-      "type": "string",
-      "pattern": "^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$"
-    },
-    "nameType": {
-      "type": "string",
-      "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$"
+    "required": [
+      "nino",
+      "serviceName",
+      "fromDate",
+      "toDate",
+      "surname",
+      "filterFields"
+    ],
+    "definitions": {
+      "ninoType": {
+        "type": "string",
+        "pattern": "^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D ]$"
+      },
+      "serviceNameType": {
+        "type": "string",
+        "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,128}$"
+      },
+      "dateType": {
+        "type": "string",
+        "pattern": "^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$"
+      },
+      "nameType": {
+        "type": "string",
+        "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$"
+      }
     }
   }
 }
