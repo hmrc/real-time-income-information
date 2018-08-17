@@ -1,8 +1,8 @@
 {
   "failures": [
     {
-      "code": "INVALID_NINO",
-      "reason": "Submission has not passed validation. Invalid parameter nino."
+      "code": "INVALID_DATE_RANGE",
+      "reason": "The remote endpoint has indicated that the date range is invalid."
     },
     {
       "code": "INVALID_PAYLOAD",
