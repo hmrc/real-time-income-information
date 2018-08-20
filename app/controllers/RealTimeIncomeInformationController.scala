@@ -39,19 +39,24 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
 
   def retrieveCitizenIncome(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
-      if(preSchemaValidation(correlationId, request.body)) {
-        schemaValidationHandler(request.body) match {
-          case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
-            body =>
-              rtiiService.retrieveCitizenIncome(body, correlationId) map {
-                case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
-                case noMatchResponse: DesSuccessResponse => NotFound(Json.toJson(Constants.responseNotFound))
-                case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
-                case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
-                case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
+      if(validateCorrelationId(correlationId)) {
+        validateDates(request.body) match {
+          case Right(_) => {
+            schemaValidationHandler(request.body) match {
+              case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
+                body =>
+                  rtiiService.retrieveCitizenIncome(body, correlationId) map {
+                    case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
+                    case noMatchResponse: DesSuccessResponse => NotFound(Json.toJson(Constants.responseNotFound))
+                    case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
+                    case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
+                    case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
+                  }
               }
+              case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseInvalidPayload)))
+            }
           }
-          case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseInvalidPayload)))
+          case Left(failure: DesSingleFailureResponse) => Future.successful(BadRequest(Json.toJson(failure)))
         }
       } else
         Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
@@ -76,18 +81,33 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
     }
   }
 
-  private def preSchemaValidation(correlationId: String, requestBody: JsValue): Boolean = {
-
-    val toDate = new LocalDate(requestBody.as[RequestDetails].toDate)
-    val fromDate = new LocalDate(requestBody.as[RequestDetails].fromDate)
-
-    val dateCheck = fromDate.isBefore(toDate)&&(!toDate.isEqual(fromDate))
-
+  private def validateCorrelationId(correlationId: String): Boolean = {
     val correlationIdRegex = """^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$""".r
 
-    (correlationId, dateCheck) match {
-      case (correlationIdRegex(_*), true) => true
+    correlationId match {
+      case correlationIdRegex(_*) => true
       case _ => false
+    }
+  }
+
+  private def validateDates(requestBody: JsValue): Either[DesSingleFailureResponse, Boolean] = {
+
+    val requestDetails: Try[RequestDetails] = Try(requestBody.as[RequestDetails])
+
+    if (requestDetails.isFailure)
+      Left(Constants.responseInvalidPayload)
+    else {
+      val toDate = new LocalDate(requestBody.as[RequestDetails].toDate)
+      val fromDate = new LocalDate(requestBody.as[RequestDetails].fromDate)
+
+      val dateRangeInvalid = fromDate.isBefore(toDate)
+      val datesEqual = !toDate.isEqual(fromDate)
+
+      (dateRangeInvalid, datesEqual) match {
+        case (true, true) => Right(true)
+        case (false, _) => Left(Constants.responseInvalidDateRange)
+        case (_, false) => Left(Constants.responseInvalidDatesEqual)
+      }
     }
   }
 }
