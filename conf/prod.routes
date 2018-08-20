@@ -4,4 +4,6 @@
 
 ->         /real-time-income-information              app.Routes
 
+POST      /individuals/:correlationId/income             @controllers.RealTimeIncomeInformationController.retrieveCitizenIncome(correlationId: String)
+
 GET        /admin/metrics             com.kenshoo.play.metrics.MetricsController.metrics
