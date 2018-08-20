@@ -100,13 +100,13 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
       val toDate = new LocalDate(requestBody.as[RequestDetails].toDate)
       val fromDate = new LocalDate(requestBody.as[RequestDetails].fromDate)
 
-      val dateRangeInvalid = fromDate.isBefore(toDate)
-      val datesEqual = !toDate.isEqual(fromDate)
+      val dateRangeValid = fromDate.isBefore(toDate)
+      val datesEqual = toDate.isEqual(fromDate)
 
-      (dateRangeInvalid, datesEqual) match {
-        case (true, true) => Right(true)
-        case (false, _) => Left(Constants.responseInvalidDateRange)
-        case (_, false) => Left(Constants.responseInvalidDatesEqual)
+      (dateRangeValid, datesEqual) match {
+        case (true, false) => Right(true)
+        case (false, false) => Left(Constants.responseInvalidDateRange)
+        case (_, true) => Left(Constants.responseInvalidDatesEqual)
       }
     }
   }
