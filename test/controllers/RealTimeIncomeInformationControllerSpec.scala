@@ -192,6 +192,24 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         status(result) mustBe 400
       }
 
+      "the toDate is before fromDate" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateRangeRequest))
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        status(result) mustBe 400
+      }
+
+      "the toDate is equal to fromDate" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesEqualRequest))
+
+        val sut = createSUT(service)
+        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        status(result) mustBe 400
+      }
+
       "the nino is invalid" in {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequestInvalidNino))

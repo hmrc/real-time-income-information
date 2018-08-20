@@ -32,13 +32,14 @@ import utils.SchemaValidationHandler
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
+import org.joda.time.LocalDate
 
 @Singleton
 class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeIncomeInformationService) extends BaseController with SchemaValidationHandler {
 
   def retrieveCitizenIncome(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
-      if(validateCorrelationId(correlationId)) {
+      if(preSchemaValidation(correlationId, request.body)) {
         schemaValidationHandler(request.body) match {
           case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
             body =>
@@ -75,11 +76,17 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
     }
   }
 
-  private def validateCorrelationId(correlationId: String): Boolean = {
+  private def preSchemaValidation(correlationId: String, requestBody: JsValue): Boolean = {
+
+    val toDate = new LocalDate(requestBody.as[RequestDetails].toDate)
+    val fromDate = new LocalDate(requestBody.as[RequestDetails].fromDate)
+
+    val dateCheck = fromDate.isBefore(toDate)&&(!toDate.isEqual(fromDate))
+
     val correlationIdRegex = """^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$""".r
 
-    correlationId match {
-      case correlationIdRegex(_*) => true
+    (correlationId, dateCheck) match {
+      case (correlationIdRegex(_*), true) => true
       case _ => false
     }
   }
