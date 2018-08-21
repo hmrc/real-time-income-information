@@ -35,7 +35,7 @@ class DefinitionControllerSpec extends UnitSpec with WithFakeApplication {
   private val apiContext = "context"
   private val apiWhitelist = "whitelist"
   private val apiAccess = APIAccess("PRIVATE", Some(Seq()))
-  private val appContext = new AppContext(Configuration("api.definition.scope" -> apiScope, "api.context" -> apiContext, "api.whitelistedServices" -> apiWhitelist))
+  private val appContext = new AppContext(Configuration("api.definition.scope" -> apiScope, "api.context" -> apiContext, "api.whitelistedApplicationIds" -> apiWhitelist))
   private val controller = new DefinitionController(appContext)
 
   "DefinitionController.definition" should {
