@@ -33,6 +33,7 @@ lazy val microservice = Project(appName, file("."))
   )
   .settings(
     resolvers += Resolver.jcenterRepo,
-    resolvers += Resolver.bintrayRepo("emueller", "maven")
+    resolvers += Resolver.bintrayRepo("emueller", "maven"),
+    resolvers += Resolver.bintrayRepo("hmrc", "releases")
   )
   .settings(scoverageSettings : _*)

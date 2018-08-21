@@ -20,22 +20,20 @@ import app.Constants
 import com.google.inject.{Inject, Singleton}
 import models.RequestDetails
 import models.response._
+import org.joda.time.LocalDate
 import play.api.Logger
-import play.api.data.validation.Constraint
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
-import services.RealTimeIncomeInformationService
-import uk.gov.hmrc.domain.Nino
+import services.{AuditService, RealTimeIncomeInformationService}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import utils.SchemaValidationHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
-import org.joda.time.LocalDate
 
 @Singleton
-class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeIncomeInformationService) extends BaseController with SchemaValidationHandler {
+class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeIncomeInformationService, val auditService: AuditService) extends BaseController with SchemaValidationHandler {
 
   def retrieveCitizenIncome(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
@@ -45,6 +43,7 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
             schemaValidationHandler(request.body) match {
               case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
                 body =>
+                  auditService.audit("ServiceRequestReceived", s"/individuals/$correlationId/income", auditData = Map("correlationId" -> correlationId, "serviceName" -> body.serviceName, "filterFields" -> body.filterFields.toString()))
                   rtiiService.retrieveCitizenIncome(body, correlationId) map {
                     case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
                     case noMatchResponse: DesSuccessResponse => NotFound(Json.toJson(Constants.responseNotFound))
