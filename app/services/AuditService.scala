@@ -17,6 +17,7 @@
 package services
 
 import com.google.inject.{Inject, Singleton}
+import models.RequestDetails
 import play.api.Configuration
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
@@ -39,6 +40,11 @@ class AuditService @Inject()(configuration: Configuration, connector: AuditConne
     )
 
     connector.sendEvent(event)
+  }
+
+  def rtiiAudit(correlationId: String, body: RequestDetails)(implicit hc: HeaderCarrier) = {
+    audit("ServiceRequestReceived", s"/individuals/$correlationId/income",
+      auditData = Map("correlationId" -> correlationId, "serviceName" -> body.serviceName, "filterFields" -> body.filterFields.toString()))
   }
 
   override protected def appNameConfiguration: Configuration = configuration

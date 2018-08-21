@@ -25,6 +25,7 @@ import play.api.Logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
 import services.{AuditService, RealTimeIncomeInformationService}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import utils.SchemaValidationHandler
 
@@ -35,30 +36,32 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeIncomeInformationService, val auditService: AuditService) extends BaseController with SchemaValidationHandler {
 
-  def retrieveCitizenIncome(correlationId: String): Action[JsValue] = Action.async(parse.json) {
+  def preSchemaValidation(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
-      if(validateCorrelationId(correlationId)) {
+      if (!validateCorrelationId(correlationId)) {
+        Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
+      } else
         validateDates(request.body) match {
-          case Right(_) => {
-            schemaValidationHandler(request.body) match {
-              case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
-                body =>
-                  auditService.audit("ServiceRequestReceived", s"/individuals/$correlationId/income", auditData = Map("correlationId" -> correlationId, "serviceName" -> body.serviceName, "filterFields" -> body.filterFields.toString()))
-                  rtiiService.retrieveCitizenIncome(body, correlationId) map {
-                    case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
-                    case noMatchResponse: DesSuccessResponse => NotFound(Json.toJson(Constants.responseNotFound))
-                    case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
-                    case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
-                    case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
-                  }
-              }
-              case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseInvalidPayload)))
-            }
-          }
+          case Right(_) => retrieveCitizenIncome(correlationId)
           case Left(failure: DesSingleFailureResponse) => Future.successful(BadRequest(Json.toJson(failure)))
         }
-      } else
-        Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
+  }
+
+  private def retrieveCitizenIncome(correlationId: String)(implicit hc:HeaderCarrier, request: Request[JsValue]) = {
+    schemaValidationHandler(request.body) match {
+      case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseInvalidPayload)))
+      case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
+        body =>
+          auditService.rtiiAudit(correlationId, body)
+          rtiiService.retrieveCitizenIncome(body, correlationId) map {
+            case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
+            case noMatchResponse: DesSuccessResponse => NotFound(Json.toJson(Constants.responseNotFound))
+            case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
+            case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
+            case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
+          }
+      }
+    }
   }
 
   private def failureResponseToResult(r: DesSingleFailureResponse): Result = {

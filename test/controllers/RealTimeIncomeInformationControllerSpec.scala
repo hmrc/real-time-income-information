@@ -53,7 +53,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 200
       }
     }
@@ -72,7 +72,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
 
@@ -89,7 +89,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
 
@@ -106,7 +106,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
 
@@ -123,7 +123,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
 
@@ -140,7 +140,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
 
@@ -157,7 +157,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
 
       }
@@ -175,7 +175,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
 
       }
@@ -186,7 +186,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(invalidCorrelationId)(fakeRequest)
+        val result = sut.preSchemaValidation(invalidCorrelationId)(fakeRequest)
         status(result) mustBe 400
       }
 
@@ -195,7 +195,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateRangeRequest))
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
 
@@ -204,7 +204,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesEqualRequest))
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
 
@@ -213,7 +213,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesNotDefined))
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
 
@@ -222,7 +222,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequestInvalidNino))
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
     }
@@ -240,7 +240,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 404
       }
 
@@ -256,7 +256,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 404
       }
     }
@@ -275,7 +275,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 500
       }
     }
@@ -294,7 +294,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 503
       }
     }
@@ -313,7 +313,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 500
       }
 
@@ -330,7 +330,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         )
 
         val sut = createSUT(service, auditService)
-        val result = sut.retrieveCitizenIncome(correlationId)(fakeRequest)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 500
       }
     }
