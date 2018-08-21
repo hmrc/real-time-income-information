@@ -8,7 +8,8 @@ object AppDependencies {
     ws,
     "uk.gov.hmrc" %% "bootstrap-play-25" % "1.7.0",
     "uk.gov.hmrc" %% "domain" % "5.2.0",
-    "com.eclipsesource" %% "play-json-schema-validator" % "0.8.9"
+    "com.eclipsesource" %% "play-json-schema-validator" % "0.8.9",
+    "uk.gov.hmrc" %% "play-auditing" % "3.4.0"
   )
 
   def test(scope: String = "test") = Seq(
