@@ -38,13 +38,14 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
 
   def preSchemaValidation(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
-      if (!validateCorrelationId(correlationId)) {
-        Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
-      } else
+      if (validateCorrelationId(correlationId)) {
         validateDates(request.body) match {
           case Right(_) => retrieveCitizenIncome(correlationId)
           case Left(failure: DesSingleFailureResponse) => Future.successful(BadRequest(Json.toJson(failure)))
         }
+      } else {
+        Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
+      }
   }
 
   private def retrieveCitizenIncome(correlationId: String)(implicit hc:HeaderCarrier, request: Request[JsValue]) = {
