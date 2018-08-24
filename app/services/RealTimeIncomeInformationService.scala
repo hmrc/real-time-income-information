@@ -30,18 +30,17 @@ import scala.concurrent.Future
 @Singleton
 class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector) {
 
-  def pickOneValue(key: String, taxYear: JsValue): (String, JsValue) = {
+  def pickOneValue(key: String, taxYear: JsValue): Option[(String, JsValue)] = {
     taxYear.transform((__ \\ key).json.pick[JsValue]).asOpt match {
-      case Some(x) => key -> x
-      case None => key -> JsString("undefined")
+      case Some(x) => Some(key -> x)
+      case None => None
     }
   }
 
   def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): JsValue = {
     Json.toJson(Map("taxYears" ->
       desSuccessResponse.taxYears.getOrElse(Nil).map(
-        taxYear => keys.map(
-          key => pickOneValue(key, taxYear)).toMap)))
+        taxYear => keys.flatMap(key => pickOneValue(key, taxYear)).toMap)))
   }
 
   def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String)(implicit hc: HeaderCarrier) : Future[DesResponse] = {
