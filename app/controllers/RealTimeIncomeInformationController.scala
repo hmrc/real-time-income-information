@@ -48,7 +48,7 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
       }
   }
 
-  private def retrieveCitizenIncome(correlationId: String)(implicit hc:HeaderCarrier, request: Request[JsValue]) = {
+  private def retrieveCitizenIncome(correlationId: String)(implicit hc: HeaderCarrier, request: Request[JsValue]) = {
     schemaValidationHandler(request.body) match {
       case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseInvalidPayload)))
       case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
@@ -93,6 +93,14 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
     }
   }
 
+  private def parseAsDate(string: String): Option[LocalDate] = {
+
+    Try(new LocalDate(string)) match {
+      case Success(date) => Some(date)
+      case Failure(_) => None
+    }
+  }
+
   private def validateDates(requestBody: JsValue): Either[DesSingleFailureResponse, Boolean] = {
 
     val requestDetails: Try[RequestDetails] = Try(requestBody.as[RequestDetails])
@@ -100,16 +108,21 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
     if (requestDetails.isFailure)
       Left(Constants.responseInvalidPayload)
     else {
-      val toDate = new LocalDate(requestBody.as[RequestDetails].toDate)
-      val fromDate = new LocalDate(requestBody.as[RequestDetails].fromDate)
+      val toDate = parseAsDate(requestBody.as[RequestDetails].toDate)
+      val fromDate = parseAsDate(requestBody.as[RequestDetails].fromDate)
+      
+      (toDate, fromDate) match {
+        case (Some(endDate), Some(startDate)) => {
+          val dateRangeValid = startDate.isBefore(endDate)
+          val datesEqual = endDate.isEqual(startDate)
 
-      val dateRangeValid = fromDate.isBefore(toDate)
-      val datesEqual = toDate.isEqual(fromDate)
-
-      (dateRangeValid, datesEqual) match {
-        case (true, false) => Right(true)
-        case (false, false) => Left(Constants.responseInvalidDateRange)
-        case (_, true) => Left(Constants.responseInvalidDatesEqual)
+          (dateRangeValid, datesEqual) match {
+            case (true, false) => Right(true)
+            case (false, false) => Left(Constants.responseInvalidDateRange)
+            case (_, true) => Left(Constants.responseInvalidDatesEqual)
+          }
+        }
+        case _ => Left(Constants.responseInvalidPayload)
       }
     }
   }

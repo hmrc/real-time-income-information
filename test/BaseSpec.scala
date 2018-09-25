@@ -40,6 +40,7 @@ trait BaseSpec {
   val exampleInvalidDateRangeRequest = readJson("/example-dwp-request-invalid-date-range.json")
   val exampleInvalidDatesEqualRequest = readJson("/example-dwp-request-invalid-dates-equal.json")
   val exampleInvalidDatesNotDefined = readJson("/example-dwp-request-invalid-dates-not-defined.json")
+  val exampleInvalidDateFormat = readJson("/example-dwp-request-invalid-date-format.json")
   val exampleInvalidMatchingFieldDwpRequest = readJson("/example-invalid-matching-field-dwp-request.json")
   val exampleInvalidFilterFieldDwpRequest = readJson("/example-invalid-filter-field-dwp-request.json")
   val exampleInvalidDwpEmptyFieldsRequest = readJson("/example-invalid-dwp-empty-fields-request.json")

@@ -208,6 +208,15 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         status(result) mustBe 400
       }
 
+      "a date is in the wrong format" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateFormat))
+
+        val sut = createSUT(service, auditService)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) mustBe 400
+
+      }
       "either fromDate or toDate is not defined in the request" in {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesNotDefined))
