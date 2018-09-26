@@ -21,7 +21,6 @@ import connectors.DesConnector
 import models.RequestDetails
 import models.response._
 import play.api.libs.json.{JsValue, Json, _}
-import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,10 +44,10 @@ class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector)
 
   def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String)(implicit hc: HeaderCarrier) : Future[DesResponse] = {
     desConnector.retrieveCitizenIncome(requestDetails.nino, RequestDetails.toMatchingRequest(requestDetails), correlationId)(hc) map {
-      case desSuccess: DesSuccessResponse => if(desSuccess.matchPattern > 0) {
+      case desSuccess: DesSuccessResponse => if(desSuccess.matchPattern == 63) {
         DesFilteredSuccessResponse(pickAll(requestDetails.filterFields, desSuccess))
       } else {
-        DesSuccessResponse(0, None)
+        DesSuccessResponse(desSuccess.matchPattern, None)
       }
       case failure: DesResponse => failure
     }
