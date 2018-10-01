@@ -32,7 +32,7 @@
         "code": {
           "type": "string",
           "enum": [
-            "INVALID_CORRELATIONID",
+            "INVALID_CORRELATION_ID",
             "INVALID_PAYLOAD",
             "INVALID_DATE_RANGE",
             "INVALID_DATES_EQUAL",
