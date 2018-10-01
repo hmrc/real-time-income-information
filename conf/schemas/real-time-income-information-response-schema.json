@@ -81,15 +81,6 @@
           "description": "Initials of the person for whom the Payment Data has been received",
           "pattern": "^[A-Za-z][A-Za-z ]{0,4}$"
         },
-        "dateOfBirth": {
-          "$ref": "#/definitions/dateString",
-          "description": "Date of Birth of the person for whom the Payment Data has been received"
-        },
-        "gender": {
-          "type": "string",
-          "description": "Gender for whom the Payment Data has been received",
-          "pattern": "^[MF]$"
-        },
         "uniqueEmploymentSequenceNumber": {
           "type": "integer",
           "description": "The NPS Employment Sequence Number",
