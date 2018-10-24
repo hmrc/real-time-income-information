@@ -54,6 +54,7 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
                          |      "employerName1": "Employer",
                          |      "nationalInsuranceNumber": "AB123456C",
                          |      "surname": "Surname",
+                         |      "gender": "M",
                          |      "uniqueEmploymentSequenceNumber": 9999,
                          |      "taxablePayInPeriod": 999999.99,
                          |      "taxDeductedOrRefunded": -12345.67,
