@@ -57,6 +57,8 @@
           "forename",
           "secondForename",
           "initials",
+          "dateOfBirth",
+          "gender",
           "uniqueEmploymentSequenceNumber",
           "payrollId",
           "employmentStartDate",
