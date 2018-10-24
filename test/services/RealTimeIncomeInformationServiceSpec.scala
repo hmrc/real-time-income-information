@@ -96,30 +96,25 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
         "return all requested values when all keys are present" in {
           val result = service(mock[DesConnector]).pickAll(List("surname", "nationalInsuranceNumber"), desResponseWithOneTaxYear)
 
-          result mustBe Json.parse(
+          result mustBe List(Json.parse(
             """
               |{
-              |"taxYears" : [ {
               |"surname": "Surname",
               |"nationalInsuranceNumber":"AB123456C"
               |}
-              |]
-              |}
-            """.stripMargin)
+            """.stripMargin))
         }
 
         "return only present requested values when all keys except one are present" in {
           val result = service(mock[DesConnector]).pickAll(List("surname", "nationalInsuranceNumber", "paymentNoLongerValid"), desResponseWithOneTaxYear)
 
-          result mustBe Json.parse(
+          result mustBe List(Json.parse(
             """
-              |{ "taxYears" : [ {
+              |{
               |"surname": "Surname",
               |"nationalInsuranceNumber":"AB123456C"
               |}
-              |]
-              |}
-            """.stripMargin)
+            """.stripMargin))
         }
 
       }
@@ -128,25 +123,17 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
 
         "return all requested values when all keys are present and the data covers multiple years" in {
 
-          val expectedJson = Json.parse(
+          val expected = Json.parse(
             """
               |{
-              |"taxYears" : [
-              |{
               |"surname": "Surname",
               |"nationalInsuranceNumber":"AB123456C"
-              |},
-              |{
-              |"surname": "Surname",
-              |"nationalInsuranceNumber":"AB123456C"
-              |}
-              |]
               |}
             """.stripMargin)
 
           val result = service(mock[DesConnector]).pickAll(List("surname", "nationalInsuranceNumber"), desResponseWithTwoTaxYears)
 
-          result mustBe expectedJson
+          result mustBe List(expected,expected)
         }
 
       }
@@ -166,17 +153,13 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
               val expectedJson = Json.parse(
                 """
                   |{
-                  |"taxYears" : [
-                  |{
                   |"surname": "Surname",
                   |"nationalInsuranceNumber":"AB123456C"
-                  |}
-                  |]
                   |}
                 """.stripMargin)
 
               whenReady(service(mockDesConnector).retrieveCitizenIncome(requestDetails, correlationId)) {
-                result => result mustBe DesFilteredSuccessResponse(expectedJson)
+                result => result mustBe DesFilteredSuccessResponse(63, List(expectedJson))
               }
             }
 
@@ -190,13 +173,6 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                 val mockDesConnector = mock[DesConnector]
 
                 when(mockDesConnector.retrieveCitizenIncome(any(), any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(0, None)))
-
-                val expectedJson = Json.parse(
-                  """
-                    |{
-                      "matchPattern": 0
-                    |}
-                  """.stripMargin)
 
                 whenReady(service(mockDesConnector).retrieveCitizenIncome(requestDetails, correlationId)) {
                   result => result mustBe DesSuccessResponse(0, None)

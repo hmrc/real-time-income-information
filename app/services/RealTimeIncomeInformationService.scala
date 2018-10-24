@@ -36,16 +36,15 @@ class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector)
     }
   }
 
-  def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): JsValue = {
-    Json.toJson(Map("taxYears" ->
+  def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): List[JsValue] = {
       desSuccessResponse.taxYears.getOrElse(Nil).map(
-        taxYear => keys.flatMap(key => pickOneValue(key, taxYear)).toMap)))
+        taxYear => Json.toJson(keys.flatMap(key => pickOneValue(key, taxYear)).toMap))
   }
 
   def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String)(implicit hc: HeaderCarrier) : Future[DesResponse] = {
     desConnector.retrieveCitizenIncome(requestDetails.nino, RequestDetails.toMatchingRequest(requestDetails), correlationId)(hc) map {
-      case desSuccess: DesSuccessResponse => if(desSuccess.matchPattern == 63) {
-        DesFilteredSuccessResponse(pickAll(requestDetails.filterFields, desSuccess))
+      case desSuccess: DesSuccessResponse => if(desSuccess.taxYears.isDefined) {
+        DesFilteredSuccessResponse(desSuccess.matchPattern, pickAll(requestDetails.filterFields, desSuccess))
       } else {
         DesSuccessResponse(desSuccess.matchPattern, None)
       }

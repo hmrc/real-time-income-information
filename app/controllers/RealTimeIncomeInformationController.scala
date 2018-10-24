@@ -55,8 +55,8 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
         body =>
           auditService.rtiiAudit(correlationId, body)
           rtiiService.retrieveCitizenIncome(body, correlationId) map {
-            case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse.requestedFields))
-            case noMatchResponse: DesSuccessResponse => NotFound(Json.toJson(Constants.responseNotFound))
+            case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
+            case noMatchResponse: DesSuccessResponse => Ok(Json.toJson(noMatchResponse))
             case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
             case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
             case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
