@@ -22,7 +22,7 @@ import play.api.libs.json._
 sealed trait DesResponse
 
 case class DesSuccessResponse(matchPattern: Int, taxYears: Option[List[JsValue]]) extends DesResponse
-case class DesFilteredSuccessResponse(requestedFields: JsValue) extends DesResponse
+case class DesFilteredSuccessResponse(matchPattern: Int, taxYears: List[JsValue]) extends DesResponse
 case class DesSingleFailureResponse(code: String, reason: String) extends DesResponse
 case class DesMultipleFailureResponse(failures: List[DesSingleFailureResponse]) extends DesResponse
 case class DesUnexpectedResponse(code: String = "INTERNAL_SERVER_ERROR", reason: String = "Internal Server Error") extends DesResponse
