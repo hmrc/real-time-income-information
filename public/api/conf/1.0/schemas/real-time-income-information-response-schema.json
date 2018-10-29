@@ -216,7 +216,6 @@
           "type": "number",
           "description": "Unique Id sent with a payment",
           "minimum": 1,
-          "maximum": 99999999999999999999999999999999999999,
           "multipleOf": 1
         },
         "paymentConfidenceStatus": {
