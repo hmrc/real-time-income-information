@@ -27,18 +27,20 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json._
 import test.BaseSpec
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.domain.Generator
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
 
 import scala.util.Random
 
-class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with IntegrationPatience with WireMockHelper with BaseSpec {
+class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with IntegrationPatience with WireMockHelper with BaseSpec with AuthorisedFunctions {
 
   override protected def portConfigKey: String = "microservice.services.des-hod.port"
 
   protected lazy val connector: DesConnector = injector.instanceOf[DesConnector]
   protected lazy val desConfig: ApplicationConfig = injector.instanceOf[ApplicationConfig]
+  override lazy val authConnector: AuthConnector = injector.instanceOf[AuthConnector]
 
   "DesConnector" must {
 

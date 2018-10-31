@@ -18,6 +18,7 @@ package controllers
 
 import app.Constants
 import com.google.inject.{Inject, Singleton}
+import config.RTIIAuthConnector
 import models.RequestDetails
 import models.response._
 import org.joda.time.LocalDate
@@ -25,6 +26,8 @@ import play.api.Logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
 import services.{AuditService, RealTimeIncomeInformationService}
+import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions, UnsupportedAuthProvider}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import utils.SchemaValidationHandler
@@ -34,17 +37,21 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 @Singleton
-class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeIncomeInformationService, val auditService: AuditService) extends BaseController with SchemaValidationHandler {
+class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeIncomeInformationService, val auditService: AuditService, override val authConnector: RTIIAuthConnector) extends BaseController with SchemaValidationHandler with AuthorisedFunctions {
 
   def preSchemaValidation(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
-      if (validateCorrelationId(correlationId)) {
-        validateDates(request.body) match {
-          case Right(_) => retrieveCitizenIncome(correlationId)
-          case Left(failure: DesSingleFailureResponse) => Future.successful(BadRequest(Json.toJson(failure)))
+      authorised(AuthProviders(PrivilegedApplication)) {
+        if (validateCorrelationId(correlationId)) {
+          validateDates(request.body) match {
+            case Right(_) => retrieveCitizenIncome(correlationId)
+            case Left(failure: DesSingleFailureResponse) => Future.successful(BadRequest(Json.toJson(failure)))
+          }
+        } else {
+          Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
         }
-      } else {
-        Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
+      } recover {
+        case _: UnsupportedAuthProvider => Forbidden(Json.toJson("Forbidden"))
       }
   }
 

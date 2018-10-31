@@ -26,33 +26,49 @@ import play.api.inject.guice.GuiceApplicationBuilder
 trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
   this: Suite =>
 
-  protected val server: WireMockServer = new WireMockServer(wireMockConfig().dynamicPort())
+  protected val desServer: WireMockServer = new WireMockServer(wireMockConfig().dynamicPort())
+  protected val authServer: WireMockServer = new WireMockServer(wireMockConfig().dynamicPort())
 
   protected def portConfigKey: String
 
-  protected lazy val app: Application =
+  protected lazy val desApp: Application =
     new GuiceApplicationBuilder()
       .configure(
-        portConfigKey -> server.port().toString,
+        portConfigKey -> desServer.port().toString,
         "auditing.enabled" -> false,
-        "metrics.enabled" -> false
+        "metrics.enabled" -> false,
+        "auth.enabled" -> true
       )
       .build()
 
-  protected lazy val injector: Injector = app.injector
+  protected lazy val authApp: Application =
+    new GuiceApplicationBuilder()
+      .configure(
+        portConfigKey -> authServer.port().toString,
+        "auditing.enabled" -> false,
+        "metrics.enabled" -> false,
+        "auth.enabled" -> true
+      )
+      .build()
+
+  protected lazy val desInjector: Injector = desApp.injector
+  protected lazy val authInjector: Injector = authApp.injector
 
   override def beforeAll(): Unit = {
-    server.start()
+    desServer.start()
+    authServer.start()
     super.beforeAll()
   }
 
   override def beforeEach(): Unit = {
-    server.resetAll()
+    desServer.resetAll()
+    authServer.resetAll()
     super.beforeEach()
   }
 
   override def afterAll(): Unit = {
     super.afterAll()
-    server.stop()
+    desServer.stop()
+    authServer.stop()
   }
 }
