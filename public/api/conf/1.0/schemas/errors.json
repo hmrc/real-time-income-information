@@ -36,6 +36,7 @@
             "INVALID_PAYLOAD",
             "INVALID_DATE_RANGE",
             "INVALID_DATES_EQUAL",
+            "NON_PRIVILEGED_APPLICATION",
             "NOT_FOUND_NINO",
             "NOT_FOUND",
             "SERVER_ERROR",

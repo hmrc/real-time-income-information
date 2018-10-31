@@ -51,7 +51,7 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
           Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
         }
       } recover {
-        case _: UnsupportedAuthProvider => Forbidden(Json.toJson("Forbidden"))
+        case _: UnsupportedAuthProvider => Forbidden(Json.toJson(Constants.responseNonPrivilegedApplication))
       }
   }
 
