@@ -72,6 +72,14 @@ types:
                     multipleErrors:
                       description: Multiple Errors
                       value: !include examples/400-multiple-errors.json
+            403:
+              body:
+                application/json:
+                  type: !include schemas/errors.json
+                  examples:
+                    forbidden:
+                      description: No data found for Nino
+                      value: !include examples/403-forbidden.json
             404:
               body:
                 application/json:

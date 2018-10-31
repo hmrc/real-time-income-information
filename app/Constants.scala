@@ -28,6 +28,8 @@ object Constants {
   val errorCodeInvalidPayload = "INVALID_PAYLOAD"
   val errorCodeServerError = "SERVER_ERROR"
   val errorCodeServiceUnavailable = "SERVICE_UNAVAILABLE"
+  val errorCodeNonPrivilegedApplication = "NON_PRIVILEGED_APPLICATION"
+  val responseNonPrivilegedApplication = DesSingleFailureResponse(errorCodeNonPrivilegedApplication, "The remote endpoint has indicated the request has not passed authentication.")
   val responseInvalidDateRange = DesSingleFailureResponse(errorCodeInvalidDateRange, "The remote endpoint has indicated that the date range is invalid.")
   val responseInvalidDatesEqual = DesSingleFailureResponse(errorCodeInvalidDatesEqual, "The remote endpoint has indicated that the from and to dates are the same.")
   val responseInvalidCorrelationId = DesSingleFailureResponse(errorCodeInvalidCorrelation, "Submission has not passed validation. Invalid header CorrelationId.")

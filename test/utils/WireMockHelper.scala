@@ -34,6 +34,7 @@ trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
     new GuiceApplicationBuilder()
       .configure(
         portConfigKey -> server.port().toString,
+        "microservice.services.auth.port" -> server.port().toString,
         "auditing.enabled" -> false,
         "metrics.enabled" -> false
       )

@@ -19,6 +19,8 @@ package controllers
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.junit.WireMockRule
+import config.RTIIAuthConnector
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -36,6 +38,7 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
 
   protected lazy val service: RealTimeIncomeInformationService = injector.instanceOf[RealTimeIncomeInformationService]
   protected lazy val auditService: AuditService = injector.instanceOf[AuditService]
+  protected lazy val rtiiAuthConnector: RTIIAuthConnector = injector.instanceOf[RTIIAuthConnector]
   protected lazy val controller: RealTimeIncomeInformationController = injector.instanceOf[RealTimeIncomeInformationController]
 
   "RealTimeIncomeInformationController" should {
@@ -52,7 +55,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 200
       }
@@ -68,7 +78,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 200
       }
@@ -84,7 +101,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 200
       }
@@ -104,7 +128,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
@@ -121,7 +152,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
@@ -138,7 +176,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
@@ -155,7 +200,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
@@ -172,7 +224,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
@@ -189,7 +248,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
 
@@ -207,7 +273,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
 
@@ -218,7 +291,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(invalidCorrelationId)(fakeRequest)
         status(result) mustBe 400
       }
@@ -227,7 +307,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateRangeRequest))
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
@@ -236,7 +323,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesEqualRequest))
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
@@ -245,7 +339,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateFormat))
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
 
@@ -254,7 +355,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesNotDefined))
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
@@ -263,10 +371,43 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequestInvalidNino))
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 400
       }
+    }
+
+    "Return 403 (FORBIDDEN)" when {
+      "A non privileged application attempts to call the endpoint" in {
+
+          val fakeRequest = FakeRequest(method = "POST", uri = "",
+            headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+
+          server.stubFor(
+            post(urlEqualTo(s"/individuals/$nino/income"))
+              .willReturn(
+                ok(successMatchOneYear.toString())
+              )
+          )
+
+          server.stubFor(
+            post(urlEqualTo("/auth/authorise"))
+              .willReturn(
+                unauthorized().withHeader("WWW-Authenticate", "MDTP detail=\"UnsupportedAuthProvider\"")
+              )
+          )
+
+          val sut = createSUT(service, auditService, rtiiAuthConnector)
+          val result = sut.preSchemaValidation(correlationId)(fakeRequest)
+          status(result) mustBe 403
+        }
     }
 
     "Return 404 (NOT_FOUND)" when {
@@ -281,7 +422,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 404
       }
@@ -301,7 +449,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 500
       }
@@ -320,7 +475,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 503
       }
@@ -339,7 +501,14 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 500
       }
@@ -356,15 +525,22 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
             )
         )
 
-        val sut = createSUT(service, auditService)
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
         val result = sut.preSchemaValidation(correlationId)(fakeRequest)
         status(result) mustBe 500
       }
     }
   }
 
-  def createSUT(rtiiService: RealTimeIncomeInformationService, auditService: AuditService) =
-    new RealTimeIncomeInformationController(rtiiService, auditService)
+  def createSUT(rtiiService: RealTimeIncomeInformationService, auditService: AuditService, authConnector: RTIIAuthConnector) =
+    new RealTimeIncomeInformationController(rtiiService, auditService, rtiiAuthConnector)
 
   private implicit val hc = HeaderCarrier()
 
