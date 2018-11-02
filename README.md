@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.org/hmrc/real-time-income-information.svg)](https://travis-ci.org/hmrc/real-time-income-information) [ ![Download](https://api.bintray.com/packages/hmrc/releases/real-time-income-information/images/download.svg) ](https://bintray.com/hmrc/releases/real-time-income-information/_latestVersion)
 
-API microservice placeholder readme - to be completed
+This is an API microservice - please refer to the developer hub for relevant documentation
+
+https://developer.service.hmrc.gov.uk/api-documentation/docs/using-the-hub
 
 ### License
 
