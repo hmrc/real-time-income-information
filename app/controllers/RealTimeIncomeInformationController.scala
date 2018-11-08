@@ -27,13 +27,14 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
 import services.{AuditService, RealTimeIncomeInformationService}
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions, UnsupportedAuthProvider}
+import uk.gov.hmrc.auth.core.{AuthProviders, AuthorisedFunctions, UnsupportedAuthProvider}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import utils.SchemaValidationHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 @Singleton
@@ -67,6 +68,10 @@ class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeInc
             case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
             case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
             case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
+          } recover {
+            case NonFatal(_) =>
+              ServiceUnavailable(Json.toJson(DesSingleFailureResponse(Constants.errorCodeServiceUnavailable,
+                "Dependent systems are currently not responding.")))
           }
       }
     }

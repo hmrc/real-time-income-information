@@ -19,7 +19,7 @@ package controllers
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import com.github.tomakehurst.wiremock.junit.WireMockRule
+import com.github.tomakehurst.wiremock.http.Fault
 import config.RTIIAuthConnector
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.mockito.MockitoSugar
@@ -472,6 +472,29 @@ class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
               serviceUnavailable().withBody(serviceUnavailableJson.toString)
+            )
+        )
+
+        server.stubFor(
+          post(urlEqualTo("/auth/authorise"))
+            .willReturn(
+              ok("true")
+            )
+        )
+
+        val sut = createSUT(service, auditService, rtiiAuthConnector)
+        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) mustBe 503
+      }
+
+      "DesConnector has thrown an Exception" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)
             )
         )
 
