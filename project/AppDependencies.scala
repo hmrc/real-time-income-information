@@ -10,7 +10,7 @@ object AppDependencies {
     "uk.gov.hmrc" %% "domain" % "5.2.0",
     "uk.gov.hmrc" %% "auth-client" % "2.17.0-play-25",
     "com.eclipsesource" %% "play-json-schema-validator" % "0.8.9",
-    "uk.gov.hmrc" %% "play-auditing" % "3.9.0-play-25"
+    "uk.gov.hmrc" %% "play-auditing" % "3.13.0-play-25"
   )
 
   def test(scope: String = "test") = Seq(
