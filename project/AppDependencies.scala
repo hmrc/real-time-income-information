@@ -6,15 +6,15 @@ object AppDependencies {
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc" %% "bootstrap-play-25" % "4.0.0",
+    "uk.gov.hmrc" %% "bootstrap-play-25" % "4.2.0",
     "uk.gov.hmrc" %% "domain" % "5.2.0",
     "uk.gov.hmrc" %% "auth-client" % "2.17.0-play-25",
     "com.eclipsesource" %% "play-json-schema-validator" % "0.8.9",
-    "uk.gov.hmrc" %% "play-auditing" % "3.13.0-play-25"
+    "uk.gov.hmrc" %% "play-auditing" % "3.14.0-play-25"
   )
 
   def test(scope: String = "test") = Seq(
-    "uk.gov.hmrc" %% "hmrctest" % "3.2.0" % scope,
+    "uk.gov.hmrc" %% "hmrctest" % "3.3.0" % scope,
     "org.scalatest" %% "scalatest" % "3.0.4" % scope,
     "org.pegdown" % "pegdown" % "1.6.0" % scope,
     "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.1" % scope,
