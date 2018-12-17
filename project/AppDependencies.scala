@@ -6,7 +6,7 @@ object AppDependencies {
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc" %% "bootstrap-play-25" % "4.3.0",
+    "uk.gov.hmrc" %% "bootstrap-play-25" % "4.4.0",
     "uk.gov.hmrc" %% "domain" % "5.2.0",
     "uk.gov.hmrc" %% "auth-client" % "2.17.0-play-25",
     "com.eclipsesource" %% "play-json-schema-validator" % "0.8.9",
