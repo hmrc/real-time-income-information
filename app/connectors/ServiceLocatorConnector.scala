@@ -23,8 +23,7 @@ import play.api.http.{ContentTypes, HeaderNames}
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.http.logging.MdcLoggingExecutionContext._
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 case class Registration(serviceName: String, serviceUrl: String, metadata: Option[Map[String, String]] = None)
