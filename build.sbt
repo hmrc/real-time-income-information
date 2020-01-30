@@ -1,7 +1,5 @@
-import TestPhases.oneForkedJvmPerTest
-import uk.gov.hmrc.DefaultBuildSettings.addTestReportOption
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import scoverage.ScoverageKeys
+import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
 val appName = "real-time-income-information"
 
@@ -15,26 +13,15 @@ lazy val scoverageSettings = Seq(
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
   .settings(
-    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test(),
+    libraryDependencies ++= AppDependencies.all,
     retrieveManaged := true,
-    evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false)
+    evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
+    publishingSettings,
+    scoverageSettings,
+    majorVersion := 1,
+    resolvers ++= Seq(
+      Resolver.jcenterRepo,
+      Resolver.bintrayRepo("emueller", "maven"),
+      Resolver.bintrayRepo("hmrc", "releases")
+    )
   )
-  .settings(
-    publishingSettings: _*
-  )
-  .configs(IntegrationTest)
-  .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
-  .settings(
-    Keys.fork in IntegrationTest := false,
-    unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest) (base => Seq(base / "it")).value,
-    testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
-    parallelExecution in IntegrationTest := false,
-    addTestReportOption(IntegrationTest, "int-test-reports")
-  )
-  .settings(
-    resolvers += Resolver.jcenterRepo,
-    resolvers += Resolver.bintrayRepo("emueller", "maven"),
-    resolvers += Resolver.bintrayRepo("hmrc", "releases")
-  )
-  .settings(scoverageSettings : _*)
-  .settings( majorVersion := 1 )
