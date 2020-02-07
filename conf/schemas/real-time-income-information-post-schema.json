@@ -146,7 +146,7 @@
     },
     "serviceNameType": {
       "type": "string",
-      "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,128}$"
+      "pattern": "^[a-zA-Z0-9 &`\\-\\'\\.^]{1,128}$"
     },
     "dateType": {
       "type": "string",
