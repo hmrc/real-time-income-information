@@ -6,10 +6,10 @@ object AppDependencies {
 
   val compile: Seq[ModuleID] = Seq(
     ws,
-    "uk.gov.hmrc" %% "bootstrap-play-25" % "5.1.0",
-    "uk.gov.hmrc" %% "domain" % "5.6.0-play-25",
-    "uk.gov.hmrc" %% "auth-client" % "2.32.2-play-25",
-    "uk.gov.hmrc" %% "play-auditing" % "4.2.0-play-25",
+    "uk.gov.hmrc" %% "bootstrap-play-25" % "5.3.0",
+    "uk.gov.hmrc" %% "domain" % "5.9.0-play-25",
+    "uk.gov.hmrc" %% "auth-client" % "3.0.0-play-25",
+    "uk.gov.hmrc" %% "play-auditing" % "4.3.0-play-25",
     "com.eclipsesource" %% "play-json-schema-validator" % "0.9.4"
   )
 
