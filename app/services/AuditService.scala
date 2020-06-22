@@ -41,7 +41,7 @@ class AuditService @Inject()(connector: AuditConnector,
     connector.sendEvent(event)
   }
 
-  def rtiiAudit(correlationId: String, body: RequestDetails)(implicit hc: HeaderCarrier): Future[AuditResult] = {
+  def rtiiAudit(correlationId: String, body: RequestDetails)(implicit hc: HeaderCarrier): Future[Any] = {
     audit("ServiceRequestReceived", s"/individuals/$correlationId/income",
       auditData = Map("correlationId" -> correlationId, "serviceName" -> body.serviceName, "filterFields" -> body.filterFields.toString()))
   }

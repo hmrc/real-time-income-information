@@ -19,7 +19,7 @@ package test
 import play.api.libs.json.Json
 
 import scala.io.Source
-
+//TODO rename and package
 trait BaseSpec {
 
   val invalidCorrelationIdJson = readJson("/400-invalid-correlation-id.json")

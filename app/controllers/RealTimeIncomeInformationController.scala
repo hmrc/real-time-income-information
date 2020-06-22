@@ -27,7 +27,7 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
 import services.{AuditService, RealTimeIncomeInformationService}
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
-import uk.gov.hmrc.auth.core.{AuthProviders, AuthorisedFunctions, UnsupportedAuthProvider}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions, UnsupportedAuthProvider}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.SchemaValidationHandler
@@ -39,7 +39,7 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeInformationService,
                                                     auditService: AuditService,
-                                                    override val authConnector: RTIIAuthConnector,
+                                                    override val authConnector: AuthConnector,
                                                     cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) with SchemaValidationHandler with AuthorisedFunctions {
 
   def preSchemaValidation(correlationId: String): Action[JsValue] = Action.async(parse.json) {

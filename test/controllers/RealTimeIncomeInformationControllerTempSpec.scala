@@ -561,8 +561,8 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
     }
   }
 
-  def createSUT(rtiiService: RealTimeIncomeInformationService, auditService: AuditService, authConnector: RTIIAuthConnector) =
-    new RealTimeIncomeInformationController(rtiiService, auditService, rtiiAuthConnector)
+  def createSUT(rtiiService: RealTimeIncomeInformationService, auditService: AuditService, authConnector: RTIIAuthConnector): RealTimeIncomeInformationController =
+    ???
 
   private implicit val hc = HeaderCarrier()
 

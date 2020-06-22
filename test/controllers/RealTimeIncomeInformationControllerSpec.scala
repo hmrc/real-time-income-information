@@ -1,21 +1,49 @@
+/*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package controllers
 
+import java.util.UUID
+
+import akka.stream.Materializer
+import models.response.{DesFilteredSuccessResponse, DesSuccessResponse}
+import org.mockito.ArgumentMatchers.any
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.test.Injecting
-import services.{AuditService, RealTimeIncomeInformationService}
-import uk.gov.hmrc.play.test.UnitSpec
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
+import play.api.test.{FakeHeaders, FakeRequest, Injecting}
+import play.api.test.Helpers._
+import services.{AuditService, RealTimeIncomeInformationService}
 import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.play.test.UnitSpec
 import utils.FakeAuthConnector
+import org.mockito.Mockito.when
+import play.api.mvc.Result
+import test.BaseSpec
 
-class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Injecting with MockitoSugar {
+import scala.concurrent.Future
 
-  val mockRtiiService = mock[RealTimeIncomeInformationService]
-  val mockAuditService = mock[AuditService]
+class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Injecting with MockitoSugar with BaseSpec {
 
+  private val correlationId = UUID.randomUUID().toString
+  val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]
+  val mockAuditService: AuditService = mock[AuditService]
   override def fakeApplication(): Application = {
     new GuiceApplicationBuilder()
       .overrides(
@@ -25,18 +53,46 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
       .build()
   }
 
+  implicit val mat: Materializer = app.materializer
+  val controller: RealTimeIncomeInformationController = inject[RealTimeIncomeInformationController]
+
   "RealTimeIncomeInformationController" should {
-    "Return 200 provided a valid request" when {
+    "Return OK provided a valid request" when {
       "the service returns a successfully filtered response" in  {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")),
+          body = Json.toJson(exampleDwpRequest)
+        )
 
+        val values = Json.toJson(Map(
+          "surname" -> "Surname",
+          "nationalInsuranceNumber" -> "AB123456C"
+        ))
+
+        val expectedDesResponse = DesFilteredSuccessResponse(63, List(values))
+        when(mockAuditService.rtiiAudit(any(), any())(any()))
+            .thenReturn(Future.successful(()))
+        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
+          .thenReturn(Future.successful(expectedDesResponse))
+
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe OK
+        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
-
+          //TODO this isnt a filtered response?
       "the service returns a successful no match with a match pattern of 0" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
-      }
+        val expectedDesResponse = DesSuccessResponse(0, None)
+        when(mockAuditService.rtiiAudit(any(), any())(any()))
+          .thenReturn(Future.successful(()))
+        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
+          .thenReturn(Future.successful(expectedDesResponse))
 
-      "the service returns a successful no match with match pattern greater than 0" in {
-
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe OK
+        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
     }
 
