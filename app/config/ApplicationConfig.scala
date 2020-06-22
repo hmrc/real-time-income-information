@@ -18,8 +18,7 @@ package config
 
 import com.google.inject.Inject
 import javax.inject.Singleton
-import play.api.{Configuration, Environment}
-import uk.gov.hmrc.play.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 trait HodConfig {
   val baseURL: String
@@ -28,11 +27,8 @@ trait HodConfig {
 }
 
 @Singleton
-class ApplicationConfig @Inject()(val runModeConfiguration: Configuration, playEnv: Environment) extends HodConfig with ServicesConfig {
-  override protected def mode = playEnv.mode
-  lazy val baseURL: String = baseUrl("des-hod")
-  lazy val environment: String = runModeConfiguration.getString(s"$rootServices.des-hod.env").getOrElse("local")
-  lazy val authorization: String = "Bearer " + runModeConfiguration.getString(s"$rootServices.des-hod.authorizationToken").getOrElse("local")
+class ApplicationConfig @Inject()(sc: ServicesConfig) extends HodConfig {
+  lazy val baseURL: String = sc.baseUrl("des-hod")
+  lazy val environment: String = sc.getConfString("des-hod.env", "local")
+  lazy val authorization: String = "Bearer " + sc.getConfString("des-hod.authorizationToken", "local")
 }
-
-

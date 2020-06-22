@@ -21,11 +21,10 @@ import play.api.Mode.Mode
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
 
 class RTIIAuthConnector @Inject()(val environment: Environment,
                                           val conf: Configuration,
-                                          val WSHttp: HttpClient) extends PlayAuthConnector with ServicesConfig {
+                                          val WSHttp: HttpClient) extends PlayAuthConnector {
   override protected def runModeConfiguration: Configuration = conf
   override protected def mode: Mode = environment.mode
   lazy val serviceUrl = baseUrl("auth")

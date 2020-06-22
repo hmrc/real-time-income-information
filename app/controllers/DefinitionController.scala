@@ -19,14 +19,15 @@ package controllers
 import config.{APIAccessConfig, AppContext}
 import javax.inject.{Inject, Singleton}
 import models.api.APIAccess
-import play.api.mvc.{Action, AnyContent}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendController
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import views.txt
 
 import scala.concurrent.Future
 
 @Singleton
-class DefinitionController @Inject()(appContext: AppContext) extends FrontendController {
+class DefinitionController @Inject()(appContext: AppContext,
+                                     cc: ControllerComponents) extends BackendController(cc) {
 
   def get(): Action[AnyContent] = Action.async {
     Future.successful(Ok(txt.definition(buildAccess(), appContext.apiContext)).as("application/json").withHeaders(CONTENT_TYPE -> JSON))

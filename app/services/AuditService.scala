@@ -16,20 +16,19 @@
 
 package services
 
+import com.google.inject.name.Named
 import com.google.inject.{Inject, Singleton}
 import models.RequestDetails
-import play.api.Configuration
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.DataEvent
-import uk.gov.hmrc.play.config.AppName
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AuditService @Inject()(configuration: Configuration, connector: AuditConnector) extends AppName {
+class AuditService @Inject()(connector: AuditConnector,
+                             @Named("appName") appName: String)(implicit ec: ExecutionContext) {
 
   def audit(auditType: String, path: String, auditData: Map[String, String])(implicit hc:HeaderCarrier): Future[AuditResult] = {
     val event = DataEvent(
@@ -42,11 +41,9 @@ class AuditService @Inject()(configuration: Configuration, connector: AuditConne
     connector.sendEvent(event)
   }
 
-  def rtiiAudit(correlationId: String, body: RequestDetails)(implicit hc: HeaderCarrier) = {
+  def rtiiAudit(correlationId: String, body: RequestDetails)(implicit hc: HeaderCarrier): Future[AuditResult] = {
     audit("ServiceRequestReceived", s"/individuals/$correlationId/income",
       auditData = Map("correlationId" -> correlationId, "serviceName" -> body.serviceName, "filterFields" -> body.filterFields.toString()))
   }
 
-  override protected def appNameConfiguration: Configuration = configuration
 }
-

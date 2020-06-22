@@ -29,16 +29,18 @@ import services.{AuditService, RealTimeIncomeInformationService}
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
 import uk.gov.hmrc.auth.core.{AuthProviders, AuthorisedFunctions, UnsupportedAuthProvider}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.SchemaValidationHandler
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 @Singleton
-class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeIncomeInformationService, val auditService: AuditService, override val authConnector: RTIIAuthConnector) extends BaseController with SchemaValidationHandler with AuthorisedFunctions {
+class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeInformationService,
+                                                    auditService: AuditService,
+                                                    override val authConnector: RTIIAuthConnector,
+                                                    cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) with SchemaValidationHandler with AuthorisedFunctions {
 
   def preSchemaValidation(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
