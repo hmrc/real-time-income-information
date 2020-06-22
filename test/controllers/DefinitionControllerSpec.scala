@@ -17,26 +17,32 @@
 package controllers
 
 import akka.stream.Materializer
-import config.AppContext
 import models.api.APIAccess
-import play.api.Configuration
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.Status._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.test.FakeRequest
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+import play.api.test.{FakeRequest, Injecting}
+import uk.gov.hmrc.play.test.UnitSpec
 import views._
 
-class DefinitionControllerSpec extends UnitSpec with WithFakeApplication {
-
-  private implicit val materializer: Materializer = fakeApplication.materializer
+class DefinitionControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Injecting {
 
   private val apiScope = "scope"
   private val apiContext = "context"
   private val apiWhitelist = "whitelist"
   private val apiAccess = APIAccess("PRIVATE", Some(Seq()))
-  private val appContext = new AppContext(Configuration("api.definition.scope" -> apiScope, "api.context" -> apiContext, "api.whitelistedApplicationIds" -> apiWhitelist))
-  private val controller = new DefinitionController(appContext)
+
+  override def fakeApplication(): Application = {
+    new GuiceApplicationBuilder()
+      .configure("api.definition.scope" -> apiScope, "api.context" -> apiContext, "api.whitelistedApplicationIds" -> apiWhitelist)
+      .build()
+  }
+
+  private lazy val controller = inject[DefinitionController]
+  private implicit val materializer: Materializer = app.materializer
 
   "DefinitionController.definition" should {
     lazy val result = getDefinition(controller)

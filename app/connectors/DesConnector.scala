@@ -36,7 +36,7 @@ import scala.util.{Failure, Success, Try}
 class DesConnector @Inject()(httpClient: HttpClient,
                              desConfig: ApplicationConfig) extends RawReads {
 
-  def desPathUrl(nino: String) = s"${desConfig.baseURL}/individuals/$nino/income"
+  def desPathUrl(nino: String) = s"${desConfig.hodUrl}/individuals/$nino/income"
 
   implicit val httpReads: HttpReads[HttpResponse] = new HttpReads[HttpResponse] {
     override def read(method: String, url: String, response: HttpResponse) = response

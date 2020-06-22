@@ -20,15 +20,11 @@ import com.google.inject.Inject
 import javax.inject.Singleton
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-trait HodConfig {
-  val baseURL: String
-  val environment: String
-  val authorization: String
-}
-
 @Singleton
-class ApplicationConfig @Inject()(sc: ServicesConfig) extends HodConfig {
-  lazy val baseURL: String = sc.baseUrl("des-hod")
+class ApplicationConfig @Inject()(sc: ServicesConfig) {
+  def baseUrl(serviceName: String): String = sc.baseUrl(serviceName)
+
+  lazy val hodUrl: String = baseUrl("des-hod")
   lazy val environment: String = sc.getConfString("des-hod.env", "local")
   lazy val authorization: String = "Bearer " + sc.getConfString("des-hod.authorizationToken", "local")
 }
