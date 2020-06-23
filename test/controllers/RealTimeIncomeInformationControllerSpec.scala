@@ -200,18 +200,39 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
       }
 
       "the toDate is equal to fromDate" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesEqualRequest))
 
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidDatesEqual)
       }
 
       "a date is in the wrong format" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateFormat))
 
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
       }
-      "either fromDate or toDate is not defined in the request" in {
 
+      "either fromDate or toDate is not defined in the request" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesNotDefined))
+
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
       }
 
       "the nino is invalid" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequestInvalidNino))
 
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
       }
     }
 
@@ -223,7 +244,19 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
 
     "Return 404 (NOT_FOUND)" when {
       "The remote endpoint has indicated that there is no data for the Nino" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+        val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeNotFoundNino, "")
 
+
+        when(mockAuditService.rtiiAudit(any(), any())(any()))
+          .thenReturn(Future.successful(()))
+        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
+          .thenReturn(Future.successful(expectedDesResponse))
+
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe NOT_FOUND
+        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
     }
