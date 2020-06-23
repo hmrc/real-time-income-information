@@ -41,7 +41,7 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
                                                     auditService: AuditService,
                                                     override val authConnector: AuthConnector,
                                                     cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) with SchemaValidationHandler with AuthorisedFunctions {
-
+//TODO consider moving out auth and schema validation
   def preSchemaValidation(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
       authorised(AuthProviders(PrivilegedApplication)) {

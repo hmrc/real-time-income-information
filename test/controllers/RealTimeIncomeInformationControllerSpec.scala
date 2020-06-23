@@ -19,7 +19,8 @@ package controllers
 import java.util.UUID
 
 import akka.stream.Materializer
-import models.response.{DesFilteredSuccessResponse, DesSuccessResponse}
+import app.Constants
+import models.response.{DesFilteredSuccessResponse, DesSingleFailureResponse, DesSuccessResponse}
 import org.mockito.ArgumentMatchers.any
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -33,13 +34,14 @@ import services.{AuditService, RealTimeIncomeInformationService}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.FakeAuthConnector
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{reset, when}
+import org.scalatest.BeforeAndAfterEach
 import play.api.mvc.Result
 import test.BaseSpec
 
 import scala.concurrent.Future
 
-class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Injecting with MockitoSugar with BaseSpec {
+class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Injecting with MockitoSugar with BaseSpec with BeforeAndAfterEach {
 
   private val correlationId = UUID.randomUUID().toString
   val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]
@@ -51,6 +53,11 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
         bind[AuditService].toInstance(mockAuditService),
         bind[AuthConnector].toInstance(FakeAuthConnector))
       .build()
+  }
+
+  override def beforeEach() = {
+    super.beforeEach()
+    reset(mockRtiiService, mockAuditService)
   }
 
   implicit val mat: Materializer = app.materializer
@@ -79,7 +86,6 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
         status(result) shouldBe OK
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
-          //TODO this isnt a filtered response?
       "the service returns a successful no match with a match pattern of 0" in {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
@@ -97,29 +103,65 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
     }
 
     "Return 400" when {
-      "the request contains an unexpected matching field" in {
+      "the request contains an unexpected matching field" in {  //TESTING SCHEMA
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidMatchingFieldDwpRequest))
 
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
       }
 
 
-      "the request contains an unexpected filter field" in {
+      "the request contains an unexpected filter field" in { //TESTING SCHEMA
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidFilterFieldDwpRequest))
 
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
       }
 
-      "the filter fields array is empty" in {
+      "the filter fields array is empty" in { //TESTING SCHEMA
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpEmptyFieldsRequest))
 
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
       }
 
-      "the filter fields array contains duplicate fields" in {
+      "the filter fields array contains duplicate fields" in { //TESTING SCHEMA
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpDuplicateFields))
 
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
       }
 
-      "the filter fields array contains an empty string field" in {
+      "the filter fields array contains an empty string field" in { //TESTING SCHEMA
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpEmptyStringField))
 
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
       }
 
       "the service returns a single error response" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
+        val expectedDesResponse = Constants.responseInvalidCorrelationId
+        when(mockAuditService.rtiiAudit(any(), any())(any()))
+          .thenReturn(Future.successful(()))
+        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
+          .thenReturn(Future.successful(expectedDesResponse))
+
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
       "the service returns multiple error responses" in {
