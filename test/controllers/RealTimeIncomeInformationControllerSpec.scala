@@ -20,7 +20,7 @@ import java.util.UUID
 
 import akka.stream.Materializer
 import app.Constants
-import models.response.{DesFilteredSuccessResponse, DesSingleFailureResponse, DesSuccessResponse}
+import models.response.{DesFilteredSuccessResponse, DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse}
 import org.mockito.ArgumentMatchers.any
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -165,14 +165,37 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
       }
 
       "the service returns multiple error responses" in {
+        val expectedDesResponse = DesMultipleFailureResponse(List(Constants.responseInvalidCorrelationId, Constants.responseInvalidDateRange))
+
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+        when(mockAuditService.rtiiAudit(any(), any())(any()))
+          .thenReturn(Future.successful(()))
+        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
+          .thenReturn(Future.successful(expectedDesResponse))
+
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
 
       }
 
       "the correlationId is invalid" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
+        val result: Future[Result] = controller.preSchemaValidation("invalidCorrelationId")(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidCorrelationId)
       }
 
       "the toDate is before fromDate" in {
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
+          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateRangeRequest))
+
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        status(result) shouldBe BAD_REQUEST
+        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidDateRange)
 
       }
 

@@ -116,7 +116,7 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
   }
 
   private def validateDates(requestBody: JsValue): Either[DesSingleFailureResponse, Boolean] = {
-
+    //TODO: parse body too much in function
     val requestDetails: Try[RequestDetails] = Try(requestBody.as[RequestDetails])
 
     if (requestDetails.isFailure)
