@@ -93,7 +93,7 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
 
     Try(results(r.code)) match {
       case Success(result) => result
-      case Failure(_) => Logger.info(s"Error from DES does not match schema: $r")
+      case Failure(_) => Logger.error(s"Error from DES does not match schema: $r")
         InternalServerError(Json.toJson(r))
     }
   }

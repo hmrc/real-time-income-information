@@ -20,7 +20,7 @@ import java.util.UUID
 
 import akka.stream.Materializer
 import app.Constants
-import models.response.{DesFilteredSuccessResponse, DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse}
+import models.response.{DesFilteredSuccessResponse, DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
 import org.mockito.ArgumentMatchers.any
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -259,31 +259,63 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
+      "The controller receives an Error Code Not Found Error from the service layer" in {
+        val fakeRequest = FakeRequest(method = "POST",  uri = "",
+          headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+        val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeNotFound,  "")
+
+        when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
+        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(expectedDesResponse)
+
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+
+        status(result) shouldBe NOT_FOUND
+        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+      }
+
     }
 
-    "Return 500 (SERVER_ERROR)" when {
-      "DES is currently experiencing problems that require live service intervention." in {
+    "Return 500 Internal Server Error" when {
+      "The controller receives a DesUnexpectedResponse from the service layer" in {
+        val fakeRequest = FakeRequest(method = "POST",  uri = "",
+          headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+        val expectedDesResponse = DesUnexpectedResponse()
 
-      }
-    }
+        when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
+        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(expectedDesResponse)
 
-    "Return 503 (SERVICE_UNAVAILABLE)" when {
-      "Dependent systems are currently not responding" in {
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest)
 
-      }
-
-      "DesConnector has thrown an Exception" in {
-
-      }
-    }
-
-    "Return INTERNAL_SERVER_ERROR" when {
-      "DES has given an unexpected response" in {
-
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
-      "DES has given a failure code and reason that do not match schema" in {
+      "The controller receives an Error Code Server Error from the service layer" in {
+        val fakeRequest = FakeRequest(method = "POST",  uri = "",
+          headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+        val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeServerError, "")
 
+        when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
+        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(expectedDesResponse)
+
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+      }
+
+      "The controller receives an unmatched DES error" in {
+        val fakeRequest = FakeRequest(method = "POST",  uri = "",
+          headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+        val expectedDesResponse = DesSingleFailureResponse("", "")
+
+        when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
+        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(expectedDesResponse)
+
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
     }
   }
