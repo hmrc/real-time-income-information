@@ -46,6 +46,7 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
   private val correlationId = UUID.randomUUID().toString
   val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]
   val mockAuditService: AuditService = mock[AuditService]
+
   override def fakeApplication(): Application = {
     new GuiceApplicationBuilder()
       .overrides(
@@ -65,7 +66,7 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
 
   "RealTimeIncomeInformationController" should {
     "Return OK provided a valid request" when {
-      "the service returns a successfully filtered response" in  {
+      "the service returns a successfully filtered response" in {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")),
           body = Json.toJson(exampleDwpRequest)
@@ -78,7 +79,7 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
 
         val expectedDesResponse = DesFilteredSuccessResponse(63, List(values))
         when(mockAuditService.rtiiAudit(any(), any())(any()))
-            .thenReturn(Future.successful(()))
+          .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
@@ -103,7 +104,7 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
     }
 
     "Return 400" when {
-      "the request contains an unexpected matching field" in {  //TESTING SCHEMA
+      "the request contains an unexpected matching field" in { //TESTING SCHEMA
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidMatchingFieldDwpRequest))
 
@@ -260,9 +261,9 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
       }
 
       "The controller receives an Error Code Not Found Error from the service layer" in {
-        val fakeRequest = FakeRequest(method = "POST",  uri = "",
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-        val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeNotFound,  "")
+        val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeNotFound, "")
 
         when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(expectedDesResponse)
@@ -277,7 +278,7 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
 
     "Return 500 Internal Server Error" when {
       "The controller receives a DesUnexpectedResponse from the service layer" in {
-        val fakeRequest = FakeRequest(method = "POST",  uri = "",
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
         val expectedDesResponse = DesUnexpectedResponse()
 
@@ -291,7 +292,7 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
       }
 
       "The controller receives an Error Code Server Error from the service layer" in {
-        val fakeRequest = FakeRequest(method = "POST",  uri = "",
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
         val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeServerError, "")
 
@@ -305,7 +306,7 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
       }
 
       "The controller receives an unmatched DES error" in {
-        val fakeRequest = FakeRequest(method = "POST",  uri = "",
+        val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
         val expectedDesResponse = DesSingleFailureResponse("", "")
 
@@ -316,6 +317,37 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
 
         status(result) shouldBe INTERNAL_SERVER_ERROR
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+      }
+
+      "Service unavailable" when {
+        "The controller receives a failure response from DES in the service layer" in {
+          val fakeRequest = FakeRequest(method = "POST", uri = "",
+            headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+
+          when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
+          when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.failed(new Exception))
+
+          val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+
+          status(result) shouldBe SERVICE_UNAVAILABLE
+          contentAsJson(result) shouldBe Json.toJson(DesSingleFailureResponse(Constants.errorCodeServiceUnavailable,
+            "Dependent systems are currently not responding."))
+        }
+
+        "The controller receives Des single failure response service unavailable" in {
+          val fakeRequest = FakeRequest(method = "POST", uri = "",
+            headers = FakeHeaders(Seq("Content-Type" -> "application/Json")), body = Json.toJson(exampleDwpRequest))
+
+          when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
+          when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(DesSingleFailureResponse(Constants.errorCodeServiceUnavailable, "")))
+
+          val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+
+          status(result) shouldBe SERVICE_UNAVAILABLE
+          contentAsJson(result) shouldBe Json.toJson(DesSingleFailureResponse(Constants.errorCodeServiceUnavailable,
+            "Dependent systems are currently not responding."))
+        }
+
       }
     }
   }
