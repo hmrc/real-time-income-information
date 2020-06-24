@@ -32,7 +32,7 @@ import test.BaseSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-
+//TODO refactor to use Guice and tidy
 class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers with BaseSpec with MockitoSugar with ScalaFutures {
 
   private implicit val hc = HeaderCarrier()
@@ -138,7 +138,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
 
       }
 
-    }
+    } //TODO havent covered test case where taxyears is None (.getOrElse(Nil))
         "retrieve citizen income is called" when {
 
           "given a DES success response with a match" must {

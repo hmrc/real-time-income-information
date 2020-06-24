@@ -264,16 +264,6 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
     }
   }
 
-  "Request Details" must {
-    "Form a Des Matching request" when {
-      "Given a valid dwp request" in {
-        val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
-        val transformedRequest = RequestDetails.toMatchingRequest(requestDetails)
-        transformedRequest mustBe DesMatchingRequest("2016-12-31", "2017-12-31", "Smith", None, None, None, None, None)
-      }
-    }
-  }
-
   private implicit val hc = HeaderCarrier()
 
   private def randomNino: String = new Generator(new Random).nextNino.toString()

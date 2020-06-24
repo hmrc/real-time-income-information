@@ -37,11 +37,12 @@ class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector)
   }
 
   def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): List[JsValue] = {
-      desSuccessResponse.taxYears.getOrElse(Nil).map(
+      desSuccessResponse.taxYears.getOrElse(Nil).map( //TODO do we need the getOrElse since there is a guard on #46
         taxYear => Json.toJson(keys.flatMap(key => pickOneValue(key, taxYear)).toMap))
   }
 
   def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String)(implicit hc: HeaderCarrier) : Future[DesResponse] = {
+    //TODO verify mock call as there is logic within (RequestDetails.toMatching)
     desConnector.retrieveCitizenIncome(requestDetails.nino, RequestDetails.toMatchingRequest(requestDetails), correlationId)(hc) map {
       case desSuccess: DesSuccessResponse => if(desSuccess.taxYears.isDefined) {
         DesFilteredSuccessResponse(desSuccess.matchPattern, pickAll(requestDetails.filterFields, desSuccess))

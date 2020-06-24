@@ -20,7 +20,7 @@ import com.eclipsesource.schema.{SchemaType, SchemaValidator}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 
 import scala.io.Source
-
+//TODO set this to be DI'd and tested
 trait SchemaValidationHandler {
 
   def schemaValidationHandler(jsonToValidate: JsValue): Either[JsError, JsSuccess[JsValue]] = {

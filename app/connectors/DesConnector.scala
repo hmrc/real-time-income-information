@@ -32,9 +32,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-@Singleton
+@Singleton //TODO httpClient Library getting java.lang.NoSuchMethodError: play.api.libs.json.JsArray.value()Lscala/collection/Seq;
 class DesConnector @Inject()(httpClient: HttpClient,
-                             desConfig: ApplicationConfig) extends RawReads {
+                             desConfig: ApplicationConfig) extends RawReads { //TODO extending raw reads?
 
   def desPathUrl(nino: String) = s"${desConfig.hodUrl}/individuals/$nino/income"
 

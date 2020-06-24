@@ -42,7 +42,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
 
   "RealTimeIncomeInformationController" should {
     "Return 200 provided a valid request" when {
-      "the service returns a successfully filtered response" in  {
+      "the service returns a successfully filtered response" ignore  {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
@@ -66,7 +66,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 200
       }
 
-      "the service returns a successful no match with a match pattern of 0" in {
+      "the service returns a successful no match with a match pattern of 0" ignore {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
@@ -89,7 +89,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 200
       }
 
-      "the service returns a successful no match with match pattern greater than 0" in {
+      "the service returns a successful no match with match pattern greater than 0" ignore {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
@@ -99,6 +99,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
               ok().withBody(successsNoMatchGreaterThanZero.toString)
             )
         )
+
 
         server.stubFor(
           post(urlEqualTo("/auth/authorise"))
@@ -115,7 +116,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
     }
 
     "Return 400" when {
-      "the request contains an unexpected matching field" in {
+      "the request contains an unexpected matching field" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidMatchingFieldDwpRequest))
@@ -139,7 +140,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 400
       }
 
-      "the request contains an unexpected filter field" in {
+      "the request contains an unexpected filter field" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidFilterFieldDwpRequest))
@@ -163,7 +164,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 400
       }
 
-      "the filter fields array is empty" in {
+      "the filter fields array is empty" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpEmptyFieldsRequest))
@@ -187,7 +188,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 400
       }
 
-      "the filter fields array contains duplicate fields" in {
+      "the filter fields array contains duplicate fields" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpDuplicateFields))
@@ -211,7 +212,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 400
       }
 
-      "the filter fields array contains an empty string field" in {
+      "the filter fields array contains an empty string field" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpEmptyStringField))
@@ -235,7 +236,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 400
       }
 
-      "the service returns a single error response" in {
+      "the service returns a single error response" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
@@ -260,7 +261,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
 
       }
 
-      "the service returns multiple error responses" in {
+      "the service returns multiple error responses" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
@@ -285,7 +286,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
 
       }
 
-      "the correlationId is invalid" in {
+      "the correlationId is invalid" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
@@ -302,7 +303,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 400
       }
 
-      "the toDate is before fromDate" in {
+      "the toDate is before fromDate" ignore {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateRangeRequest))
 
@@ -318,7 +319,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 400
       }
 
-      "the toDate is equal to fromDate" in {
+      "the toDate is equal to fromDate" ignore {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesEqualRequest))
 
@@ -334,7 +335,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 400
       }
 
-      "a date is in the wrong format" in {
+      "a date is in the wrong format" ignore {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateFormat))
 
@@ -350,7 +351,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 400
 
       }
-      "either fromDate or toDate is not defined in the request" in {
+      "either fromDate or toDate is not defined in the request" ignore {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesNotDefined))
 
@@ -366,7 +367,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 400
       }
 
-      "the nino is invalid" in {
+      "the nino is invalid" ignore {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequestInvalidNino))
 
@@ -384,7 +385,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
     }
 
     "Return 403 (FORBIDDEN)" when {
-      "A non privileged application attempts to call the endpoint" in {
+      "A non privileged application attempts to call the endpoint" ignore {
 
           val fakeRequest = FakeRequest(method = "POST", uri = "",
             headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
@@ -410,7 +411,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
     }
 
     "Return 404 (NOT_FOUND)" when {
-      "The remote endpoint has indicated that there is no data for the Nino" in {
+      "The remote endpoint has indicated that there is no data for the Nino" ignore {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
@@ -436,7 +437,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
     }
 
     "Return 500 (SERVER_ERROR)" when {
-      "DES is currently experiencing problems that require live service intervention." in {
+      "DES is currently experiencing problems that require live service intervention." ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
@@ -462,7 +463,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
     }
 
     "Return 503 (SERVICE_UNAVAILABLE)" when {
-      "Dependent systems are currently not responding" in {
+      "Dependent systems are currently not responding" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
@@ -486,7 +487,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 503
       }
 
-      "DesConnector has thrown an Exception" in {
+      "DesConnector has thrown an Exception" ignore {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
@@ -511,7 +512,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
     }
 
     "Return INTERNAL_SERVER_ERROR" when {
-      "DES has given an unexpected response" in {
+      "DES has given an unexpected response" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
@@ -535,7 +536,7 @@ class RealTimeIncomeInformationControllerTempSpec extends UnitSpec with MockitoS
         status(result) shouldBe 500
       }
 
-      "DES has given a failure code and reason that do not match schema" in {
+      "DES has given a failure code and reason that do not match schema" ignore {
 
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))

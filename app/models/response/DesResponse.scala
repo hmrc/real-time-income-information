@@ -34,7 +34,7 @@ object DesResponse {
   implicit val desFilteredSuccessFormats = Json.format[DesFilteredSuccessResponse]
 
   implicit val desUnexpectedFormats = Json.format[DesUnexpectedResponse]
-
+//TODO test custom reads and writes
   implicit val desMultipleFailureFormats: Format[DesMultipleFailureResponse] = Format(
     new Reads[DesMultipleFailureResponse] {
     override def reads(json: JsValue): JsResult[DesMultipleFailureResponse] = {

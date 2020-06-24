@@ -18,7 +18,7 @@ package config
 
 import com.google.inject.{Inject, Singleton}
 import play.api.Configuration
-
+//TODO
 @Singleton
 class AppContext @Inject()(configuration: Configuration) {
   private val apiScopeConfigKey = "api.definition.scope"

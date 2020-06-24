@@ -26,7 +26,7 @@ import uk.gov.hmrc.play.audit.model.DataEvent
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton
+@Singleton //TODO need some tests here too
 class AuditService @Inject()(connector: AuditConnector,
                              @Named("appName") appName: String)(implicit ec: ExecutionContext) {
 

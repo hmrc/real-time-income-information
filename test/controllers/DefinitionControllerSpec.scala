@@ -24,6 +24,7 @@ import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.Status._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
+import play.api.mvc.Result
 import play.api.test.{FakeRequest, Injecting}
 import uk.gov.hmrc.play.test.UnitSpec
 import views._
@@ -37,7 +38,13 @@ class DefinitionControllerSpec extends UnitSpec with GuiceOneAppPerSuite with In
 
   override def fakeApplication(): Application = {
     new GuiceApplicationBuilder()
-      .configure("api.definition.scope" -> apiScope, "api.context" -> apiContext, "api.whitelistedApplicationIds" -> apiWhitelist)
+      .configure(
+        "api.definition.scope" -> apiScope,
+        "api.context" -> apiContext,
+        "api.whitelistedApplicationIds" -> apiWhitelist,
+        "api.access.type" -> "PRIVATE",
+        "api.access.whitelistedApplicationIds" -> Seq()
+      )
       .build()
   }
 
@@ -60,8 +67,8 @@ class DefinitionControllerSpec extends UnitSpec with GuiceOneAppPerSuite with In
     }
   }
 
-  private def getDefinition(controller: DefinitionController) = {
-    await(controller.get().apply(FakeRequest("GET", "/api/definition")))
+  private def getDefinition(controller: DefinitionController): Result = {
+    await(controller.get()(FakeRequest("GET", "/api/definition")))
   }
 
 }
