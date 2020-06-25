@@ -32,7 +32,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
-@Singleton //TODO httpClient Library getting java.lang.NoSuchMethodError: play.api.libs.json.JsArray.value()Lscala/collection/Seq;
+@Singleton
 class DesConnector @Inject()(httpClient: HttpClient,
                              desConfig: ApplicationConfig) extends RawReads { //TODO extending raw reads?
 

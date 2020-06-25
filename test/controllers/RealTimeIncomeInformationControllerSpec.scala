@@ -20,28 +20,25 @@ import java.util.UUID
 
 import akka.stream.Materializer
 import app.Constants
-import models.response.{DesFilteredSuccessResponse, DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
+import models.response._
 import org.mockito.ArgumentMatchers.any
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.{reset, when}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.test.{FakeHeaders, FakeRequest, Injecting}
+import play.api.mvc.Result
 import play.api.test.Helpers._
+import play.api.test.{FakeHeaders, FakeRequest, Injecting}
 import services.{AuditService, RealTimeIncomeInformationService}
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.play.test.UnitSpec
-import utils.FakeAuthConnector
-import org.mockito.Mockito.{reset, when}
-import org.scalatest.BeforeAndAfterEach
-import play.api.mvc.Result
-import test.BaseSpec
+import utils.{BaseSpec, FakeAuthConnector}
 
 import scala.concurrent.Future
 
-class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Injecting with MockitoSugar with BaseSpec with BeforeAndAfterEach {
+class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting with BeforeAndAfterEach {
 
   private val correlationId = UUID.randomUUID().toString
   val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]

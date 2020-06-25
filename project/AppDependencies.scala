@@ -9,7 +9,6 @@ object AppDependencies {
     "uk.gov.hmrc" %% "bootstrap-play-26" % "1.8.0",
     "uk.gov.hmrc" %% "domain" % "5.9.0-play-25",
     "uk.gov.hmrc" %% "auth-client" % "3.0.0-play-25",
-    "uk.gov.hmrc" %% "play-auditing" % "4.3.0-play-25",
     "com.eclipsesource" %% "play-json-schema-validator" % "0.9.4"
   )
 

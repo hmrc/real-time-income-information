@@ -19,35 +19,37 @@ package connectors
 import java.util.UUID
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import config.ApplicationConfig
+import models.DesMatchingRequest
 import models.response.{DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
-import models.{DesMatchingRequest, RequestDetails}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
-import test.BaseSpec
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
+import play.api.test.Injecting
 import uk.gov.hmrc.domain.Generator
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.WireMockHelper
+import utils.{BaseSpec, WireMockHelper}
 
 import scala.util.Random
 
-class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with IntegrationPatience with WireMockHelper with BaseSpec with AuthorisedFunctions {
+class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatience with GuiceOneAppPerSuite with Injecting with WireMockHelper {
 
-  override protected def portConfigKey: String = "microservice.services.des-hod.port"
+  override def fakeApplication: Application =
+    new GuiceApplicationBuilder()
+      .configure(
+        "microservice.services.des-hod.port" -> server.port().toString,
+        "microservice.services.auth.port" -> server.port().toString,
+        "auditing.enabled" -> false,
+        "metrics.enabled" -> false
+      )
+      .build()
 
-  protected lazy val connector: DesConnector = injector.instanceOf[DesConnector]
-  protected lazy val desConfig: ApplicationConfig = injector.instanceOf[ApplicationConfig]
-  override lazy val authConnector: AuthConnector = injector.instanceOf[AuthConnector]
+  protected lazy val connector: DesConnector = inject[DesConnector]
 
-  "DesConnector" must {
-
+  "retrieveCitizenIncome" must {
     "return a DesSuccessResponse" when {
-
       "successfully retrieved citizen income data" in {
-
         val taxYear = Json.parse("""{
                          |      "taxYear": "16-17",
                          |      "taxYearIndicator": "P",
@@ -76,7 +78,6 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
                          |}""".stripMargin)
 
         val expectedResponse = DesSuccessResponse(63, Some(List(taxYear)))
-
         val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -86,15 +87,12 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
         )
 
         whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
+          result => result shouldBe expectedResponse
         }
-
       }
 
       "received a 200 No match response from DES" in {
-
         val expectedResponse = DesSuccessResponse(0, None)
-
         val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -104,15 +102,13 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
         )
 
         whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
+          result => result shouldBe expectedResponse
         }
 
       }
 
       "received a 200 No match response with match pattern less than 63 from DES" in {
-
         val expectedResponse = DesSuccessResponse(62, None)
-
         val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -122,19 +118,15 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
         )
 
         whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
+          result => result shouldBe expectedResponse
         }
-
       }
     }
 
     "return a single DesFailureResponse with the appropriate code and reason" when {
-
       "the remote endpoint has indicated that there is no data for the Nino" in {
-
         val expectedResponse = DesSingleFailureResponse("NOT_FOUND",
           "The remote endpoint has indicated that there is no data for the Nino.")
-
         val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -144,15 +136,13 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
         )
 
         whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
+          result => result shouldBe expectedResponse
         }
       }
 
       "the remote endpoint has indicated that the Nino cannot be found" in {
-
         val expectedResponse = DesSingleFailureResponse("NOT_FOUND_NINO",
           "The remote endpoint has indicated that the Nino cannot be found.")
-
         val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -162,15 +152,13 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
         )
 
         whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
+          result => result shouldBe expectedResponse
         }
       }
 
       "the remote endpoint has indicated that the correlation Id is invalid" in {
-
         val expectedResponse = DesSingleFailureResponse("INVALID_CORRELATION_ID",
           "Submission has not passed validation. Invalid header CorrelationId.")
-
         val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -180,15 +168,13 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
         )
 
         whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid")) {
-          result => result mustBe expectedResponse
+          result => result shouldBe expectedResponse
         }
       }
 
       "DES is currently experiencing problems that require live service intervention" in {
-
         val expectedResponse = DesSingleFailureResponse("SERVER_ERROR",
           "DES is currently experiencing problems that require live service intervention.")
-
         val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -198,16 +184,13 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
         )
 
         whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
+          result => result shouldBe expectedResponse
         }
-
       }
 
       "Dependent systems are currently not responding" in {
-
         val expectedResponse = DesSingleFailureResponse("SERVICE_UNAVAILABLE",
           "Dependent systems are currently not responding.")
-
         val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -217,9 +200,8 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
         )
 
         whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
+          result => result shouldBe expectedResponse
         }
-
       }
     }
 
@@ -238,17 +220,14 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
         )
 
         whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe responses
+          result => result shouldBe responses
         }
-
       }
     }
 
     "Return a DES unexpected response" when {
       "the DES response doesn't match the schema" in {
-
         val response = DesUnexpectedResponse()
-
         val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
@@ -258,15 +237,16 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
         )
 
         whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe response
+          result => result shouldBe response
         }
       }
     }
   }
+  //TODO missing tests where we have a 200 response from the connector, with bad response from JSON (unhappy path).
 
-  private implicit val hc = HeaderCarrier()
-
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
+  //TODO use generator across all tests
   private def randomNino: String = new Generator(new Random).nextNino.toString()
-
+  //TODO can we move this to BaseSpec?
   private val correlationId = UUID.randomUUID().toString
 }

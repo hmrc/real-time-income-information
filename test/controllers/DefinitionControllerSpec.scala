@@ -26,10 +26,10 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.{FakeRequest, Injecting}
-import uk.gov.hmrc.play.test.UnitSpec
+import utils.BaseSpec
 import views._
 
-class DefinitionControllerSpec extends UnitSpec with GuiceOneAppPerSuite with Injecting {
+class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 
   private val apiScope = "scope"
   private val apiContext = "context"

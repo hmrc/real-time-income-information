@@ -18,24 +18,23 @@ package services
 
 import models.RequestDetails
 import org.joda.time.DateTime
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Injecting
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
-import uk.gov.hmrc.play.test.UnitSpec
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.ArgumentMatchers.any
-import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.AuditExtensions._
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.DataEvent
+import utils.BaseSpec
 
 import scala.concurrent.Future
 
-class AuditServiceSpec extends UnitSpec with GuiceOneAppPerSuite with MockitoSugar with Injecting {
+class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 
   val mockAuditConnector: AuditConnector = mock[AuditConnector]
   implicit val hc: HeaderCarrier = HeaderCarrier()
