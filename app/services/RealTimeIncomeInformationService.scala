@@ -42,7 +42,6 @@ class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector)
   }
 
   def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String)(implicit hc: HeaderCarrier) : Future[DesResponse] = {
-    //TODO verify mock call as there is logic within (RequestDetails.toMatching)
     desConnector.retrieveCitizenIncome(requestDetails.nino, RequestDetails.toMatchingRequest(requestDetails), correlationId)(hc) map {
       case desSuccess: DesSuccessResponse => if(desSuccess.taxYears.isDefined) {
         DesFilteredSuccessResponse(desSuccess.matchPattern, pickAll(requestDetails.filterFields, desSuccess))

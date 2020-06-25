@@ -19,8 +19,9 @@ package services
 import java.util.UUID
 
 import connectors.DesConnector
-import models.RequestDetails
+import models.{DesMatchingRequest, RequestDetails}
 import models.response.{DesFilteredSuccessResponse, DesSingleFailureResponse, DesSuccessResponse}
+import org.mockito.{ArgumentMatcher, ArgumentMatchers}
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.MustMatchers
@@ -72,6 +73,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
                                      |    }
                                      """.stripMargin)
 
+    val desResponseWithZeroTaxYears = DesSuccessResponse(63, None)
     val desResponseWithOneTaxYear = DesSuccessResponse(63, Some(List(taxYear)))
     val desResponseWithTwoTaxYears = DesSuccessResponse(63, Some(List(taxYear,taxYear)))
 
@@ -86,7 +88,6 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
         val result = service(mock[DesConnector]).pickOneValue("paymentNoLongerValid", taxYear)
         result mustBe None
       }
-
     }
 
     "pickAll is called" when {
@@ -116,7 +117,6 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
               |}
             """.stripMargin))
         }
-
       }
 
       "when multiple tax years are requested" must {
@@ -135,10 +135,18 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
 
           result mustBe List(expected,expected)
         }
-
       }
 
-    } //TODO havent covered test case where taxyears is None (.getOrElse(Nil))
+      "when no tax year is requested" must {
+
+        "return an empty list" in {
+
+          val result = service(mock[DesConnector]).pickAll(List("surname", "nationalInsuranceNumber"), desResponseWithZeroTaxYears)
+
+          result mustBe Nil
+        }
+      }
+
         "retrieve citizen income is called" when {
 
           "given a DES success response with a match" must {
@@ -146,6 +154,7 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
             "retrieve and filter data to return as a DesFilteredSuccessResponse" in {
 
               val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
+              val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
               val mockDesConnector = mock[DesConnector]
 
               when(mockDesConnector.retrieveCitizenIncome(any(), any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(63, Some(List(taxYear)))))
@@ -161,9 +170,10 @@ class RealTimeIncomeInformationServiceSpec extends PlaySpec with MustMatchers wi
               whenReady(service(mockDesConnector).retrieveCitizenIncome(requestDetails, correlationId)) {
                 result => result mustBe DesFilteredSuccessResponse(63, List(expectedJson))
               }
+              verify(mockDesConnector, times(1)).retrieveCitizenIncome(any(), ArgumentMatchers.eq(desMatchingRequest), any())(any())
             }
-
           }
+        }
 
             "given a DES success response with no match" must {
 

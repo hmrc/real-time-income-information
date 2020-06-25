@@ -88,7 +88,7 @@ class RealTimeIncomeInformationControllerSpec extends UnitSpec with GuiceOneAppP
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
-      "the service returns a successful no match with a match pattern of 0" in {
+      "the service returns a successful when match pattern is 0 and None is returned" in {
         val fakeRequest = FakeRequest(method = "POST", uri = "",
           headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
 
