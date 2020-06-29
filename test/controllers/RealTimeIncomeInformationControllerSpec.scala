@@ -28,7 +28,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
@@ -43,6 +43,10 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
   private val correlationId = UUID.randomUUID().toString
   val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]
   val mockAuditService: AuditService = mock[AuditService]
+
+  def fakeRequest(jsonBody : JsValue) = {
+    FakeRequest(method = "POST", uri = "", headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = jsonBody)
+  }
 
   override def fakeApplication(): Application = {
     new GuiceApplicationBuilder()
@@ -60,14 +64,9 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
   implicit val mat: Materializer = app.materializer
   val controller: RealTimeIncomeInformationController = inject[RealTimeIncomeInformationController]
-//TODO refactor and consider test names
-  "RealTimeIncomeInformationController" should {
+  "preSchemaValidation" should {
     "Return OK provided a valid request" when {
       "the service returns a successfully filtered response" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")),
-          body = Json.toJson(exampleDwpRequest)
-        )
 
         val values = Json.toJson(Map(
           "surname" -> "Surname",
@@ -80,179 +79,88 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) shouldBe OK
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
       "the service returns a successful when match pattern is 0 and None is returned" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
         val expectedDesResponse = DesSuccessResponse(0, None)
         when(mockAuditService.rtiiAudit(any(), any())(any()))
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) shouldBe OK
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
     }
 
+
     "Return Bad Request" when {
-      "the request contains an unexpected matching field" in { //TESTING SCHEMA
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidMatchingFieldDwpRequest))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
-      }
-
-
-      "the request contains an unexpected filter field" in { //TESTING SCHEMA
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidFilterFieldDwpRequest))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
-      }
-
-      "the filter fields array is empty" in { //TESTING SCHEMA
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpEmptyFieldsRequest))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
-      }
-
-      "the filter fields array contains duplicate fields" in { //TESTING SCHEMA
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpDuplicateFields))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
-      }
-
-      "the filter fields array contains an empty string field" in { //TESTING SCHEMA
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpEmptyStringField))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
+      List(
+        ("the nino is invalid", exampleDwpRequestInvalidNino, Constants.responseInvalidPayload),
+        ("either fromDate or toDate is not defined in the request", exampleInvalidDatesNotDefined, Constants.responseInvalidPayload),
+        ("a date is in the wrong format", exampleInvalidDateFormat, Constants.responseInvalidPayload),
+        ("the toDate is equal to fromDate", exampleInvalidDatesEqualRequest, Constants.responseInvalidDatesEqual),
+        ("the toDate is before fromDate", exampleInvalidDateRangeRequest, Constants.responseInvalidDateRange),
+        ("the filter fields array contains an empty string field", exampleInvalidDwpEmptyStringField, Constants.responseInvalidPayload),
+        ("the filter fields array contains duplicate fields", exampleInvalidDwpDuplicateFields, Constants.responseInvalidPayload),
+        ("the filter fields array is empty", exampleInvalidDwpEmptyFieldsRequest, Constants.responseInvalidPayload),
+        ("the request contains an unexpected filter field", exampleInvalidFilterFieldDwpRequest, Constants.responseInvalidPayload),
+        ("the request contains an unexpected matching field", exampleInvalidMatchingFieldDwpRequest, Constants.responseInvalidPayload)
+      ).foreach {
+        case (testName, requestJson, expectedResponse) => testName in { //SCHEMA VALIDATION
+          val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(requestJson))
+          status(result) shouldBe BAD_REQUEST
+          contentAsJson(result) shouldBe Json.toJson(expectedResponse)
+        }
       }
 
       "the service returns a single error response" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
         val expectedDesResponse = Constants.responseInvalidCorrelationId
         when(mockAuditService.rtiiAudit(any(), any())(any()))
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) shouldBe BAD_REQUEST
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
       "the service returns multiple error responses" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
         val expectedDesResponse = DesMultipleFailureResponse(List(Constants.responseInvalidCorrelationId, Constants.responseInvalidDateRange))
         when(mockAuditService.rtiiAudit(any(), any())(any()))
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) shouldBe BAD_REQUEST
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
-
       }
 
       "the correlationId is invalid" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
-        val result: Future[Result] = controller.preSchemaValidation("invalidCorrelationId")(fakeRequest)
+        val result: Future[Result] = controller.preSchemaValidation("invalidCorrelationId")(fakeRequest(exampleDwpRequest))
         status(result) shouldBe BAD_REQUEST
         contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidCorrelationId)
       }
 
-      "the toDate is before fromDate" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateRangeRequest))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidDateRange)
-
-      }
-
-      "the toDate is equal to fromDate" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesEqualRequest))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidDatesEqual)
-      }
-
-      "a date is in the wrong format" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateFormat))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
-      }
-
-      "either fromDate or toDate is not defined in the request" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesNotDefined))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
-      }
-
-      "the nino is invalid" in { //SCHEMA VALIDATION
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequestInvalidNino))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidPayload)
-      }
-
       "the service layer returns a single failure response with invalid date range code" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
         val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeInvalidDateRange, "")
         when(mockAuditService.rtiiAudit(any(), any())(any()))
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) shouldBe BAD_REQUEST
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
       "the service layer returns a single failure response with invalid dates equal code" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
         val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeInvalidDatesEqual, "")
 
         when(mockAuditService.rtiiAudit(any(), any())(any()))
@@ -260,16 +168,13 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
         status(result) shouldBe BAD_REQUEST
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
       "the service layer returns a single failure response with invalid payload code" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
         val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeInvalidPayload, "")
 
         when(mockAuditService.rtiiAudit(any(), any())(any()))
@@ -277,89 +182,76 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) shouldBe BAD_REQUEST
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
     }
-
+    //TODO finish test?
     "Return 403 (FORBIDDEN)" when {
       "A non privileged application attempts to call the endpoint" in {
-
       }
     }
 
     "Return 404 (NOT_FOUND)" when {
       "The remote endpoint has indicated that there is no data for the Nino" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
         val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeNotFoundNino, "")
-
 
         when(mockAuditService.rtiiAudit(any(), any())(any()))
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) shouldBe NOT_FOUND
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
       "The controller receives an Error Code Not Found Error from the service layer" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
         val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeNotFound, "")
 
         when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(expectedDesResponse)
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
         status(result) shouldBe NOT_FOUND
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
-
     }
 
     "Return 500 Internal Server Error" when {
       "The controller receives a DesUnexpectedResponse from the service layer" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
         val expectedDesResponse = DesUnexpectedResponse()
 
         when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(expectedDesResponse)
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
         status(result) shouldBe INTERNAL_SERVER_ERROR
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
       "The controller receives an Error Code Server Error from the service layer" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
         val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeServerError, "")
 
         when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(expectedDesResponse)
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
         status(result) shouldBe INTERNAL_SERVER_ERROR
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
 
       "The controller receives an unmatched DES error" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
         val expectedDesResponse = DesSingleFailureResponse("", "")
 
         when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(expectedDesResponse)
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
         status(result) shouldBe INTERNAL_SERVER_ERROR
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
@@ -367,13 +259,10 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
       "Service unavailable" when {
         "The controller receives a failure response from DES in the service layer" in {
-          val fakeRequest = FakeRequest(method = "POST", uri = "",
-            headers = FakeHeaders(Seq("Content-Type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
           when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
           when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.failed(new Exception))
 
-          val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+          val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
           status(result) shouldBe SERVICE_UNAVAILABLE
           contentAsJson(result) shouldBe Json.toJson(DesSingleFailureResponse(Constants.errorCodeServiceUnavailable,
@@ -381,15 +270,12 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         }
 
         "The controller receives Des single failure response service unavailable" in {
-          val fakeRequest = FakeRequest(method = "POST", uri = "",
-            headers = FakeHeaders(Seq("Content-Type" -> "application/Json")), body = Json.toJson(exampleDwpRequest))
-
           val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeServiceUnavailable, "")
 
           when(mockAuditService.rtiiAudit(any(), any())(any())).thenReturn(Future.successful(()))
           when(mockRtiiService.retrieveCitizenIncome(any(), any())(any())).thenReturn(Future.successful(expectedDesResponse))
 
-          val result = controller.preSchemaValidation(correlationId)(fakeRequest)
+          val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
           status(result) shouldBe SERVICE_UNAVAILABLE
           contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)

@@ -37,6 +37,11 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
 
   val testAuthToken = "TestAuthToken"
   val testEnv = "TestEnv"
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
+  //TODO use generator across all tests
+  private val nino: String = new Generator(new Random).nextNino.toString()
+  //TODO can we move this to BaseSpec?
+  private val correlationId = UUID.randomUUID().toString
 
   override def fakeApplication: Application =
     new GuiceApplicationBuilder()
@@ -83,7 +88,6 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
                          |}""".stripMargin)
 
         val expectedResponse = DesSuccessResponse(63, Some(List(taxYear)))
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -91,14 +95,12 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe expectedResponse
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe expectedResponse
       }
 
       "received a 200 No match response from DES" in {
         val expectedResponse = DesSuccessResponse(0, None)
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -106,15 +108,12 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe expectedResponse
-        }
-
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe expectedResponse
       }
 
       "received a 200 No match response with match pattern less than 63 from DES" in {
         val expectedResponse = DesSuccessResponse(62, None)
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -122,9 +121,8 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe expectedResponse
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe expectedResponse
       }
     }
 
@@ -132,7 +130,6 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
       "the remote endpoint has indicated that there is no data for the Nino" in {
         val expectedResponse = DesSingleFailureResponse("NOT_FOUND",
           "The remote endpoint has indicated that there is no data for the Nino.")
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -140,15 +137,13 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe expectedResponse
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe expectedResponse
       }
 
       "the remote endpoint has indicated that the Nino cannot be found" in {
         val expectedResponse = DesSingleFailureResponse("NOT_FOUND_NINO",
           "The remote endpoint has indicated that the Nino cannot be found.")
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -156,15 +151,13 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe expectedResponse
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe expectedResponse
       }
 
       "the remote endpoint has indicated that the correlation Id is invalid" in {
         val expectedResponse = DesSingleFailureResponse("INVALID_CORRELATION_ID",
           "Submission has not passed validation. Invalid header CorrelationId.")
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -172,15 +165,13 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid")) {
-          result => result shouldBe expectedResponse
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid"))
+        result shouldBe expectedResponse
       }
 
       "DES is currently experiencing problems that require live service intervention" in {
         val expectedResponse = DesSingleFailureResponse("SERVER_ERROR",
           "DES is currently experiencing problems that require live service intervention.")
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -188,15 +179,13 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe expectedResponse
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe expectedResponse
       }
 
       "Dependent systems are currently not responding" in {
         val expectedResponse = DesSingleFailureResponse("SERVICE_UNAVAILABLE",
           "Dependent systems are currently not responding.")
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -204,19 +193,17 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe expectedResponse
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe expectedResponse
       }
     }
 
     "Return multiple DESFailureResponse" when {
+      val responses = DesMultipleFailureResponse(List(
+        DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."),
+        DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")))
       "the DES response contains a list of failures" in {
-        val responses = DesMultipleFailureResponse(List(
-          DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."),
-          DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")))
 
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -224,35 +211,25 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe responses
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe responses
       }
 
       "the status returned is OK but fails to parse as a DESSuccessResponse" in {
-
-        val responses = DesMultipleFailureResponse(List(
-          DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."),
-          DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")))
-
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(ok().withBody(multipleErrors.toString)
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe responses
-        }
-
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe responses
       }
     }
 
     "Return a DES unexpected response" when {
       "the DES response doesn't match the schema" in {
         val response = DesUnexpectedResponse()
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -260,15 +237,13 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe response
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe response
       }
 
       "the status returned is OK but fails to parse as a DESSuccessResponse" in {
 
         val response = DesUnexpectedResponse()
-        val nino = randomNino
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
@@ -276,14 +251,12 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
             )
         )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result shouldBe response
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result shouldBe response
       }
     }
 
     "send the correct headers to DES" in {
-      val nino = randomNino
       val url = s"/individuals/$nino/income"
 
       server.stubFor(
@@ -302,10 +275,4 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
       )
     }
   }
-
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
-  //TODO use generator across all tests
-  private def randomNino: String = new Generator(new Random).nextNino.toString()
-  //TODO can we move this to BaseSpec?
-  private val correlationId = UUID.randomUUID().toString
 }
