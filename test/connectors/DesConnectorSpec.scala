@@ -223,6 +223,25 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
           result => result shouldBe responses
         }
       }
+
+      "the status returned is OK but fails to parse as a DESSuccessResponse" in {
+
+        val responses = DesMultipleFailureResponse(List(
+          DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."),
+          DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")))
+
+        val nino = randomNino
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(ok().withBody(multipleErrors.toString)
+            )
+        )
+
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
+          result => result shouldBe responses
+        }
+
+      }
     }
 
     "Return a DES unexpected response" when {
@@ -240,7 +259,46 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
           result => result shouldBe response
         }
       }
+
+      "the status returned is OK but fails to parse as a DESSuccessResponse" in {
+
+        val response = DesUnexpectedResponse()
+        val nino = randomNino
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              ok().withBody("{}")
+            )
+        )
+
+        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
+          result => result shouldBe response
+        }
+      }
     }
+
+    "send the correct headers to DES" in {
+
+      //val uuidRegex = """[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}"""
+
+      server.stubFor(
+        post(urlEqualTo(url))
+          .willReturn(ok(expectedJson.toString()))
+      )
+
+      val result = await(connector.fetchMAEligibility(eligibilityRequest))
+
+      server.verify(postRequestedFor(urlEqualTo(url))
+        .withHeader("Authorization", equalTo(authorisationHeader))
+        .withHeader("Environment", equalTo(desEnv))
+        .withHeader("CorrelationId", matching(uuidRegex))
+      )
+    }
+
+    }
+
+
+
   }
   //TODO missing tests where we have a 200 response from the connector, with bad response from JSON (unhappy path).
 
