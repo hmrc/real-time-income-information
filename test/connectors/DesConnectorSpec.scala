@@ -35,13 +35,18 @@ import scala.util.Random
 
 class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatience with GuiceOneAppPerSuite with Injecting with WireMockHelper {
 
+  val testAuthToken = "TestAuthToken"
+  val testEnv = "TestEnv"
+
   override def fakeApplication: Application =
     new GuiceApplicationBuilder()
       .configure(
         "microservice.services.des-hod.port" -> server.port().toString,
         "microservice.services.auth.port" -> server.port().toString,
         "auditing.enabled" -> false,
-        "metrics.enabled" -> false
+        "metrics.enabled" -> false,
+        "microservice.services.des-hod.authorizationToken" -> testAuthToken,
+        "microservice.services.des-hod.env" -> testEnv
       )
       .build()
 
@@ -278,29 +283,25 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
     }
 
     "send the correct headers to DES" in {
-
-      //val uuidRegex = """[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}"""
+      val nino = randomNino
+      val url = s"/individuals/$nino/income"
 
       server.stubFor(
         post(urlEqualTo(url))
-          .willReturn(ok(expectedJson.toString()))
+          .willReturn(
+            ok().withBody("{}")
+          )
       )
 
-      val result = await(connector.fetchMAEligibility(eligibilityRequest))
+      await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
 
       server.verify(postRequestedFor(urlEqualTo(url))
-        .withHeader("Authorization", equalTo(authorisationHeader))
-        .withHeader("Environment", equalTo(desEnv))
-        .withHeader("CorrelationId", matching(uuidRegex))
+        .withHeader("Authorization", equalTo(s"Bearer $testAuthToken"))
+        .withHeader("Environment", equalTo(testEnv))
+        .withHeader("CorrelationId", equalTo(correlationId))
       )
     }
-
-    }
-
-
-
   }
-  //TODO missing tests where we have a 200 response from the connector, with bad response from JSON (unhappy path).
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
   //TODO use generator across all tests
