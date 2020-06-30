@@ -16,14 +16,17 @@
 
 package models
 
-import uk.gov.hmrc.play.test.UnitSpec
+import utils.BaseSpec
 
-class RequestDetailsSpec extends UnitSpec {
+class RequestDetailsSpec extends BaseSpec {
+
+  val nino: String = generateNino
 
   "toMatchingRequest" should {
     "create a DesMatchingRequest" in {
+
       val requestDetails = RequestDetails(
-        nino = "AB123456C",
+        nino = nino,
         serviceName = "serviceName",
         fromDate = "2016-12-31",
         toDate = "2017-12-31",
@@ -34,8 +37,10 @@ class RequestDetailsSpec extends UnitSpec {
         initials = Some("FMS"),
         dateOfBirth = Some("03/04/2050"),
         filterFields = List("surname", "nationalInsuranceNumber"))
-      val transformedRequest = RequestDetails.toMatchingRequest(requestDetails)
-      val expectedMatchingRequest = DesMatchingRequest(
+
+      val transformedDESRequest: DesMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
+
+      val expectedMatchingDESRequest = DesMatchingRequest(
         fromDate = "2016-12-31",
         toDate = "2017-12-31",
         surname = "Smith",
@@ -44,7 +49,8 @@ class RequestDetailsSpec extends UnitSpec {
         gender = Some("M"),
         initials = Some("FMS"),
         dateOfBirth = Some("03/04/2050"))
-      transformedRequest shouldBe expectedMatchingRequest
+
+      transformedDESRequest shouldBe expectedMatchingDESRequest
     }
   }
 

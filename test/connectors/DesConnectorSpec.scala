@@ -33,9 +33,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
   val testAuthToken = "TestAuthToken"
   val testEnv = "TestEnv"
   implicit val hc: HeaderCarrier = HeaderCarrier()
-  //TODO use generator across all tests
   val nino: String = generateNino
-  //TODO can we move this to BaseSpec?
   val correlationId: String = generateUUId
 
   override def fakeApplication: Application =

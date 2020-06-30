@@ -21,8 +21,7 @@ import java.util.UUID
 import connectors.DesConnector
 import models.RequestDetails
 import models.response.{DesFilteredSuccessResponse, DesSingleFailureResponse, DesSuccessResponse}
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers._
+import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json._
@@ -39,51 +38,51 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with ScalaFutures {
 
   val mockDesConnector: DesConnector = mock[DesConnector]
   val service: RealTimeIncomeInformationService = new RealTimeIncomeInformationService(mockDesConnector)
-
+  val nino: String = generateNino
   val taxYear: JsValue = Json.parse(
-    """
-      |    {
-      |      "taxYear": "16-17",
-      |      "taxYearIndicator": "P",
-      |      "hmrcOfficeNumber": "099",
-      |      "employerPayeRef": "A1B2c3d4e5",
-      |      "employerName1": "Employer",
-      |      "nationalInsuranceNumber": "AB123456C",
-      |      "surname": "Surname",
-      |      "gender": "M",
-      |      "uniqueEmploymentSequenceNumber": 9999,
-      |      "taxablePayInPeriod": 999999.99,
-      |      "taxDeductedOrRefunded": -12345.67,
-      |      "grossEarningsForNICs": 888888.66,
-      |      "taxablePayToDate": 999999.99,
-      |      "totalTaxToDate": 654321.08,
-      |      "numberOfNormalHoursWorked": "E",
-      |      "payFrequency": "M1",
-      |      "paymentDate": "2017-02-03",
-      |      "earningsPeriodsCovered": 11,
-      |      "uniquePaymentId": 777777,
-      |      "paymentConfidenceStatus": "1",
-      |      "taxCode": "11100L",
-      |      "hmrcReceiptTimestamp": "2018-04-16T09:23:55Z",
-      |      "rtiReceivedDate": "2018-04-16",
-      |      "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
-      |    }
+    s"""
+       |    {
+       |      "taxYear": "16-17",
+       |      "taxYearIndicator": "P",
+       |      "hmrcOfficeNumber": "099",
+       |      "employerPayeRef": "A1B2c3d4e5",
+       |      "employerName1": "Employer",
+       |      "nationalInsuranceNumber": "$nino",
+       |      "surname": "Surname",
+       |      "gender": "M",
+       |      "uniqueEmploymentSequenceNumber": 9999,
+       |      "taxablePayInPeriod": 999999.99,
+       |      "taxDeductedOrRefunded": -12345.67,
+       |      "grossEarningsForNICs": 888888.66,
+       |      "taxablePayToDate": 999999.99,
+       |      "totalTaxToDate": 654321.08,
+       |      "numberOfNormalHoursWorked": "E",
+       |      "payFrequency": "M1",
+       |      "paymentDate": "2017-02-03",
+       |      "earningsPeriodsCovered": 11,
+       |      "uniquePaymentId": 777777,
+       |      "paymentConfidenceStatus": "1",
+       |      "taxCode": "11100L",
+       |      "hmrcReceiptTimestamp": "2018-04-16T09:23:55Z",
+       |      "rtiReceivedDate": "2018-04-16",
+       |      "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
+       |    }
     """.stripMargin)
 
   val filteredTaxYearJson: JsValue = Json.parse(
-    """
-      |{
-      |"surname": "Surname",
-      |"nationalInsuranceNumber":"AB123456C"
-      |}
+    s"""
+       |{
+       |"surname": "Surname",
+       |"nationalInsuranceNumber":"$nino"
+       |}
     """.stripMargin)
 
   val filterFields: List[String] = List("surname", "nationalInsuranceNumber")
-  val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, filterFields)
+  val requestDetails: RequestDetails = RequestDetails(nino, "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, filterFields)
 
-  val desResponseWithZeroTaxYears = DesSuccessResponse(63, None)
-  val desResponseWithOneTaxYear = DesSuccessResponse(63, Some(List(taxYear)))
-  val desResponseWithTwoTaxYears = DesSuccessResponse(63, Some(List(taxYear, taxYear)))
+  val desResponseWithZeroTaxYears: DesSuccessResponse = DesSuccessResponse(63, None)
+  val desResponseWithOneTaxYear: DesSuccessResponse = DesSuccessResponse(63, Some(List(taxYear)))
+  val desResponseWithTwoTaxYears: DesSuccessResponse = DesSuccessResponse(63, Some(List(taxYear, taxYear)))
 
   "pickOneValue is called" must {
     "return the corresponding value if the requested key is present in the given DesSuccessResponse object" in {
@@ -131,19 +130,21 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with ScalaFutures {
       "retrieve and filter data to return as a DesFilteredSuccessResponse" in {
         val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
 
-        when(mockDesConnector.retrieveCitizenIncome(any(), any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(63, Some(List(taxYear)))))
+        when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())).thenReturn(Future.successful(DesSuccessResponse(63, Some(List(taxYear)))))
 
         whenReady(service.retrieveCitizenIncome(requestDetails, correlationId)) {
           result => result shouldBe DesFilteredSuccessResponse(63, List(filteredTaxYearJson))
         }
-        verify(mockDesConnector, times(1)).retrieveCitizenIncome(any(), ArgumentMatchers.eq(desMatchingRequest), any())(any())
+        verify(mockDesConnector, times(1)).retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())
       }
     }
   }
 
   "given a DES success response with no match" must {
     "return an unfiltered DesSuccessResponse" in {
-      when(mockDesConnector.retrieveCitizenIncome(any(), any(), any())(any())).thenReturn(Future.successful(DesSuccessResponse(0, None)))
+      val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
+
+      when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())).thenReturn(Future.successful(DesSuccessResponse(0, None)))
 
       whenReady(service.retrieveCitizenIncome(requestDetails, correlationId)) {
         result => result shouldBe DesSuccessResponse(0, None)
@@ -152,7 +153,9 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with ScalaFutures {
   }
 
   "given a DES failure response return an appropriate error message" in {
-    when(mockDesConnector.retrieveCitizenIncome(any(), any(), any())(any())).thenReturn(Future.successful(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
+    val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
+
+    when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())).thenReturn(Future.successful(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
 
     whenReady(service.retrieveCitizenIncome(requestDetails, correlationId)) {
       result => result shouldBe DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")

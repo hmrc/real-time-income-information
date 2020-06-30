@@ -29,33 +29,19 @@ case class DesUnexpectedResponse(code: String = "INTERNAL_SERVER_ERROR", reason:
 
 object DesResponse {
 
-  implicit val desSuccessFormats = Json.format[DesSuccessResponse]
+  implicit val desSuccessFormats: OFormat[DesSuccessResponse] = Json.format[DesSuccessResponse]
+  implicit val desFilteredSuccessFormats: OFormat[DesFilteredSuccessResponse] = Json.format[DesFilteredSuccessResponse]
+  implicit val desUnexpectedFormats: OFormat[DesUnexpectedResponse] = Json.format[DesUnexpectedResponse]
 
-  implicit val desFilteredSuccessFormats = Json.format[DesFilteredSuccessResponse]
+//  implicit val desSuccessReads: Reads[DesSuccessResponse] = (
+//    (JsPath \ "matchPattern").read[Int] and
+//    (JsPath \ "taxYears").readNullable[List[JsValue]]
+//  )(DesSuccessResponse.apply _)
 
-  implicit val desUnexpectedFormats = Json.format[DesUnexpectedResponse]
-//TODO test custom reads and writes
-  implicit val desMultipleFailureFormats: Format[DesMultipleFailureResponse] = Format(
-    new Reads[DesMultipleFailureResponse] {
-    override def reads(json: JsValue): JsResult[DesMultipleFailureResponse] = {
-      JsSuccess(DesMultipleFailureResponse((json \ "failures").as[List[DesSingleFailureResponse]]))
-    }},
-    new Writes[DesMultipleFailureResponse] {
-      override def writes(desMultipleFailure: DesMultipleFailureResponse): JsValue = {
-        Json.obj("failures" -> desMultipleFailure.failures)
-      }
-    }
-  )
-
-  implicit val desSuccessReads: Reads[DesSuccessResponse] = (
-    (JsPath \ "matchPattern").read[Int] and
-    (JsPath \ "taxYears").readNullable[List[JsValue]]
-  )(DesSuccessResponse.apply _)
-
-  implicit val desSuccessWrites: Writes[DesSuccessResponse] = (
-    (JsPath \ "matchPattern").write[Int] and
-      (JsPath \ "taxYears").writeNullable[List[JsValue]]
-    )(unlift(DesSuccessResponse.unapply))
+//  implicit val desSuccessWrites: Writes[DesSuccessResponse] = (
+//    (JsPath \ "matchPattern").write[Int] and
+//      (JsPath \ "taxYears").writeNullable[List[JsValue]]
+//    )(unlift(DesSuccessResponse.unapply))
 
   implicit val desSingleFailureReads: Reads[DesSingleFailureResponse] = (
     (JsPath \ "code").read[String] and
@@ -66,4 +52,7 @@ object DesResponse {
     (JsPath \ "code").write[String] and
       (JsPath \ "reason").write[String]
     )(unlift(DesSingleFailureResponse.unapply))
+
+  implicit val desMultipleFailureFormats: Format[DesMultipleFailureResponse] = Json.format[DesMultipleFailureResponse]
+
 }
