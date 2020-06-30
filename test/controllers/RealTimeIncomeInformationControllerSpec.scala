@@ -20,7 +20,6 @@ import akka.stream.Materializer
 import app.Constants
 import models.RequestDetails
 import models.response._
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -55,7 +54,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
       .build()
   }
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockRtiiService, mockAuditService)
   }
@@ -74,19 +73,19 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           "nationalInsuranceNumber" -> nino
         ))
 
-        val requesDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
+        val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
 
         val expectedDesResponse = DesFilteredSuccessResponse(63, List(values))
-        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requesDetails))(any()))
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requesDetails), meq(correlationId))(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) shouldBe OK
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
 
-        verify(mockAuditService, times(1)).rtiiAudit(meq(correlationId), meq(requesDetails))(any())
+        verify(mockAuditService, times(1)).rtiiAudit(meq(correlationId), meq(requestDetails))(any())
 
       }
 
@@ -100,9 +99,9 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) shouldBe OK
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+
       }
     }
-
 
     "Return Bad Request" when {
       List(
@@ -193,7 +192,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
       }
     }
-    //TODO finish test?
+    //TODO finish test when Auth work complete?
     "Return 403 (FORBIDDEN)" when {
       "A non privileged application attempts to call the endpoint" in {
       }

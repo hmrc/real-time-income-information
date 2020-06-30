@@ -24,7 +24,6 @@ import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.Status._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.mvc.Result
 import play.api.test.{FakeRequest, Injecting}
 import utils.BaseSpec
 import views._
@@ -35,6 +34,8 @@ class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with In
   private val apiContext = "context"
   private val apiWhitelist = "whitelist"
   private val apiAccess = APIAccess("PRIVATE", Some(Seq()))
+  private lazy val controller = inject[DefinitionController]
+  private implicit val materializer: Materializer = app.materializer
 
   override def fakeApplication(): Application = {
     new GuiceApplicationBuilder()
@@ -48,11 +49,8 @@ class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with In
       .build()
   }
 
-  private lazy val controller = inject[DefinitionController]
-  private implicit val materializer: Materializer = app.materializer
-
   "DefinitionController.definition" should {
-    lazy val result = getDefinition(controller)
+    val result = await(controller.get()(FakeRequest("GET", "/api/definition")))
 
     "return OK status" in {
       status(result) shouldBe OK
@@ -65,10 +63,6 @@ class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with In
     "return definition in the body" in {
       jsonBodyOf(result) shouldBe Json.parse(txt.definition(apiAccess, apiContext).toString())
     }
-  }
-
-  private def getDefinition(controller: DefinitionController): Result = {
-    await(controller.get()(FakeRequest("GET", "/api/definition")))
   }
 
 }
