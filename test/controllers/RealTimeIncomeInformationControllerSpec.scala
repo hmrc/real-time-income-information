@@ -16,13 +16,13 @@
 
 package controllers
 
-import java.util.UUID
-
 import akka.stream.Materializer
 import app.Constants
+import models.RequestDetails
 import models.response._
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.{any, eq => meq}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
@@ -40,13 +40,11 @@ import scala.concurrent.Future
 
 class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting with BeforeAndAfterEach {
 
-  private val correlationId = UUID.randomUUID().toString
+  val correlationId: String = generateUUId
+  val nino: String = generateNino
   val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]
   val mockAuditService: AuditService = mock[AuditService]
-
-  def fakeRequest(jsonBody : JsValue) = {
-    FakeRequest(method = "POST", uri = "", headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = jsonBody)
-  }
+  implicit val mat: Materializer = app.materializer
 
   override def fakeApplication(): Application = {
     new GuiceApplicationBuilder()
@@ -62,7 +60,10 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
     reset(mockRtiiService, mockAuditService)
   }
 
-  implicit val mat: Materializer = app.materializer
+  def fakeRequest(jsonBody : JsValue): FakeRequest[JsValue] = {
+    FakeRequest(method = "POST", uri = "", headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = jsonBody)
+  }
+
   val controller: RealTimeIncomeInformationController = inject[RealTimeIncomeInformationController]
   "preSchemaValidation" should {
     "Return OK provided a valid request" when {
@@ -70,18 +71,23 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         val values = Json.toJson(Map(
           "surname" -> "Surname",
-          "nationalInsuranceNumber" -> "AB123456C"
+          "nationalInsuranceNumber" -> nino
         ))
 
+        val requesDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
+
         val expectedDesResponse = DesFilteredSuccessResponse(63, List(values))
-        when(mockAuditService.rtiiAudit(any(), any())(any()))
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requesDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requesDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) shouldBe OK
         contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+
+        verify(mockAuditService, times(1)).rtiiAudit(meq(correlationId), meq(requesDetails))(any())
+
       }
 
       "the service returns a successful when match pattern is 0 and None is returned" in {

@@ -16,8 +16,6 @@
 
 package connectors
 
-import java.util.UUID
-
 import com.github.tomakehurst.wiremock.client.WireMock._
 import models.DesMatchingRequest
 import models.response.{DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
@@ -27,21 +25,18 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import play.api.test.Injecting
-import uk.gov.hmrc.domain.Generator
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.{BaseSpec, WireMockHelper}
-
-import scala.util.Random
 
 class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatience with GuiceOneAppPerSuite with Injecting with WireMockHelper {
 
   val testAuthToken = "TestAuthToken"
   val testEnv = "TestEnv"
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
   //TODO use generator across all tests
-  private val nino: String = new Generator(new Random).nextNino.toString()
+  val nino: String = generateNino
   //TODO can we move this to BaseSpec?
-  private val correlationId = UUID.randomUUID().toString
+  val correlationId: String = generateUUId
 
   override def fakeApplication: Application =
     new GuiceApplicationBuilder()
@@ -55,7 +50,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
       )
       .build()
 
-  protected lazy val connector: DesConnector = inject[DesConnector]
+  lazy val connector: DesConnector = inject[DesConnector]
 
   "retrieveCitizenIncome" must {
     "return a DesSuccessResponse" when {

@@ -16,7 +16,15 @@
 
 package utils
 
+import java.util.UUID
+
 import org.scalatestplus.mockito.MockitoSugar
+import uk.gov.hmrc.domain.Generator
 import uk.gov.hmrc.play.test.UnitSpec
 
-trait BaseSpec extends UnitSpec with MockitoSugar with ResourceProvider
+import scala.util.Random
+
+trait BaseSpec extends UnitSpec with MockitoSugar with ResourceProvider {
+  def generateUUId: String = UUID.randomUUID().toString
+  def generateNino = new Generator(new Random).nextNino.toString()
+}
