@@ -18,16 +18,17 @@ package config
 
 import com.google.inject.{Inject, Singleton}
 import play.api.Configuration
-//TODO
+
+//TODO renaming this to be specific to API context
 @Singleton
 class AppContext @Inject()(configuration: Configuration) {
   private val apiScopeConfigKey = "api.definition.scope"
   private val apiContextConfigKey = "api.context"
   private val apiWhitelistedServicesConfigKey = "api.access.whitelistedApplicationIds"
   private val apiAccessKey = "api.access"
-  private def apiConfigException(apiConfigKey: String) = new IllegalStateException(s"$apiConfigKey is not configured")
-  lazy val apiScopeKey: String = configuration.getOptional[String].getOrElse(throw apiConfigException(apiScopeConfigKey))
-  lazy val apiWhitelistKey: String = configuration.getString(apiWhitelistedServicesConfigKey).getOrElse(throw apiConfigException(apiWhitelistedServicesConfigKey))
-  lazy val apiContext: String = configuration.getString(apiContextConfigKey).getOrElse(throw apiConfigException(apiContextConfigKey))
-  lazy val apiAccess: Option[Configuration] = configuration.getConfig(apiAccessKey)
+  private def apiConfigException(apiConfigKey: String) = new IllegalStateException(s"$apiConfigKey is not configured") //TODO can we get rid of this and use .get[A]
+  lazy val apiScopeKey: String = configuration.getOptional[String](apiScopeConfigKey).getOrElse(throw apiConfigException(apiScopeConfigKey))
+  lazy val apiWhitelistKey: String = configuration.getOptional[String](apiWhitelistedServicesConfigKey).getOrElse(throw apiConfigException(apiWhitelistedServicesConfigKey))
+  lazy val apiContext: String = configuration.getOptional[String](apiContextConfigKey).getOrElse(throw apiConfigException(apiContextConfigKey))
+  lazy val apiAccess: Option[Configuration] = configuration.getOptional[Configuration](apiAccessKey)
 }

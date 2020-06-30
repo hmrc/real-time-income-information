@@ -27,7 +27,7 @@ import play.api.libs.json._
 import play.api.test.Injecting
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.{BaseSpec, WireMockHelper}
-
+//TODO do we need all of these inherited traits?
 class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatience with GuiceOneAppPerSuite with Injecting with WireMockHelper {
 
   val testAuthToken = "TestAuthToken"

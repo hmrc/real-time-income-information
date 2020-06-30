@@ -61,7 +61,7 @@ class DesConnector @Inject()(httpClient: HttpClient,
     }
   }
 
-  private def parseDesResponse[A <: DesResponse](res: HttpResponse)
+  private def parseDesResponse[A <: DesResponse](res: HttpResponse) //TODO we can probably rewrite this
                                         (implicit reads: Reads[A]): DesResponse = {
     Try(res.json.as[A]) match { //TODO validate instead of try
       case Success(data) =>

@@ -28,12 +28,12 @@ import scala.concurrent.Future
 @Singleton
 class DefinitionController @Inject()(appContext: AppContext,
                                      cc: ControllerComponents) extends BackendController(cc) {
-
+//TODO inject action, dont use action object?
   def get(): Action[AnyContent] = Action.async {
     Future.successful(Ok(txt.definition(buildAccess(), appContext.apiContext)).as("application/json").withHeaders(CONTENT_TYPE -> JSON))
   }
 
-  private def buildAccess(): APIAccess = {
+  private def buildAccess(): APIAccess = { //TODO should this be in appcontext?
     val access = APIAccessConfig(appContext.apiAccess)
     APIAccess(access.accessType, access.whiteListedApplicationIds)
   }

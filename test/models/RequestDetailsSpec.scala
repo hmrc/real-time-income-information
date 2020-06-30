@@ -24,7 +24,6 @@ class RequestDetailsSpec extends BaseSpec {
 
   "toMatchingRequest" should {
     "create a DesMatchingRequest" in {
-
       val requestDetails = RequestDetails(
         nino = nino,
         serviceName = "serviceName",

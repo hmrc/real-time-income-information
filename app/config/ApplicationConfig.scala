@@ -22,9 +22,9 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
 class ApplicationConfig @Inject()(sc: ServicesConfig) {
-  def baseUrl(serviceName: String): String = sc.baseUrl(serviceName)
+  def baseUrl(serviceName: String): String = sc.baseUrl(serviceName) //TODO delete this
 
-  lazy val hodUrl: String = baseUrl("des-hod")
+  lazy val hodUrl: String = sc.baseUrl("des-hod")
   lazy val environment: String = sc.getConfString("des-hod.env", "local")
   lazy val authorization: String = "Bearer " + sc.getConfString("des-hod.authorizationToken", "local")
 }

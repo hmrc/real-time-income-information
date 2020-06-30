@@ -29,11 +29,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 import utils.BaseSpec
 
 import scala.concurrent.Future
-
+//TODO using whenReady
 class RealTimeIncomeInformationServiceSpec extends BaseSpec with ScalaFutures {
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
-
+//TODO use BaseSpec function
   private val correlationId = UUID.randomUUID().toString
 
   val mockDesConnector: DesConnector = mock[DesConnector]

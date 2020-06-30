@@ -42,6 +42,7 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
                                                     override val authConnector: AuthConnector,
                                                     cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) with SchemaValidationHandler with AuthorisedFunctions {
 //TODO consider moving out auth and schema validation
+//TODO inject action, dont use action object. Same for body parsers i think
   def preSchemaValidation(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
       authorised(AuthProviders(PrivilegedApplication)) {

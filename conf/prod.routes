@@ -7,3 +7,5 @@
 POST      /individuals/:correlationId/income             @controllers.RealTimeIncomeInformationController.preSchemaValidation(correlationId: String)
 
 GET        /admin/metrics             com.kenshoo.play.metrics.MetricsController.metrics
+
+#TODO there is the same route here as in app.routes. Why?
