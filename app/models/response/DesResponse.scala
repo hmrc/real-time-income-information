@@ -16,7 +16,6 @@
 
 package models.response
 
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 sealed trait DesResponse
@@ -28,31 +27,9 @@ case class DesMultipleFailureResponse(failures: List[DesSingleFailureResponse]) 
 case class DesUnexpectedResponse(code: String = "INTERNAL_SERVER_ERROR", reason: String = "Internal Server Error") extends DesResponse
 
 object DesResponse {
-
-  implicit val desSuccessFormats: OFormat[DesSuccessResponse] = Json.format[DesSuccessResponse]
-  implicit val desFilteredSuccessFormats: OFormat[DesFilteredSuccessResponse] = Json.format[DesFilteredSuccessResponse]
-  implicit val desUnexpectedFormats: OFormat[DesUnexpectedResponse] = Json.format[DesUnexpectedResponse]
-
-//  implicit val desSuccessReads: Reads[DesSuccessResponse] = (
-//    (JsPath \ "matchPattern").read[Int] and
-//    (JsPath \ "taxYears").readNullable[List[JsValue]]
-//  )(DesSuccessResponse.apply _)
-
-//  implicit val desSuccessWrites: Writes[DesSuccessResponse] = (
-//    (JsPath \ "matchPattern").write[Int] and
-//      (JsPath \ "taxYears").writeNullable[List[JsValue]]
-//    )(unlift(DesSuccessResponse.unapply))
-
-  implicit val desSingleFailureReads: Reads[DesSingleFailureResponse] = (
-    (JsPath \ "code").read[String] and
-      (JsPath \ "reason").read[String]
-    )(DesSingleFailureResponse.apply _)
-
-  implicit val desSingleFailureWrites: Writes[DesSingleFailureResponse] = (
-    (JsPath \ "code").write[String] and
-      (JsPath \ "reason").write[String]
-    )(unlift(DesSingleFailureResponse.unapply))
-
+  implicit val desSuccessFormats: Format[DesSuccessResponse] = Json.format[DesSuccessResponse]
+  implicit val desFilteredSuccessFormats: Format[DesFilteredSuccessResponse] = Json.format[DesFilteredSuccessResponse]
+  implicit val desUnexpectedFormats: Format[DesUnexpectedResponse] = Json.format[DesUnexpectedResponse]
+  implicit val desSingleFailureFormats: Format[DesSingleFailureResponse] = Json.format[DesSingleFailureResponse]
   implicit val desMultipleFailureFormats: Format[DesMultipleFailureResponse] = Json.format[DesMultipleFailureResponse]
-
 }

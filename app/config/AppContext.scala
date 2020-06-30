@@ -26,7 +26,7 @@ class AppContext @Inject()(configuration: Configuration) {
   private val apiWhitelistedServicesConfigKey = "api.access.whitelistedApplicationIds"
   private val apiAccessKey = "api.access"
   private def apiConfigException(apiConfigKey: String) = new IllegalStateException(s"$apiConfigKey is not configured")
-  lazy val apiScopeKey: String = configuration.getString(apiScopeConfigKey).getOrElse(throw apiConfigException(apiScopeConfigKey))
+  lazy val apiScopeKey: String = configuration.getOptional[String].getOrElse(throw apiConfigException(apiScopeConfigKey))
   lazy val apiWhitelistKey: String = configuration.getString(apiWhitelistedServicesConfigKey).getOrElse(throw apiConfigException(apiWhitelistedServicesConfigKey))
   lazy val apiContext: String = configuration.getString(apiContextConfigKey).getOrElse(throw apiConfigException(apiContextConfigKey))
   lazy val apiAccess: Option[Configuration] = configuration.getConfig(apiAccessKey)
