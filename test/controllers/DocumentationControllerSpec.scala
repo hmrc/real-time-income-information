@@ -19,21 +19,25 @@ package controllers
 import akka.stream.Materializer
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status._
+import play.api.mvc.Result
+import play.api.test.Helpers.{defaultAwaitTimeout, status, contentAsString}
 import play.api.test.{FakeRequest, Injecting}
 import utils.BaseSpec
 
+import scala.concurrent.Future
+
 class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 
-  private implicit val materializer: Materializer = app.materializer
+  implicit val materializer: Materializer = app.materializer
 
-  private lazy val controller = inject[DocumentationController]
-  private lazy val applicationRamlContent = getResourceFileContent("/public/api/conf/1.0/application.raml")
+  lazy val controller: DocumentationController = inject[DocumentationController]
+  lazy val applicationRamlContent: String = getResourceFileContent("/public/api/conf/1.0/application.raml")
 
   "DocumentationController" must {
     "return OK status with application.raml in the body" in {
-      val result = await(controller.conf("1.0","application.raml")(FakeRequest("GET", "/api/conf/1.0/application.raml")))
-      result mustBe OK
-      result mustBe applicationRamlContent
+      val result: Future[Result] = controller.conf("1.0","application.raml")(FakeRequest("GET", "/api/conf/1.0/application.raml"))
+      status(result) mustBe OK
+      contentAsString(result) mustBe applicationRamlContent
     }
   }
 }

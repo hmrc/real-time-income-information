@@ -41,7 +41,7 @@ class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector)
         taxYear => Json.toJson(keys.flatMap(key => pickOneValue(key, taxYear)).toMap))
   }
 
-  def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String)(implicit hc: HeaderCarrier) : Future[DesResponse] = {
+  def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String)(implicit hc: HeaderCarrier): Future[DesResponse] = {
     desConnector.retrieveCitizenIncome(requestDetails.nino, RequestDetails.toMatchingRequest(requestDetails), correlationId)(hc) map {
       case desSuccess: DesSuccessResponse => if(desSuccess.taxYears.isDefined) {
         DesFilteredSuccessResponse(desSuccess.matchPattern, pickAll(requestDetails.filterFields, desSuccess))

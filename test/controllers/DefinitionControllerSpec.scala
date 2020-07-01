@@ -24,7 +24,8 @@ import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.Status._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.test.{FakeRequest, Injecting}
+import play.api.test.{FakeRequest, Injecting, Helpers}
+import Helpers.{status, contentAsJson, defaultAwaitTimeout, headers}
 import utils.BaseSpec
 import views._
 
@@ -49,13 +50,13 @@ class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with In
       .build()
   }
 
-  "DefinitionController" must {
+  "get" must {
     "return a Json definition" in {
-      val result = await(controller.get()(FakeRequest("GET", "/api/definition")))
+      val result = controller.get()(FakeRequest("GET", "/api/definition"))
 
-      result mustBe OK
-      result.header.headers must contain (CONTENT_TYPE -> "application/json;charset=utf-8")
-      result mustBe Json.parse(txt.definition(apiAccess, apiContext).toString())
+      status(result) mustBe OK
+      headers(result) must contain (CONTENT_TYPE -> "application/json;charset=utf-8")
+      contentAsJson(result) mustBe Json.parse(txt.definition(apiAccess, apiContext).toString())
     }
   }
 }
