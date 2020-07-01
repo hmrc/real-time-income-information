@@ -17,7 +17,6 @@
 package config
 
 import play.api.Configuration
-import uk.gov.hmrc.play.test.UnitSpec
 import utils.BaseSpec
 
 class APIAccessConfigSpec extends BaseSpec {
