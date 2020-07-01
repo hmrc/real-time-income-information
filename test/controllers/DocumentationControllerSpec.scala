@@ -32,8 +32,8 @@ class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   "DocumentationController" must {
     "return OK status with application.raml in the body" in {
       val result = await(controller.conf("1.0","application.raml")(FakeRequest("GET", "/api/conf/1.0/application.raml")))
-      status(result) mustBe OK
-      bodyOf(result) mustBe applicationRamlContent
+      result mustBe OK
+      result mustBe applicationRamlContent
     }
   }
 }
