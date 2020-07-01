@@ -22,7 +22,7 @@ class RequestDetailsSpec extends BaseSpec {
 
   val nino: String = generateNino
 
-  "toMatchingRequest" should {
+  "toMatchingRequest" must {
     "create a DesMatchingRequest" in {
       val requestDetails = RequestDetails(
         nino = nino,
@@ -49,7 +49,7 @@ class RequestDetailsSpec extends BaseSpec {
         initials = Some("FMS"),
         dateOfBirth = Some("03/04/2050"))
 
-      transformedDESRequest shouldBe expectedMatchingDESRequest
+      transformedDESRequest mustBe expectedMatchingDESRequest
     }
   }
 

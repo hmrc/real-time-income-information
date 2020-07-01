@@ -49,11 +49,11 @@ class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with In
       .build()
   }
 
-  "DefinitionController.definition" should {
+  "DefinitionController.definition" must {
     val result = await(controller.get()(FakeRequest("GET", "/api/definition")))
 
     "return OK status" in {
-      status(result) shouldBe OK
+      status(result) mustBe OK
     }
 
     "have a JSON content type" in {
@@ -61,7 +61,7 @@ class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with In
     }
 
     "return definition in the body" in {
-      jsonBodyOf(result) shouldBe Json.parse(txt.definition(apiAccess, apiContext).toString())
+      jsonBodyOf(result) mustBe Json.parse(txt.definition(apiAccess, apiContext).toString())
     }
   }
 

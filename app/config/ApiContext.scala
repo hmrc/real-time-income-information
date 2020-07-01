@@ -19,9 +19,8 @@ package config
 import com.google.inject.{Inject, Singleton}
 import play.api.Configuration
 
-//TODO renaming this to be specific to API context
 @Singleton
-class AppContext @Inject()(configuration: Configuration) {
+class ApiContext @Inject()(configuration: Configuration) {
   private val apiScopeConfigKey = "api.definition.scope"
   private val apiContextConfigKey = "api.context"
   private val apiWhitelistedServicesConfigKey = "api.access.whitelistedApplicationIds"

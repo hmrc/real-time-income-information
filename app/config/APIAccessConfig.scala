@@ -18,6 +18,7 @@ package config
 
 import play.api.Configuration
 //TODO do we need this?
+//TODO deprecations
 case class APIAccessConfig(value: Option[Configuration]) {
 
   val PRIVATE = "PRIVATE"

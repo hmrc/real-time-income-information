@@ -24,6 +24,6 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 class RTIIAuthConnector @Inject()(appConfig: ApplicationConfig,
                                   WSHttp: HttpClient) extends PlayAuthConnector {
-  lazy val serviceUrl = appConfig.baseUrl("auth") //TODO move this...
+  lazy val serviceUrl = appConfig.authBaseUrl //TODO move this...
   lazy val http = WSHttp //TODO this can be an injected val
 }

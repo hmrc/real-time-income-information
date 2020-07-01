@@ -18,33 +18,34 @@ package config
 
 import play.api.Configuration
 import uk.gov.hmrc.play.test.UnitSpec
+import utils.BaseSpec
 
-class APIAccessConfigSpec extends UnitSpec {
+class APIAccessConfigSpec extends BaseSpec {
 
   val emptyAccessConfig: APIAccessConfig = APIAccessConfig(None)
   val accessType: String = "someType"
   val nonPrivateAccessConfig: APIAccessConfig = APIAccessConfig(Some(Configuration("type" -> accessType)))
 
-  "accessType" should {
+  "accessType" must {
     "return type from config value" when {
       "config value is defined" in {
-        nonPrivateAccessConfig.accessType shouldBe accessType
+        nonPrivateAccessConfig.accessType mustBe accessType
       }
     }
 
     "return PRIVATE" when {
       "config value is not defined" in {
         val accessConfig = APIAccessConfig(Some(Configuration.from(Map.empty)))
-        accessConfig.accessType shouldBe "PRIVATE"
+        accessConfig.accessType mustBe "PRIVATE"
       }
 
       "config is not defined" in {
-        emptyAccessConfig.accessType shouldBe "PRIVATE"
+        emptyAccessConfig.accessType mustBe "PRIVATE"
       }
     }
   }
 
-  "whiteListedApplicationIds" should {
+  "whiteListedApplicationIds" must {
     "return sequence from config" when {
       "config values are defined and accessType is PRIVATE" in {
         val appIds = Seq("abc", "def")
@@ -53,24 +54,24 @@ class APIAccessConfigSpec extends UnitSpec {
           "whitelistedApplicationIds" -> appIds
         )))
 
-        accessConfig.whiteListedApplicationIds shouldBe Some(appIds)
+        accessConfig.whiteListedApplicationIds mustBe Some(appIds)
       }
     }
 
     "return empty sequence" when {
       "config value is not defined and accessType is PRIVATE" in {
         val privateAccessConfig: APIAccessConfig = APIAccessConfig(Some(Configuration("type" -> "PRIVATE")))
-        privateAccessConfig.whiteListedApplicationIds shouldBe Some(Seq())
+        privateAccessConfig.whiteListedApplicationIds mustBe Some(Seq())
       }
 
       "config is not defined and accessType is PRIVATE" in {
-        emptyAccessConfig.whiteListedApplicationIds shouldBe Some(Seq())
+        emptyAccessConfig.whiteListedApplicationIds mustBe Some(Seq())
       }
     }
 
     "return None" when {
       "accessType is not PRIVATE" in {
-        nonPrivateAccessConfig.whiteListedApplicationIds shouldBe None
+        nonPrivateAccessConfig.whiteListedApplicationIds mustBe None
       }
     }
   }

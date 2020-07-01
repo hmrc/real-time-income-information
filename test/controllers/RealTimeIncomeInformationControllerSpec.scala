@@ -64,7 +64,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
   }
 
   val controller: RealTimeIncomeInformationController = inject[RealTimeIncomeInformationController]
-  "preSchemaValidation" should {
+  "preSchemaValidation" must {
     "Return OK provided a valid request" when {
       val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
       "the service returns a successfully filtered response" in {
@@ -81,8 +81,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
-        status(result) shouldBe OK
-        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+        status(result) mustBe OK
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
 
         verify(mockAuditService, times(1)).rtiiAudit(meq(correlationId), meq(requestDetails))(any())
       }
@@ -96,8 +96,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
-        status(result) shouldBe OK
-        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+        status(result) mustBe OK
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
     }
 
@@ -116,8 +116,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
       ).foreach {
         case (testName, requestJson, expectedResponse) => testName in { //SCHEMA VALIDATION
           val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(requestJson))
-          status(result) shouldBe BAD_REQUEST
-          contentAsJson(result) shouldBe Json.toJson(expectedResponse)
+          status(result) mustBe BAD_REQUEST
+          contentAsJson(result) mustBe Json.toJson(expectedResponse)
         }
       }
 
@@ -131,8 +131,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
 
       "the service returns multiple error responses" in {
@@ -145,14 +145,14 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
 
       "the correlationId is invalid" in {
         val result: Future[Result] = controller.preSchemaValidation("invalidCorrelationId")(fakeRequest(exampleDwpRequest))
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(Constants.responseInvalidCorrelationId)
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(Constants.responseInvalidCorrelationId)
       }
 
       "the service layer returns a single failure response with invalid date range code" in {
@@ -165,8 +165,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
 
       "the service layer returns a single failure response with invalid dates equal code" in {
@@ -180,8 +180,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
 
       "the service layer returns a single failure response with invalid payload code" in {
@@ -194,8 +194,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
-        status(result) shouldBe BAD_REQUEST
-        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
     }
     //TODO finish test when Auth work complete?
@@ -215,8 +215,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
-        status(result) shouldBe NOT_FOUND
-        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+        status(result) mustBe NOT_FOUND
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
 
       "The controller receives an Error Code Not Found Error from the service layer" in {
@@ -227,8 +227,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
-        status(result) shouldBe NOT_FOUND
-        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+        status(result) mustBe NOT_FOUND
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
     }
 
@@ -241,8 +241,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
-        status(result) shouldBe SERVICE_UNAVAILABLE
-        contentAsJson(result) shouldBe Json.toJson(DesSingleFailureResponse(Constants.errorCodeServiceUnavailable,
+        status(result) mustBe SERVICE_UNAVAILABLE
+        contentAsJson(result) mustBe Json.toJson(DesSingleFailureResponse(Constants.errorCodeServiceUnavailable,
           "Dependent systems are currently not responding."))
       }
 
@@ -254,8 +254,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
-        status(result) shouldBe SERVICE_UNAVAILABLE
-        contentAsJson(result) shouldBe Json.toJson(expectedDesResponse)
+        status(result) mustBe SERVICE_UNAVAILABLE
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
     }
 
@@ -273,13 +273,13 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
           val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
-          status(result) shouldBe INTERNAL_SERVER_ERROR
+          status(result) mustBe INTERNAL_SERVER_ERROR
 
           val expectedJSON: JsValue = expectedDesResponse match {
             case expectedResponse: DesSingleFailureResponse => Json.toJson(expectedResponse)
             case expectedResponse: DesUnexpectedResponse => Json.toJson(expectedResponse)
           }
-          contentAsJson(result) shouldBe expectedJSON
+          contentAsJson(result) mustBe expectedJSON
         }
       }
     }

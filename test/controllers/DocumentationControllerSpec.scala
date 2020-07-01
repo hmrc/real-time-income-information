@@ -29,11 +29,11 @@ class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   private lazy val controller = inject[DocumentationController]
   private lazy val applicationRamlContent = getResourceFileContent("/public/api/conf/1.0/application.raml")
 
-  "DocumentationController" should {
+  "DocumentationController" must {
     "return OK status with application.raml in the body" in {
       val result = await(controller.conf("1.0","application.raml")(FakeRequest("GET", "/api/conf/1.0/application.raml")))
-      status(result) shouldBe OK
-      bodyOf(result) shouldBe applicationRamlContent
+      status(result) mustBe OK
+      bodyOf(result) mustBe applicationRamlContent
     }
   }
 }

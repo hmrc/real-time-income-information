@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{APIAccessConfig, AppContext}
+import config.{APIAccessConfig, ApiContext}
 import javax.inject.{Inject, Singleton}
 import models.api.APIAccess
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -26,7 +26,7 @@ import views.txt
 import scala.concurrent.Future
 
 @Singleton
-class DefinitionController @Inject()(appContext: AppContext,
+class DefinitionController @Inject()(appContext: ApiContext,
                                      cc: ControllerComponents) extends BackendController(cc) {
 //TODO inject action, dont use action object?
   def get(): Action[AnyContent] = Action.async {

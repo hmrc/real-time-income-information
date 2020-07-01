@@ -19,7 +19,6 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import models.DesMatchingRequest
 import models.response.{DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -27,8 +26,8 @@ import play.api.libs.json._
 import play.api.test.Injecting
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.{BaseSpec, WireMockHelper}
-//TODO do we need all of these inherited traits?
-class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatience with GuiceOneAppPerSuite with Injecting with WireMockHelper {
+
+class DesConnectorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting with WireMockHelper {
 
   val testAuthToken = "TestAuthToken"
   val testEnv = "TestEnv"
@@ -89,7 +88,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe expectedResponse
+        result mustBe expectedResponse
       }
 
       "received a 200 No match response from DES" in {
@@ -102,7 +101,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe expectedResponse
+        result mustBe expectedResponse
       }
 
       "received a 200 No match response with match pattern less than 63 from DES" in {
@@ -115,7 +114,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe expectedResponse
+        result mustBe expectedResponse
       }
     }
 
@@ -131,7 +130,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe expectedResponse
+        result mustBe expectedResponse
       }
 
       "the remote endpoint has indicated that the Nino cannot be found" in {
@@ -145,7 +144,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe expectedResponse
+        result mustBe expectedResponse
       }
 
       "the remote endpoint has indicated that the correlation Id is invalid" in {
@@ -159,7 +158,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid"))
-        result shouldBe expectedResponse
+        result mustBe expectedResponse
       }
 
       "DES is currently experiencing problems that require live service intervention" in {
@@ -173,7 +172,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe expectedResponse
+        result mustBe expectedResponse
       }
 
       "Dependent systems are currently not responding" in {
@@ -187,7 +186,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe expectedResponse
+        result mustBe expectedResponse
       }
     }
 
@@ -205,7 +204,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe responses
+        result mustBe responses
       }
 
       "the status returned is OK but fails to parse as a DESSuccessResponse" in {
@@ -216,7 +215,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe responses
+        result mustBe responses
       }
     }
 
@@ -231,7 +230,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe response
+        result mustBe response
       }
 
       "the status returned is OK but fails to parse as a DESSuccessResponse" in {
@@ -245,7 +244,7 @@ class DesConnectorSpec extends BaseSpec with ScalaFutures with IntegrationPatien
         )
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result shouldBe response
+        result mustBe response
       }
     }
 

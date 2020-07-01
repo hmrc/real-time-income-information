@@ -16,11 +16,9 @@
 
 package services
 
-import java.util.UUID
-
 import connectors.DesConnector
 import models.RequestDetails
-import models.response.{DesFilteredSuccessResponse, DesSingleFailureResponse, DesSuccessResponse}
+import models.response.{DesFilteredSuccessResponse, DesResponse, DesSingleFailureResponse, DesSuccessResponse}
 import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
@@ -29,13 +27,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 import utils.BaseSpec
 
 import scala.concurrent.Future
-//TODO using whenReady
-class RealTimeIncomeInformationServiceSpec extends BaseSpec with ScalaFutures {
 
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
-//TODO use BaseSpec function
-  private val correlationId = UUID.randomUUID().toString
+class RealTimeIncomeInformationServiceSpec extends BaseSpec {
 
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+  val correlationId: String = generateUUId
   val mockDesConnector: DesConnector = mock[DesConnector]
   val service: RealTimeIncomeInformationService = new RealTimeIncomeInformationService(mockDesConnector)
   val nino: String = generateNino
@@ -87,12 +83,12 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with ScalaFutures {
   "pickOneValue is called" must {
     "return the corresponding value if the requested key is present in the given DesSuccessResponse object" in {
       val result = service.pickOneValue("surname", taxYear)
-      result shouldBe Some("surname" -> JsString("Surname"))
+      result mustBe Some("surname" -> JsString("Surname"))
     }
 
     "return None if the requested key is not present in the given DesSuccessResponse object" in {
       val result = service.pickOneValue("paymentNoLongerValid", taxYear)
-      result shouldBe None
+      result mustBe None
     }
   }
 
@@ -103,7 +99,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with ScalaFutures {
           s"return available values when requesting filter fields ${filterFields.mkString(", ")}" in {
             val result = service.pickAll(filterFields, desResponseWithOneTaxYear)
 
-            result shouldBe List(filteredTaxYearJson)
+            result mustBe List(filteredTaxYearJson)
           }
       }
     }
@@ -112,7 +108,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with ScalaFutures {
       "return all requested values when all keys are present and the data covers multiple years" in {
         val result = service.pickAll(filterFields, desResponseWithTwoTaxYears)
 
-        result shouldBe List(filteredTaxYearJson, filteredTaxYearJson)
+        result mustBe List(filteredTaxYearJson, filteredTaxYearJson)
       }
     }
 
@@ -120,7 +116,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with ScalaFutures {
       "return an empty list" in {
         val result = service.pickAll(filterFields, desResponseWithZeroTaxYears)
 
-        result shouldBe Nil
+        result mustBe Nil
       }
     }
   }
@@ -132,33 +128,30 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with ScalaFutures {
 
         when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())).thenReturn(Future.successful(DesSuccessResponse(63, Some(List(taxYear)))))
 
-        whenReady(service.retrieveCitizenIncome(requestDetails, correlationId)) {
-          result => result shouldBe DesFilteredSuccessResponse(63, List(filteredTaxYearJson))
-        }
+        val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails, correlationId))
+        result mustBe DesFilteredSuccessResponse(63, List(filteredTaxYearJson))
         verify(mockDesConnector, times(1)).retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())
       }
     }
-  }
 
-  "given a DES success response with no match" must {
-    "return an unfiltered DesSuccessResponse" in {
-      val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
+    "given a DES success response with no match" must {
+      "return an unfiltered DesSuccessResponse" in {
+        val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
 
-      when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())).thenReturn(Future.successful(DesSuccessResponse(0, None)))
+        when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())).thenReturn(Future.successful(DesSuccessResponse(0, None)))
 
-      whenReady(service.retrieveCitizenIncome(requestDetails, correlationId)) {
-        result => result shouldBe DesSuccessResponse(0, None)
+        val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails, correlationId))
+        result mustBe DesSuccessResponse(0, None)
       }
     }
-  }
 
-  "given a DES failure response return an appropriate error message" in {
-    val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
+    "given a DES failure response return an appropriate error message" in {
+      val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
 
-    when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())).thenReturn(Future.successful(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
+      when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())).thenReturn(Future.successful(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")))
 
-    whenReady(service.retrieveCitizenIncome(requestDetails, correlationId)) {
-      result => result shouldBe DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")
+      val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails, correlationId))
+      result mustBe DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")
     }
   }
 }

@@ -48,7 +48,7 @@ class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
   val auditService: AuditService = inject[AuditService]
   val date: DateTime = DateTime.now
 
-  "audit" should {
+  "audit" must {
     "send data event to the AuditConnector" in {
       val dataEventCaptor: ArgumentCaptor[DataEvent] = ArgumentCaptor.forClass(classOf[DataEvent])
       val auditPath = "auditPath"
@@ -67,13 +67,13 @@ class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
 
       val result = auditService.audit(auditType, auditPath, auditData)
 
-      await(result) shouldBe AuditResult.Success
+      await(result) mustBe AuditResult.Success
       val actualDataEvent = dataEventCaptor.getValue
-      actualDataEvent.copy(eventId = "eventId", generatedAt = date) shouldBe expectedDataEvent
+      actualDataEvent.copy(eventId = "eventId", generatedAt = date) mustBe expectedDataEvent
     }
   }
 
-  "rtiiAudit" should {
+  "rtiiAudit" must {
     "audit correlationID, serviceName and filterFields" in {
       val dataEventCaptor: ArgumentCaptor[DataEvent] = ArgumentCaptor.forClass(classOf[DataEvent])
       val correlationId = "correlationId"
@@ -95,9 +95,9 @@ class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
 
       val result = auditService.rtiiAudit(correlationId, requestDetails)
 
-      await(result) shouldBe AuditResult.Success
+      await(result) mustBe AuditResult.Success
       val actualDataEvent = dataEventCaptor.getValue
-      actualDataEvent.copy(eventId = "eventId", generatedAt = date) shouldBe expectedDataEvent
+      actualDataEvent.copy(eventId = "eventId", generatedAt = date) mustBe expectedDataEvent
     }
   }
 }
