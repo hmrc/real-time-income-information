@@ -17,7 +17,7 @@
 //TODO correctly package, fix type annotations
 package app
 
-import models.response.DesSingleFailureResponse
+import models.DesSingleFailureResponse
 
 object Constants {
 

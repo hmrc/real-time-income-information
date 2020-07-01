@@ -20,7 +20,6 @@ import play.api.libs.json.{JsValue, Json}
 
 import scala.io.Source
 
-//TODO rename and package
 trait ResourceProvider {
 
   val invalidCorrelationIdJson: JsValue = readJson("/400-invalid-correlation-id.json")

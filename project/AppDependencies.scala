@@ -13,7 +13,6 @@ object AppDependencies {
   )
 
   val test: Seq[ModuleID] = Seq(
-    "uk.gov.hmrc" %% "hmrctest" % "3.9.0-play-25", //TODO do we need this? It is deprecated...
     "org.scalatest" %% "scalatest" % "3.0.8",
     "org.pegdown" % "pegdown" % "1.6.0",
     "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.3",

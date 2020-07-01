@@ -18,9 +18,7 @@ package controllers
 
 import app.Constants
 import com.google.inject.{Inject, Singleton}
-import config.RTIIAuthConnector
-import models.RequestDetails
-import models.response._
+import models._
 import org.joda.time.LocalDate
 import play.api.Logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}

@@ -17,11 +17,9 @@
 package services
 
 import connectors.DesConnector
-import models.RequestDetails
-import models.response.{DesFilteredSuccessResponse, DesResponse, DesSingleFailureResponse, DesSuccessResponse}
+import models.{DesFilteredSuccessResponse, DesResponse, DesSingleFailureResponse, DesSuccessResponse, RequestDetails}
 import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito._
-import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.BaseSpec

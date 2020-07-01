@@ -18,8 +18,7 @@ package controllers
 
 import akka.stream.Materializer
 import app.Constants
-import models.RequestDetails
-import models.response._
+import models._
 import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach

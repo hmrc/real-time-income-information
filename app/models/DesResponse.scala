@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package models.response
+package models
 
 import play.api.libs.json._
 
 sealed trait DesResponse
+sealed trait DesErrorResponse extends DesResponse
 
 case class DesSuccessResponse(matchPattern: Int, taxYears: Option[List[JsValue]]) extends DesResponse
 case class DesFilteredSuccessResponse(matchPattern: Int, taxYears: List[JsValue]) extends DesResponse
-case class DesSingleFailureResponse(code: String, reason: String) extends DesResponse
-case class DesMultipleFailureResponse(failures: List[DesSingleFailureResponse]) extends DesResponse
+case class DesSingleFailureResponse(code: String, reason: String) extends DesErrorResponse
+case class DesMultipleFailureResponse(failures: List[DesSingleFailureResponse]) extends DesErrorResponse
 case class DesUnexpectedResponse(code: String = "INTERNAL_SERVER_ERROR", reason: String = "Internal Server Error") extends DesResponse
 
 object DesResponse {
@@ -32,4 +33,12 @@ object DesResponse {
   implicit val desUnexpectedFormats: Format[DesUnexpectedResponse] = Json.format[DesUnexpectedResponse]
   implicit val desSingleFailureFormats: Format[DesSingleFailureResponse] = Json.format[DesSingleFailureResponse]
   implicit val desMultipleFailureFormats: Format[DesMultipleFailureResponse] = Json.format[DesMultipleFailureResponse]
+  implicit val desErrorResponseRead: Reads[DesErrorResponse] = new Reads[DesErrorResponse] {
+    override def reads(json: JsValue): JsResult[DesErrorResponse] = {
+      (json \ "failures").asOpt[JsArray] match {
+        case Some(_) => desMultipleFailureFormats.reads(json)
+        case _ => desSingleFailureFormats.reads(json)
+      }
+    }
+  }
 }

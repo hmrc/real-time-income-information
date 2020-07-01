@@ -19,12 +19,10 @@ package connectors
 
 import com.google.inject.{Inject, Singleton}
 import config.ApplicationConfig
-import models.{DesMatchingRequest, RequestDetails}
-import models.response._
+import models._
 import play.api.Logger
 import play.api.http.Status
 import play.api.libs.json.Reads
-import uk.gov.hmrc.domain.Nino
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -34,7 +32,7 @@ import scala.util.{Failure, Success, Try}
 
 @Singleton
 class DesConnector @Inject()(httpClient: HttpClient,
-                             desConfig: ApplicationConfig) extends RawReads { //TODO extending raw reads?
+                             desConfig: ApplicationConfig) {
 
   def desPathUrl(nino: String) = s"${desConfig.hodUrl}/individuals/$nino/income"
 

@@ -18,8 +18,7 @@ package services
 
 import com.google.inject.{Inject, Singleton}
 import connectors.DesConnector
-import models.RequestDetails
-import models.response._
+import models.{DesFilteredSuccessResponse, DesResponse, DesSuccessResponse, RequestDetails}
 import play.api.libs.json.{JsValue, Json, _}
 import uk.gov.hmrc.http.HeaderCarrier
 
