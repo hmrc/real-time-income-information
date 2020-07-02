@@ -21,88 +21,50 @@ import com.google.inject.{Inject, Singleton}
 import config.ApplicationConfig
 import models._
 import play.api.Logger
-import play.api.http.Status
+import play.api.http.Status.OK
 import play.api.libs.json.{JsPath, JsonValidationError, Reads}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DesConnector @Inject()(httpClient: HttpClient,
-                             desConfig: ApplicationConfig) {
+class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfig)(implicit ec: ExecutionContext) {
 
-  def desPathUrl(nino: String) = s"${desConfig.hodUrl}/individuals/$nino/income"
-
-  implicit val httpReads: HttpReads[HttpResponse] = new HttpReads[HttpResponse] {
-    override def read(method: String, url: String, response: HttpResponse) = response
-  }
-
-  def commonHeaderValues(correlationId: String) = Seq(
+  private def header(correlationID: String): HeaderCarrier = HeaderCarrier(extraHeaders = Seq(
     "Authorization" -> desConfig.authorization,
     "Environment" -> desConfig.environment,
-    "CorrelationId" -> correlationId)
+    "CorrelationId" -> correlationID))
 
-  def header(correlationID: String): HeaderCarrier = HeaderCarrier(extraHeaders = commonHeaderValues(correlationID))
+  implicit val desReponseReads: HttpReads[DesResponse] = new HttpReads[DesResponse] {
+    override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse = httpResponse.status match {
+      case OK => parseDesResponse[DesSuccessResponse](httpResponse)
+      case _  => parseDesResponse[DesErrorResponse](httpResponse)
+    }
+  }
+
+  private def parseDesResponse[A <: DesResponse](httpResponse: HttpResponse)(implicit reads: Reads[A]): DesResponse = {
+    val handleError: Seq[(JsPath, scala.Seq[JsonValidationError])] => DesUnexpectedResponse = errors => {
+      val extractValidationErrors: Seq[(JsPath, scala.Seq[JsonValidationError])] => String = errors => {
+        errors.map {
+          case (path, List(validationError: JsonValidationError, _*)) => s"$path: ${validationError.message}"
+        }.mkString(", ").trim
+      }
+      Logger.error(s"Not able to parse the response received from DES with error ${extractValidationErrors(errors)}")
+      DesUnexpectedResponse()
+    }
+
+    httpResponse.json.validate[A].fold(
+      invalid = handleError,
+      valid = identity
+    )
+  }
 
   def retrieveCitizenIncome(nino: String, matchingRequest: DesMatchingRequest, correlationId: String)(implicit hc: HeaderCarrier): Future[DesResponse] = {
-    val postUrl = desPathUrl(nino)
+    val postUrl: String = s"${desConfig.hodUrl}/individuals/$nino/income"
     implicit val hc: HeaderCarrier = header(correlationId)
-    httpClient.POST(postUrl, matchingRequest).map {
-    httpResponse =>
-      httpResponse.status match {
-        case Status.OK => httpResponse.json.validate[DesSuccessResponse].fold (
-          invalid = handleError,
-          valid => valid
-        )
-        case _ => httpResponse.json.as[DesErrorResponse]
-      }
-    }
-  }
-//TODO pick one of the below
-  val handleError: Seq[(JsPath, scala.Seq[JsonValidationError])] => DesUnexpectedResponse = errors => {
-    val extractValidationErrors: Seq[(JsPath, scala.Seq[JsonValidationError])] => String = errors => {
-      errors.map {
-        case (path, List(validationError: JsonValidationError, _*)) => s"$path: ${validationError.message}"
-      }.mkString(", ").trim
-    }
-    Logger.error(s"Not able to parse the response received from DES with error ${extractValidationErrors(errors)}")
-    DesUnexpectedResponse()
-  }
-
-  def handleError2(errors: Seq[(JsPath, scala.Seq[JsonValidationError])]): DesUnexpectedResponse = {
-    val extractValidationErrors: Seq[(JsPath, scala.Seq[JsonValidationError])] => String = errors => {
-      errors.map {
-        case (path, List(validationError: JsonValidationError, _*)) => s"$path: ${validationError.message}"
-      }.mkString(", ").trim
-    }
-    Logger.error(s"Not able to parse the response received from DES with error ${extractValidationErrors(errors)}")
-    DesUnexpectedResponse()
-  }
-
-  private def parseDesResponse[A <: DesResponse](res: HttpResponse) //TODO we can probably rewrite this
-                                        (implicit reads: Reads[A]): DesResponse = {
-    Try(res.json.as[A]) match { //TODO validate instead of try
-      case Success(data) =>
-        data
-      case Failure(er) =>
-        if (res.status == 200 | res.status == 201) {
-          Logger.error(s"Error from DES (parsing as DesResponse): ${er.getMessage}")
-        }
-
-        Try(res.json.as[DesSingleFailureResponse]) match {
-          case Success(data) => Logger.info(s"DesSingleFailureResponse from DES: $data")
-            data
-          case Failure(_) => Try(res.json.as[DesMultipleFailureResponse]) match {
-            case Success(multipleFailures) => Logger.info(s"DesMultipleFailureResponse from DES: $multipleFailures")
-              multipleFailures
-            case Failure(unexpected) =>
-              Logger.error(s"Error from DES (unable to parse as DesFailureResponse): ${unexpected.getMessage}")
-              DesUnexpectedResponse()
-          }
-        }
+    httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest) recover {
+      case x: GatewayTimeoutException => DesUnexpectedResponse()
     }
   }
 }

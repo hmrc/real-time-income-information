@@ -17,6 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.http.Fault
 import models._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
@@ -25,6 +26,8 @@ import play.api.libs.json._
 import play.api.test.Injecting
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.{BaseSpec, WireMockHelper}
+
+import scala.util.Try
 
 class DesConnectorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting with WireMockHelper {
 
@@ -42,7 +45,8 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
         "auditing.enabled" -> false,
         "metrics.enabled" -> false,
         "microservice.services.des-hod.authorizationToken" -> testAuthToken,
-        "microservice.services.des-hod.env" -> testEnv
+        "microservice.services.des-hod.env" -> testEnv,
+        "play.ws.timeout.request" -> "2.seconds"
       )
       .build()
 
@@ -205,17 +209,6 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe responses
       }
-
-      "the status returned is OK but fails to parse as a DESSuccessResponse" in {
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(ok().withBody(multipleErrors.toString)
-            )
-        )
-
-        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe responses
-      }
     }
 
     "Return a DES unexpected response" when {
@@ -244,6 +237,31 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe response
+      }
+
+      "a time out exception occurs" in {
+        val response = DesUnexpectedResponse()
+        server.stubFor(
+          post(urlEqualTo(s"/individuals/$nino/income"))
+            .willReturn(
+              ok()
+                .withBody(successsNoMatch.toString())
+                .withFixedDelay(5000)
+            )
+        )
+
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe response
+      }
+
+      "a bad gateway exception occurs" in {
+        val response = DesUnexpectedResponse()
+        server.stop()
+
+        val result = Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)))
+        server.start()
+        println("***************************************************************" + server.port())
+        result.get mustBe response
       }
     }
 

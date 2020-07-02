@@ -26,7 +26,9 @@ import play.api.inject.guice.GuiceApplicationBuilder
 trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
   this: Suite =>
 
-  protected val server: WireMockServer = new WireMockServer(wireMockConfig().dynamicPort())
+
+  val x = wireMockConfig().dynamicPort().portNumber()
+  protected val server: WireMockServer = new WireMockServer(wireMockConfig().port(x))
 
   override def beforeAll(): Unit = {
     server.start()
