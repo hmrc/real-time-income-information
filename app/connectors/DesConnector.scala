@@ -22,7 +22,7 @@ import config.ApplicationConfig
 import models._
 import play.api.Logger
 import play.api.http.Status
-import play.api.libs.json.Reads
+import play.api.libs.json.{JsPath, JsonValidationError, Reads}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -50,13 +50,36 @@ class DesConnector @Inject()(httpClient: HttpClient,
   def retrieveCitizenIncome(nino: String, matchingRequest: DesMatchingRequest, correlationId: String)(implicit hc: HeaderCarrier): Future[DesResponse] = {
     val postUrl = desPathUrl(nino)
     implicit val hc: HeaderCarrier = header(correlationId)
-    httpClient.POST(postUrl, matchingRequest).flatMap {
+    httpClient.POST(postUrl, matchingRequest).map {
     httpResponse =>
       httpResponse.status match {
-        case Status.OK => Future.successful(parseDesResponse[DesSuccessResponse](httpResponse))
-        case _ => Future.successful(parseDesResponse[DesSingleFailureResponse](httpResponse))
+        case Status.OK => httpResponse.json.validate[DesSuccessResponse].fold (
+          invalid = handleError,
+          valid => valid
+        )
+        case _ => httpResponse.json.as[DesErrorResponse]
       }
     }
+  }
+//TODO pick one of the below
+  val handleError: Seq[(JsPath, scala.Seq[JsonValidationError])] => DesUnexpectedResponse = errors => {
+    val extractValidationErrors: Seq[(JsPath, scala.Seq[JsonValidationError])] => String = errors => {
+      errors.map {
+        case (path, List(validationError: JsonValidationError, _*)) => s"$path: ${validationError.message}"
+      }.mkString(", ").trim
+    }
+    Logger.error(s"Not able to parse the response received from DES with error ${extractValidationErrors(errors)}")
+    DesUnexpectedResponse()
+  }
+
+  def handleError2(errors: Seq[(JsPath, scala.Seq[JsonValidationError])]): DesUnexpectedResponse = {
+    val extractValidationErrors: Seq[(JsPath, scala.Seq[JsonValidationError])] => String = errors => {
+      errors.map {
+        case (path, List(validationError: JsonValidationError, _*)) => s"$path: ${validationError.message}"
+      }.mkString(", ").trim
+    }
+    Logger.error(s"Not able to parse the response received from DES with error ${extractValidationErrors(errors)}")
+    DesUnexpectedResponse()
   }
 
   private def parseDesResponse[A <: DesResponse](res: HttpResponse) //TODO we can probably rewrite this
