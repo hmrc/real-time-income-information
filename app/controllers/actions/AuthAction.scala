@@ -33,7 +33,7 @@ class AuthActionImpl @Inject()(val parser: BodyParsers.Default,
                           (implicit val executionContext: ExecutionContext) extends AuthAction with AuthorisedFunctions {
 
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
-    implicit val hc:  HeaderCarrier =  HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
     authorised(AuthProviders(PrivilegedApplication)) {
       Future.successful(None)
