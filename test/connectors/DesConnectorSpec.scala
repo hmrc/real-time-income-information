@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.http.Fault
 import models._
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import org.scalatestplus.play.guice.{GuiceOneAppPerSuite, GuiceOneAppPerTest}
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
@@ -29,7 +29,7 @@ import utils.{BaseSpec, WireMockHelper}
 
 import scala.util.Try
 
-class DesConnectorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting with WireMockHelper {
+class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting with WireMockHelper {
 
   val testAuthToken = "TestAuthToken"
   val testEnv = "TestEnv"
@@ -50,7 +50,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
       )
       .build()
 
-  lazy val connector: DesConnector = inject[DesConnector]
+  def connector: DesConnector = inject[DesConnector]
 
   "retrieveCitizenIncome" must {
     "return a DesSuccessResponse" when {
@@ -260,7 +260,6 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
 
         val result = Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)))
         server.start()
-        println("***************************************************************" + server.port())
         result.get mustBe response
       }
     }

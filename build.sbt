@@ -17,11 +17,12 @@ lazy val microservice = Project(appName, file("."))
     retrieveManaged := true,
     evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
     publishingSettings,
+    PlayKeys.playDefaultPort := 9358,
     scoverageSettings,
     majorVersion := 1,
     resolvers ++= Seq(
       Resolver.jcenterRepo,
-      Resolver.bintrayRepo("emueller", "maven"),
+      Resolver.bintrayRepo("emueller", "maven"), //TODO whats this repo?
       Resolver.bintrayRepo("hmrc", "releases")
     )
   )

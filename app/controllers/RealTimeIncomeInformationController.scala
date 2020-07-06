@@ -16,7 +16,6 @@
 
 package controllers
 
-import app.Constants
 import com.google.inject.{Inject, Singleton}
 import models._
 import org.joda.time.LocalDate
@@ -28,7 +27,7 @@ import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
 import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions, UnsupportedAuthProvider}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import utils.SchemaValidationHandler
+import utils.{Constants, SchemaValidationHandler}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -40,7 +39,6 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
                                                     override val authConnector: AuthConnector,
                                                     cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) with SchemaValidationHandler with AuthorisedFunctions {
 //TODO consider moving out auth and schema validation
-//TODO inject action, dont use action object. Same for body parsers i think
   def preSchemaValidation(correlationId: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
       authorised(AuthProviders(PrivilegedApplication)) {
@@ -115,17 +113,17 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
   }
 
   private def validateDates(requestBody: JsValue): Either[DesSingleFailureResponse, Boolean] = {
-    //TODO: parse body too much in function
-    val requestDetails: Try[RequestDetails] = Try(requestBody.as[RequestDetails])
-
-    if (requestDetails.isFailure)
+    val tryRequestDetails: Try[RequestDetails] = Try(requestBody.as[RequestDetails])
+//TODO refactor this
+    if (tryRequestDetails.isFailure)
       Left(Constants.responseInvalidPayload)
     else {
-      val toDate = parseAsDate(requestBody.as[RequestDetails].toDate)
-      val fromDate = parseAsDate(requestBody.as[RequestDetails].fromDate)
+      val requestDetails: RequestDetails = tryRequestDetails.get
+      val toDate = parseAsDate(requestDetails.toDate)
+      val fromDate = parseAsDate(requestDetails.fromDate)
       
       (toDate, fromDate) match {
-        case (Some(endDate), Some(startDate)) => {
+        case (Some(endDate), Some(startDate)) =>
           val dateRangeValid = startDate.isBefore(endDate)
           val datesEqual = endDate.isEqual(startDate)
 
@@ -134,7 +132,6 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
             case (false, false) => Left(Constants.responseInvalidDateRange)
             case (_, true) => Left(Constants.responseInvalidDatesEqual)
           }
-        }
         case _ => Left(Constants.responseInvalidPayload)
       }
     }

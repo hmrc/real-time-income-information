@@ -17,7 +17,6 @@
 package controllers
 
 import akka.stream.Materializer
-import app.Constants
 import models._
 import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -32,7 +31,7 @@ import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
 import services.{AuditService, RealTimeIncomeInformationService}
 import uk.gov.hmrc.auth.core.AuthConnector
-import utils.{BaseSpec, FakeAuthConnector}
+import utils.{BaseSpec, Constants, FakeAuthConnector}
 
 import scala.concurrent.Future
 
@@ -280,7 +279,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
           status(result) mustBe INTERNAL_SERVER_ERROR
 
-          val expectedJSON: JsValue = expectedDesResponse match {
+          val expectedJSON: JsValue = (expectedDesResponse: @unchecked) match {
             case expectedResponse: DesSingleFailureResponse => Json.toJson(expectedResponse)
             case expectedResponse: DesUnexpectedResponse => Json.toJson(expectedResponse)
           }

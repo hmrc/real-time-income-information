@@ -17,28 +17,20 @@
 package config
 
 import play.api.Configuration
-//TODO do we need this?
-//TODO deprecations
+
 case class APIAccessConfig(value: Option[Configuration]) {
 
   val PRIVATE = "PRIVATE"
 
   def accessType: String = {
-    value match {
-      case Some(config) => config.getString("type").getOrElse(PRIVATE)
-      case None => PRIVATE
-    }
+    value.flatMap(_.getOptional[String]("type")).getOrElse(PRIVATE)
   }
 
   def whiteListedApplicationIds: Option[Seq[String]] = {
     if(accessType == PRIVATE) {
-      value match {
-        case Some(config) => Some(config.getStringSeq("whitelistedApplicationIds").getOrElse(Seq()))
-        case None => Some(Seq())
-      }
+      Some(value.flatMap(_.getOptional[Seq[String]]("whitelistedApplicationIds")).getOrElse(Seq()))
     } else {
       None
     }
   }
-
 }

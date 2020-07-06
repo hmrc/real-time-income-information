@@ -26,16 +26,11 @@ import views.txt
 import scala.concurrent.Future
 
 @Singleton
-class DefinitionController @Inject()(appContext: ApiContext,
+class DefinitionController @Inject()(apiContext: ApiContext,
                                      cc: ControllerComponents) extends BackendController(cc) {
-//TODO inject action, dont use action object?
-  def get(): Action[AnyContent] = Action.async {
-    Future.successful(Ok(txt.definition(buildAccess(), appContext.apiContext)).as("application/json").withHeaders(CONTENT_TYPE -> JSON))
-  }
 
-  private def buildAccess(): APIAccess = { //TODO should this be in appcontext?
-    val access = APIAccessConfig(appContext.apiAccess)
-    APIAccess(access.accessType, access.whiteListedApplicationIds)
+  def get(): Action[AnyContent] = Action {
+    Ok(txt.definition(APIAccess(APIAccessConfig(apiContext.apiAccess)), apiContext.apiContext))
+      .as("application/json").withHeaders(CONTENT_TYPE -> JSON)
   }
-
 }

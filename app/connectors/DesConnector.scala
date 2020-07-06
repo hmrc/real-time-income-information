@@ -64,7 +64,12 @@ class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfi
     val postUrl: String = s"${desConfig.hodUrl}/individuals/$nino/income"
     implicit val hc: HeaderCarrier = header(correlationId)
     httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest) recover {
-      case x: GatewayTimeoutException => DesUnexpectedResponse()
+      case e: GatewayTimeoutException =>
+        Logger.error(s"GatewayTimeoutException occurred: ${e.message}")
+        DesUnexpectedResponse()
+      case e: BadGatewayException =>
+        Logger.error(s"BadGatewayException occurred: ${e.message}")
+        DesUnexpectedResponse()
     }
   }
 }
