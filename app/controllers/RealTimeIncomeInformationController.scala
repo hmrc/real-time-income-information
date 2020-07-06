@@ -17,14 +17,13 @@
 package controllers
 
 import com.google.inject.{Inject, Singleton}
+import controllers.actions.AuthAction
 import models._
 import org.joda.time.LocalDate
 import play.api.Logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
 import services.{AuditService, RealTimeIncomeInformationService}
-import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthProviders, AuthorisedFunctions, UnsupportedAuthProvider}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.{Constants, SchemaValidationHandler}
@@ -36,12 +35,11 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeInformationService,
                                                     auditService: AuditService,
-                                                    override val authConnector: AuthConnector,
-                                                    cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) with SchemaValidationHandler with AuthorisedFunctions {
-//TODO consider moving out auth and schema validation
-  def preSchemaValidation(correlationId: String): Action[JsValue] = Action.async(parse.json) {
+                                                    auth: AuthAction,
+                                                    cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) with SchemaValidationHandler {
+//TODO consider moving out schema validation
+  def preSchemaValidation(correlationId: String): Action[JsValue] = auth.async(parse.json) {
     implicit request =>
-      authorised(AuthProviders(PrivilegedApplication)) {
         if (validateCorrelationId(correlationId)) {
           validateDates(request.body) match {
             case Right(_) => retrieveCitizenIncome(correlationId)
@@ -50,9 +48,6 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
         } else {
           Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
         }
-      } recover {
-        case _: UnsupportedAuthProvider => Forbidden(Json.toJson(Constants.responseNonPrivilegedApplication))
-      }
   }
 
   private def retrieveCitizenIncome(correlationId: String)(implicit hc: HeaderCarrier, request: Request[JsValue]) = {

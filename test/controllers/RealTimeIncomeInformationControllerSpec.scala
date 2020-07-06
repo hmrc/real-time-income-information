@@ -17,6 +17,7 @@
 package controllers
 
 import akka.stream.Materializer
+import controllers.actions.AuthAction
 import models._
 import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -31,7 +32,7 @@ import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
 import services.{AuditService, RealTimeIncomeInformationService}
 import uk.gov.hmrc.auth.core.AuthConnector
-import utils.{BaseSpec, Constants, FakeAuthConnector}
+import utils.{BaseSpec, Constants, FakeAuthAction, FakeAuthConnector}
 
 import scala.concurrent.Future
 
@@ -48,7 +49,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
       .overrides(
         bind[RealTimeIncomeInformationService].toInstance(mockRtiiService),
         bind[AuditService].toInstance(mockAuditService),
-        bind[AuthConnector].toInstance(FakeAuthConnector))
+        bind[AuthAction].to[FakeAuthAction]
+      )
       .build()
   }
 
