@@ -23,7 +23,7 @@ import org.joda.time.LocalDate
 import play.api.Logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
-import services.{AuditService, RealTimeIncomeInformationService}
+import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.{Constants, SchemaValidationHandler}
@@ -34,6 +34,7 @@ import scala.util.{Failure, Success, Try}
 
 @Singleton
 class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeInformationService,
+                                                    requestDetailsService: RequestDetailsService,
                                                     auditService: AuditService,
                                                     auth: AuthAction,
                                                     validateCorrelationId: ValidateCorrelationId,
@@ -43,8 +44,38 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
     auth andThen validateCorrelationId(id)
 
   //TODO consider moving out schema validation
+  val validateDates: Either[Result, RequestDetails] => Either[Result, RequestDetails] = ???
+  val validateRequest: Request[JsValue] => Either[Result, RequestDetails]= ???
+  val applyFunction: Either[Result, RequestDetails] => (RequestDetails => Result) => Result = a => doSomething(a)
+  def doSomething(value: Either[Result, RequestDetails])(f: RequestDetails => Result) = value.fold(identity, a => f(a))
+
+
+
   def preSchemaValidation(correlationId: String): Action[JsValue] = authenticateAndValidate(correlationId).async(parse.json) {
-    implicit request =>
+    implicit request: Request[JsValue] =>
+      val xyz: Request[JsValue] => (RequestDetails => Result) => Result = (validateRequest andThen validateDates andThen applyFunction)
+      val a: (RequestDetails => Result) => Result = (validateRequest andThen validateDates andThen applyFunction)(request) {
+        
+      }
+      def asJsonBody[A](f: RequestDetails => A): Either[DesErrorResponse, A] =
+        request.body.validate[RequestDetails].fold[Either[DesErrorResponse, A]](_ => Left(Constants.responseInvalidPayload), x => Right(f(x)))
+
+
+
+
+      request.body.validate[RequestDetails]
+
+
+
+
+        .fold(
+        invalid = _ => BadRequest(Json.toJson(Constants.responseInvalidPayload)),
+        valid = requestDetails => requestDetailsService.x(requestDetails).fold(
+          retrieveCitizenIncome(???))(
+          failure => Future.successful(BadRequest(Json.toJson(failure)))
+        )
+      )
+
       validateDates(request.body) match {
         case Right(_) => retrieveCitizenIncome(correlationId)
         case Left(failure: DesSingleFailureResponse) => Future.successful(BadRequest(Json.toJson(failure)))
