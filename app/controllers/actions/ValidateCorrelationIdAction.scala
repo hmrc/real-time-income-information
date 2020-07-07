@@ -25,8 +25,8 @@ import utils.Constants
 import scala.concurrent.Future.successful
 import scala.concurrent.{ExecutionContext, Future}
 
-class ValidateCorrelationIdImpl @Inject()(val _parser: BodyParsers.Default)
-                                         (implicit val _executionContext: ExecutionContext) extends ValidateCorrelationId {
+class ValidateCorrelationIdImpl @Inject()(_parser: BodyParsers.Default)
+                                         (implicit _executionContext: ExecutionContext) extends ValidateCorrelationId {
 
   override def apply(correlationId: String): ValidateCorrelationIdAction = new ValidateCorrelationIdAction {
     override protected def filter[A](request: Request[A]): Future[Option[Result]] = {

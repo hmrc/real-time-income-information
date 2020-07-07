@@ -17,7 +17,7 @@
 package controllers
 
 import akka.stream.Materializer
-import controllers.actions.AuthAction
+import controllers.actions.{AuthAction, ValidateCorrelationId}
 import models._
 import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -31,7 +31,7 @@ import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
 import services.{AuditService, RealTimeIncomeInformationService}
-import utils.{BaseSpec, Constants, FakeAuthAction}
+import utils.{BaseSpec, Constants, FakeAuthAction, FakeValidateCorrelationId}
 
 import scala.concurrent.Future
 
@@ -48,7 +48,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
       .overrides(
         bind[RealTimeIncomeInformationService].toInstance(mockRtiiService),
         bind[AuditService].toInstance(mockAuditService),
-        bind[AuthAction].to[FakeAuthAction]
+        bind[AuthAction].to[FakeAuthAction],
+        bind[ValidateCorrelationId].to[FakeValidateCorrelationId]
       )
       .build()
   }

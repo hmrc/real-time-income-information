@@ -23,7 +23,7 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Results}
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Injecting, StubControllerComponentsFactory}
 import uk.gov.hmrc.auth.core.{AuthConnector, UnsupportedAuthProvider}
@@ -43,14 +43,10 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
     )
     .build()
 
-  object Harness extends BackendBaseController with StubControllerComponentsFactory {
-    override protected def controllerComponents: ControllerComponents = stubControllerComponents()
-
+  object Harness extends Results {
     val authAction: AuthAction = inject[AuthAction]
 
-    def test(): Action[AnyContent] = authAction {
-      _ => Ok
-    }
+    def test(): Action[AnyContent] = authAction(_ => Ok)
   }
 
   "AuthAction" must {

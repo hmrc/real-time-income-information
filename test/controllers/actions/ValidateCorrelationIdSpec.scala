@@ -18,24 +18,19 @@ package controllers.actions
 
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, Results}
 import play.api.test.Helpers._
-import play.api.test.{FakeRequest, Injecting, StubControllerComponentsFactory}
-import uk.gov.hmrc.play.bootstrap.controller.BackendBaseController
+import play.api.test.{FakeRequest, Injecting}
 import utils.{BaseSpec, Constants}
 
 class ValidateCorrelationIdSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
 
   val correlationId: String = generateUUId
 
-  object Harness extends BackendBaseController with StubControllerComponentsFactory {
+  object Harness extends Results {
     val validateId: ValidateCorrelationId = inject[ValidateCorrelationId]
 
-    def test(id: String): Action[AnyContent] = validateId(id) {
-      _ => Ok
-    }
-
-    override protected def controllerComponents: ControllerComponents = stubControllerComponents()
+    def test(id: String): Action[AnyContent] = validateId(id)(_ => Ok)
   }
 
   "ValidateCorrelationId" must {
