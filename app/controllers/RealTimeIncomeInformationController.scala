@@ -17,7 +17,7 @@
 package controllers
 
 import com.google.inject.{Inject, Singleton}
-import controllers.actions.AuthAction
+import controllers.actions.{AuthAction, ValidateCorrelationId}
 import models._
 import org.joda.time.LocalDate
 import play.api.Logger
@@ -36,18 +36,19 @@ import scala.util.{Failure, Success, Try}
 class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeInformationService,
                                                     auditService: AuditService,
                                                     auth: AuthAction,
+                                                    validateCorrelationId: ValidateCorrelationId,
                                                     cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) with SchemaValidationHandler {
-//TODO consider moving out schema validation
-  def preSchemaValidation(correlationId: String): Action[JsValue] = auth.async(parse.json) {
+
+  private def authenticateAndValidate(id: String): ActionBuilder[Request, AnyContent] =
+    auth andThen validateCorrelationId(id)
+
+  //TODO consider moving out schema validation
+  def preSchemaValidation(correlationId: String): Action[JsValue] = authenticateAndValidate(correlationId).async(parse.json) {
     implicit request =>
-        if (validateCorrelationId(correlationId)) {
-          validateDates(request.body) match {
-            case Right(_) => retrieveCitizenIncome(correlationId)
-            case Left(failure: DesSingleFailureResponse) => Future.successful(BadRequest(Json.toJson(failure)))
-          }
-        } else {
-          Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
-        }
+      validateDates(request.body) match {
+        case Right(_) => retrieveCitizenIncome(correlationId)
+        case Left(failure: DesSingleFailureResponse) => Future.successful(BadRequest(Json.toJson(failure)))
+      }
   }
 
   private def retrieveCitizenIncome(correlationId: String)(implicit hc: HeaderCarrier, request: Request[JsValue]) = {
@@ -90,33 +91,16 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
     }
   }
 
-  private def validateCorrelationId(correlationId: String): Boolean = {
-    val correlationIdRegex = """^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$""".r
-
-    correlationId match {
-      case correlationIdRegex(_*) => true
-      case _ => false
-    }
-  }
-
-  private def parseAsDate(string: String): Option[LocalDate] = {
-
-    Try(new LocalDate(string)) match {
-      case Success(date) => Some(date)
-      case Failure(_) => None
-    }
-  }
-
   private def validateDates(requestBody: JsValue): Either[DesSingleFailureResponse, Boolean] = {
     val tryRequestDetails: Try[RequestDetails] = Try(requestBody.as[RequestDetails])
-//TODO refactor this
+    //TODO refactor this
     if (tryRequestDetails.isFailure)
       Left(Constants.responseInvalidPayload)
     else {
       val requestDetails: RequestDetails = tryRequestDetails.get
       val toDate = parseAsDate(requestDetails.toDate)
       val fromDate = parseAsDate(requestDetails.fromDate)
-      
+
       (toDate, fromDate) match {
         case (Some(endDate), Some(startDate)) =>
           val dateRangeValid = startDate.isBefore(endDate)
@@ -129,6 +113,14 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
           }
         case _ => Left(Constants.responseInvalidPayload)
       }
+    }
+  }
+
+  private def parseAsDate(string: String): Option[LocalDate] = {
+
+    Try(new LocalDate(string)) match {
+      case Success(date) => Some(date)
+      case Failure(_) => None
     }
   }
 }

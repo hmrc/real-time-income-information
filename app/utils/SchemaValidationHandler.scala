@@ -25,7 +25,7 @@ trait SchemaValidationHandler {
 
   def schemaValidationHandler(jsonToValidate: JsValue): Either[JsError, JsSuccess[JsValue]] = {
 
-    val validator = new SchemaValidator()
+    val validator = SchemaValidator()
 
     val schema: JsValue = {
       val resource = getClass.getResourceAsStream("/schemas/real-time-income-information-post-schema.json")
