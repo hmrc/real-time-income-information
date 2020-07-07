@@ -31,8 +31,7 @@ import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
 import services.{AuditService, RealTimeIncomeInformationService}
-import uk.gov.hmrc.auth.core.AuthConnector
-import utils.{BaseSpec, Constants, FakeAuthAction, FakeAuthConnector}
+import utils.{BaseSpec, Constants, FakeAuthAction}
 
 import scala.concurrent.Future
 
@@ -147,12 +146,6 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) mustBe BAD_REQUEST
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
-      }
-
-      "the correlationId is invalid" in {
-        val result: Future[Result] = controller.preSchemaValidation("invalidCorrelationId")(fakeRequest(exampleDwpRequest))
-        status(result) mustBe BAD_REQUEST
-        contentAsJson(result) mustBe Json.toJson(Constants.responseInvalidCorrelationId)
       }
 
       "the service layer returns a single failure response with invalid date range code" in {

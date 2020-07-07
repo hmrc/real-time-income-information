@@ -54,7 +54,6 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
   }
 
   "AuthAction" must {
-
     "return None" when {
       "authenticated" in {
         when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
