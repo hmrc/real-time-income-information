@@ -1,22 +1,18 @@
-package controllers.actions
+package services
 
-import com.google.inject.Inject
-import models.{DesSingleFailureResponse, RequestDetails, RequestWithDetails}
+import models.{DesSingleFailureResponse, RequestDetails}
 import org.joda.time.LocalDate
 import play.api.libs.json.JsValue
-import play.api.mvc.{ActionBuilder, ActionRefiner, AnyContent, BodyParsers, Request, Result}
 import utils.Constants
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class ValidateDatesActionImpl @Inject()(val parser: BodyParsers.Default)(implicit val executionContext: ExecutionContext) extends ValidateDatesAction {
-  override protected def refine[A](request: Request[A]): Future[Either[Result, RequestWithDetails[A]]] = {
-    request
+class RequestDetailsService {
+
+  def x(requestDetails: RequestDetails): Option[DesSingleFailureResponse] = {
   }
 
-
-  def validateDates(requestBody: JsValue): Either[DesSingleFailureResponse, Boolean] = {
+  private def validateDates(requestBody: JsValue): Either[DesSingleFailureResponse, Boolean] = {
     val tryRequestDetails: Try[RequestDetails] = Try(requestBody.as[RequestDetails])
     //TODO refactor this
     if (tryRequestDetails.isFailure)
@@ -41,15 +37,12 @@ class ValidateDatesActionImpl @Inject()(val parser: BodyParsers.Default)(implici
     }
   }
 
-  def parseAsDate(string: String): Option[LocalDate] = {
+  private def parseAsDate(string: String): Option[LocalDate] = {
 
     Try(new LocalDate(string)) match {
       case Success(date) => Some(date)
       case Failure(_) => None
     }
   }
+
 }
-
-trait ValidateDatesAction extends ActionRefiner[Request, RequestWithDetails] with ActionBuilder[Request, AnyContent]
-
-
