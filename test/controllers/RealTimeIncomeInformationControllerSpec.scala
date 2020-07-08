@@ -30,7 +30,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
-import services.{AuditService, RealTimeIncomeInformationService}
+import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
 import utils.{BaseSpec, Constants, FakeAuthAction, FakeValidateCorrelationId}
 
 import scala.concurrent.Future
@@ -41,6 +41,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
   val nino: String = generateNino
   val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]
   val mockAuditService: AuditService = mock[AuditService]
+  val mockRequestDetailsService = mock[RequestDetailsService]
   implicit val mat: Materializer = app.materializer
 
   override def fakeApplication(): Application = {
@@ -49,6 +50,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         bind[RealTimeIncomeInformationService].toInstance(mockRtiiService),
         bind[AuditService].toInstance(mockAuditService),
         bind[AuthAction].to[FakeAuthAction],
+        bind[RequestDetailsService].toInstance(mockRequestDetailsService),
         bind[ValidateCorrelationId].to[FakeValidateCorrelationId]
       )
       .build()
@@ -74,7 +76,9 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           "nationalInsuranceNumber" -> nino
         ))
 
+
         val expectedDesResponse = DesFilteredSuccessResponse(63, List(values))
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
@@ -90,6 +94,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
       "the service returns a successful when match pattern is 0 and None is returned" in {
         val expectedDesResponse = DesSuccessResponse(0, None)
 
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
@@ -104,10 +109,6 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
     "Return Bad Request" when {
       List(
         ("the nino is invalid", exampleDwpRequestInvalidNino, Constants.responseInvalidPayload),
-        ("either fromDate or toDate is not defined in the request", exampleInvalidDatesNotDefined, Constants.responseInvalidPayload),
-        ("a date is in the wrong format", exampleInvalidDateFormat, Constants.responseInvalidPayload),
-        ("the toDate is equal to fromDate", exampleInvalidDatesEqualRequest, Constants.responseInvalidDatesEqual),
-        ("the toDate is before fromDate", exampleInvalidDateRangeRequest, Constants.responseInvalidDateRange),
         ("the filter fields array contains an empty string field", exampleInvalidDwpEmptyStringField, Constants.responseInvalidPayload),
         ("the filter fields array contains duplicate fields", exampleInvalidDwpDuplicateFields, Constants.responseInvalidPayload),
         ("the filter fields array is empty", exampleInvalidDwpEmptyFieldsRequest, Constants.responseInvalidPayload),
@@ -115,6 +116,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         ("the request contains an unexpected matching field", exampleInvalidMatchingFieldDwpRequest, Constants.responseInvalidPayload)
       ).foreach {
         case (testName, requestJson, expectedResponse) => testName in { //SCHEMA VALIDATION
+          val requestDetails = requestJson.as[RequestDetails]
+          when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
           val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(requestJson))
           status(result) mustBe BAD_REQUEST
           contentAsJson(result) mustBe Json.toJson(expectedResponse)
@@ -190,11 +193,6 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) mustBe BAD_REQUEST
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
-      }
-    }
-    //TODO finish test when Auth work complete?
-    "Return 403 (FORBIDDEN)" when {
-      "A non privileged application attempts to call the endpoint" in {
       }
     }
 
