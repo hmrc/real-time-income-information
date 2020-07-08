@@ -41,5 +41,7 @@ object Constants {
     DesSingleFailureResponse(errorCodeInvalidPayload, "Submission has not passed validation. Invalid Payload.")
   val responseNotFound: DesSingleFailureResponse =
     DesSingleFailureResponse(errorCodeNotFound, "The remote endpoint has indicated that there is no data for the Nino.")
+  val responseServiceUnavailable =
+    DesSingleFailureResponse(errorCodeServiceUnavailable, "Dependent systems are currently not responding.")
 
 }

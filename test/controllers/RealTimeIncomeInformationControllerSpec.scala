@@ -30,7 +30,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
-import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
+import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService, SchemaValidator}
 import utils.{BaseSpec, Constants, FakeAuthAction, FakeValidateCorrelationId}
 
 import scala.concurrent.Future
@@ -41,7 +41,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
   val nino: String = generateNino
   val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]
   val mockAuditService: AuditService = mock[AuditService]
-  val mockRequestDetailsService = mock[RequestDetailsService]
+  val mockRequestDetailsService: RequestDetailsService = mock[RequestDetailsService]
+  val mockSchemaValidator: SchemaValidator = mock[SchemaValidator]
   implicit val mat: Materializer = app.materializer
 
   override def fakeApplication(): Application = {
@@ -51,14 +52,18 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         bind[AuditService].toInstance(mockAuditService),
         bind[AuthAction].to[FakeAuthAction],
         bind[RequestDetailsService].toInstance(mockRequestDetailsService),
-        bind[ValidateCorrelationId].to[FakeValidateCorrelationId]
+        bind[ValidateCorrelationId].to[FakeValidateCorrelationId],
+        bind[SchemaValidator].toInstance(mockSchemaValidator)
       )
       .build()
   }
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRtiiService, mockAuditService)
+    reset(mockRtiiService,
+      mockAuditService,
+      mockSchemaValidator,
+      mockRequestDetailsService)
   }
 
   def fakeRequest(jsonBody: JsValue): FakeRequest[JsValue] = {
@@ -83,11 +88,14 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) mustBe OK
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
 
+        verify(mockSchemaValidator, times(1)).validate(any())
         verify(mockAuditService, times(1)).rtiiAudit(meq(correlationId), meq(requestDetails))(any())
       }
 
@@ -99,6 +107,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) mustBe OK
@@ -107,22 +116,6 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
     }
 
     "Return Bad Request" when {
-      List(
-        ("the nino is invalid", exampleDwpRequestInvalidNino, Constants.responseInvalidPayload),
-        ("the filter fields array contains an empty string field", exampleInvalidDwpEmptyStringField, Constants.responseInvalidPayload),
-        ("the filter fields array contains duplicate fields", exampleInvalidDwpDuplicateFields, Constants.responseInvalidPayload),
-        ("the filter fields array is empty", exampleInvalidDwpEmptyFieldsRequest, Constants.responseInvalidPayload),
-        ("the request contains an unexpected filter field", exampleInvalidFilterFieldDwpRequest, Constants.responseInvalidPayload),
-        ("the request contains an unexpected matching field", exampleInvalidMatchingFieldDwpRequest, Constants.responseInvalidPayload)
-      ).foreach {
-        case (testName, requestJson, expectedResponse) => testName in { //SCHEMA VALIDATION
-          val requestDetails = requestJson.as[RequestDetails]
-          when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
-          val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(requestJson))
-          status(result) mustBe BAD_REQUEST
-          contentAsJson(result) mustBe Json.toJson(expectedResponse)
-        }
-      }
 
       "the service returns a single error response" in {
         val expectedDesResponse = Constants.responseInvalidCorrelationId
@@ -132,6 +125,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) mustBe BAD_REQUEST
@@ -146,6 +141,8 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
           .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) mustBe BAD_REQUEST
@@ -160,6 +157,9 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) mustBe BAD_REQUEST
@@ -174,6 +174,9 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
@@ -189,10 +192,28 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) mustBe BAD_REQUEST
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
+      }
+
+      "schemaValidator returns false" in {
+        val expectedResponse = Constants.responseInvalidPayload
+        val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
+
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+          .thenReturn(Future.successful(()))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(false)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
+
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(expectedResponse)
       }
     }
 
@@ -205,6 +226,9 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
         status(result) mustBe NOT_FOUND
@@ -218,6 +242,9 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
 
         val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
@@ -232,6 +259,9 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any())).thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any())).thenReturn(Future.failed(new Exception))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
 
         val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
@@ -247,6 +277,9 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
           .thenReturn(Future.successful(()))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
 
         val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
@@ -268,6 +301,9 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
             .thenReturn(Future.successful(()))
           when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
             .thenReturn(Future.successful(expectedDesResponse))
+          when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+          when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
 
           val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 

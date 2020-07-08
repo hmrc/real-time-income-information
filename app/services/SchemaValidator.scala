@@ -18,7 +18,7 @@ package services
 
 import com.eclipsesource.schema.{SchemaType, SchemaValidator}
 import com.google.inject.Singleton
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsResult, JsValue, Json}
 
 import scala.io.Source
 
@@ -30,7 +30,7 @@ class SchemaValidator {
     Json.parse(Source.fromInputStream(resource).mkString)
   }
 
-  private val validator = SchemaValidator().validate(Json.fromJson[SchemaType](schema).get)
+  private val validator: JsValue => JsResult[JsValue] = SchemaValidator().validate(Json.fromJson[SchemaType](schema).get)(_)
 
   def validate(jsonToValidate: JsValue): Boolean = validator(jsonToValidate).isSuccess
 
