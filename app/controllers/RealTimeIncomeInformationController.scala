@@ -42,22 +42,31 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
   private def authenticateAndValidate(id: String): ActionBuilder[Request, AnyContent] =
     auth andThen validateCorrelationId(id)
 
+  val parseJson: Request[JsValue] => Either[DesSingleFailureResponse, RequestDetails] =
+    request => request.body.validate[RequestDetails].fold[Either[DesSingleFailureResponse, RequestDetails]](
+      _ => Left(Constants.responseInvalidPayload),
+      Right(_)
+    )
+
+  val validateDate: Either[DesSingleFailureResponse, RequestDetails] => Either[DesSingleFailureResponse, RequestDetails] =
+    _.fold[Either[DesSingleFailureResponse, RequestDetails]](Left(_), validateDates)
+  val result: Either[DesSingleFailureResponse, RequestDetails] => (RequestDetails => Future[Result]) => Future[Result] =
+    either => func => either.fold(singleFailure => Future.successful(BadRequest(Json.toJson(singleFailure))), func(_))
+
   //TODO consider moving out schema validation
   def preSchemaValidation(correlationId: String): Action[JsValue] = authenticateAndValidate(correlationId).async(parse.json) {
     implicit request =>
-      validateDates(request.body) match {
-        case Right(_) => retrieveCitizenIncome(correlationId)
-        case Left(failure: DesSingleFailureResponse) => Future.successful(BadRequest(Json.toJson(failure)))
-      }
+     (parseJson andThen validateDate andThen result)(request) {
+       retrieveCitizenIncome(_, correlationId)
+     }
   }
 
-  private def retrieveCitizenIncome(correlationId: String)(implicit hc: HeaderCarrier, request: Request[JsValue]) = {
+  private def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String)(implicit hc: HeaderCarrier, request: Request[JsValue]) = {
     schemaValidationHandler(request.body) match {
       case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseInvalidPayload)))
-      case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
-        body =>
-          auditService.rtiiAudit(correlationId, body)
-          rtiiService.retrieveCitizenIncome(body, correlationId) map {
+      case Right(JsSuccess(_, _)) =>
+          auditService.rtiiAudit(correlationId, requestDetails)
+          rtiiService.retrieveCitizenIncome(requestDetails, correlationId) map {
             case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
             case noMatchResponse: DesSuccessResponse => Ok(Json.toJson(noMatchResponse))
             case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
@@ -68,7 +77,6 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
               ServiceUnavailable(Json.toJson(DesSingleFailureResponse(Constants.errorCodeServiceUnavailable,
                 "Dependent systems are currently not responding.")))
           }
-      }
     }
   }
 
@@ -88,6 +96,24 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
       case Success(result) => result
       case Failure(_) => Logger.error(s"Error from DES does not match schema: $r")
         InternalServerError(Json.toJson(r))
+    }
+  }
+
+  def validateDates(requestDetails: RequestDetails): Either[DesSingleFailureResponse, RequestDetails] = {
+    val toDate = parseAsDate(requestDetails.toDate)
+    val fromDate = parseAsDate(requestDetails.fromDate)
+
+    (toDate, fromDate) match {
+      case (Some(endDate), Some(startDate)) =>
+        val dateRangeValid = startDate.isBefore(endDate)
+        val datesEqual = endDate.isEqual(startDate)
+
+        (dateRangeValid, datesEqual) match {
+          case (true, false) => Right(requestDetails)
+          case (false, false) => Left(Constants.responseInvalidDateRange)
+          case (_, true) => Left(Constants.responseInvalidDatesEqual)
+        }
+      case _ => Left(Constants.responseInvalidPayload)
     }
   }
 
@@ -117,10 +143,6 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
   }
 
   private def parseAsDate(string: String): Option[LocalDate] = {
-
-    Try(new LocalDate(string)) match {
-      case Success(date) => Some(date)
-      case Failure(_) => None
-    }
+    Try(new LocalDate(string)).toOption
   }
 }
