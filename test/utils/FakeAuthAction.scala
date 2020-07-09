@@ -18,7 +18,7 @@ package utils
 
 import com.google.inject.Inject
 import controllers.actions.AuthAction
-import play.api.mvc.{BodyParser, BodyParsers, Request, Result}
+import play.api.mvc.{BodyParsers, Request, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
 

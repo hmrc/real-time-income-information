@@ -9,10 +9,11 @@ lazy val scoverageSettings = Seq(
   ScoverageKeys.coverageFailOnMinimum := false,
   ScoverageKeys.coverageHighlighting := true
 )
-//TODO: default port
+
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
   .settings(
+    scalaVersion := "2.12.10",
     libraryDependencies ++= AppDependencies.all,
     retrieveManaged := true,
     evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
@@ -22,7 +23,7 @@ lazy val microservice = Project(appName, file("."))
     majorVersion := 1,
     resolvers ++= Seq(
       Resolver.jcenterRepo,
-      Resolver.bintrayRepo("emueller", "maven"), //TODO whats this repo?
+      Resolver.bintrayRepo("emueller", "maven"),
       Resolver.bintrayRepo("hmrc", "releases")
     )
   )

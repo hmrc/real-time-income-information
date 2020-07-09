@@ -86,7 +86,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
 
@@ -105,7 +105,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
 
@@ -123,7 +123,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
@@ -139,7 +139,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(any(), any())(any()))
+        when(mockRtiiService.retrieveCitizenIncome(any(), any()))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
@@ -155,7 +155,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
@@ -172,7 +172,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
@@ -190,7 +190,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
@@ -224,7 +224,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
@@ -240,7 +240,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
@@ -258,7 +258,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
       "The controller receives a failure response from DES in the service layer" in {
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any())).thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any())).thenReturn(Future.failed(new Exception))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))).thenReturn(Future.failed(new Exception))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
@@ -275,7 +275,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(()))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
@@ -299,7 +299,7 @@ class RealTimeIncomeInformationControllerSpec extends BaseSpec with GuiceOneAppP
 
           when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
             .thenReturn(Future.successful(()))
-          when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
+          when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
             .thenReturn(Future.successful(expectedDesResponse))
           when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
           when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))

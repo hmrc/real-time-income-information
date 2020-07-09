@@ -21,21 +21,22 @@ import utils.BaseSpec
 class SchemaValidatorSpec extends BaseSpec {
 
   val SUT = new SchemaValidator
+  val nino: String = generateNino
 
   "validate" must {
     "return true" in {
-      SUT.validate(exampleDwpRequest) mustBe true
+      SUT.validate(modifiedExampleDwpRequest(nino)) mustBe true
 
     }
 
     "return false " when {
       List(
-        ("the nino is invalid", exampleDwpRequestInvalidNino),
-        ("the filter fields array contains an empty string field", exampleInvalidDwpEmptyStringField),
-        ("the filter fields array contains duplicate fields", exampleInvalidDwpDuplicateFields),
-        ("the filter fields array is empty", exampleInvalidDwpEmptyFieldsRequest),
-        ("the request contains an unexpected filter field", exampleInvalidFilterFieldDwpRequest),
-        ("the request contains an unexpected matching field", exampleInvalidMatchingFieldDwpRequest)
+        ("the nino is invalid", exampleDwpRequestInvalidNino(nino)),
+        ("the filter fields array contains an empty string field", exampleInvalidDwpEmptyStringField(nino)),
+        ("the filter fields array contains duplicate fields", exampleInvalidDwpDuplicateFields(nino)),
+        ("the filter fields array is empty", exampleInvalidDwpEmptyFieldsRequest(nino)),
+        ("the request contains an unexpected filter field", exampleInvalidFilterFieldDwpRequest(nino)),
+        ("the request contains an unexpected matching field", exampleInvalidMatchingFieldDwpRequest(nino))
       ).foreach {
         case (testName, json) => testName in {
           SUT.validate(json) mustBe false

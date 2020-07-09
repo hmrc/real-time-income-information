@@ -60,7 +60,7 @@ class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfi
     )
   }
 
-  def retrieveCitizenIncome(nino: String, matchingRequest: DesMatchingRequest, correlationId: String)(implicit hc: HeaderCarrier): Future[DesResponse] = {
+  def retrieveCitizenIncome(nino: String, matchingRequest: DesMatchingRequest, correlationId: String): Future[DesResponse] = {
     val postUrl: String = s"${desConfig.hodUrl}/individuals/$nino/income"
     implicit val hc: HeaderCarrier = header(correlationId)
     httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest) recover {

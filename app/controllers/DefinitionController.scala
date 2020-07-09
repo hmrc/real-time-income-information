@@ -23,8 +23,6 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import views.txt
 
-import scala.concurrent.Future
-
 @Singleton
 class DefinitionController @Inject()(apiContext: ApiContext,
                                      cc: ControllerComponents) extends BackendController(cc) {

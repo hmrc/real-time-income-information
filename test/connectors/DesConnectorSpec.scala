@@ -17,9 +17,8 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import com.github.tomakehurst.wiremock.http.Fault
 import models._
-import org.scalatestplus.play.guice.{GuiceOneAppPerSuite, GuiceOneAppPerTest}
+import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
@@ -61,7 +60,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
                          |      "hmrcOfficeNumber": "099",
                          |      "employerPayeRef": "A1B2c3d4e5",
                          |      "employerName1": "Employer",
-                         |      "nationalInsuranceNumber": "AB123456C",
+                         |      "nationalInsuranceNumber": "QQ123456C",
                          |      "surname": "Surname",
                          |      "gender": "M",
                          |      "uniqueEmploymentSequenceNumber": 9999,
@@ -99,7 +98,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
-              ok(successsNoMatch.toString())
+              ok(successNoMatch.toString())
             )
         )
 
@@ -112,7 +111,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
         server.stubFor(
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
-              ok(successsNoMatchGreaterThanZero.toString())
+              ok(successNoMatchGreaterThanZero.toString())
             )
         )
 
@@ -245,7 +244,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
           post(urlEqualTo(s"/individuals/$nino/income"))
             .willReturn(
               ok()
-                .withBody(successsNoMatch.toString())
+                .withBody(successNoMatch.toString())
                 .withFixedDelay(5000)
             )
         )

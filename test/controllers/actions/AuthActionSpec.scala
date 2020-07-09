@@ -23,11 +23,10 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Results}
+import play.api.mvc.{Action, AnyContent, Results}
 import play.api.test.Helpers._
-import play.api.test.{FakeRequest, Injecting, StubControllerComponentsFactory}
+import play.api.test.{FakeRequest, Injecting}
 import uk.gov.hmrc.auth.core.{AuthConnector, UnsupportedAuthProvider}
-import uk.gov.hmrc.play.bootstrap.controller.BackendBaseController
 import utils.{BaseSpec, Constants}
 
 import scala.concurrent.Future

@@ -1,7 +1,4 @@
-@import play.api.libs.json.Json
-@import api.APIAccess
-
-@(access: APIAccess, apiContext: String)
+@(access: api.APIAccess, apiContext: String)
 {
   "scopes":[
     {
@@ -24,8 +21,3 @@
     ]
   }
 }
-
-@*
- * TODO do we need license header and view spec for this?
- * does this even need to be a txt file? Or is their a more appropriate way of doing this
- *@

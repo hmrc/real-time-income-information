@@ -39,6 +39,7 @@ class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
   val mockAuditConnector: AuditConnector = mock[AuditConnector]
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val appName = "myApp"
+  val nino: String = generateNino
 
   override def fakeApplication(): Application = new GuiceApplicationBuilder()
     .configure("appName" -> appName)
@@ -77,7 +78,7 @@ class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
     "audit correlationID, serviceName and filterFields" in {
       val dataEventCaptor: ArgumentCaptor[DataEvent] = ArgumentCaptor.forClass(classOf[DataEvent])
       val correlationId = "correlationId"
-      val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
+      val requestDetails = RequestDetails(nino, "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
       val auditPath = s"/individuals/$correlationId/income"
       val auditType = "ServiceRequestReceived"
       val auditData =  Map("correlationId" -> correlationId, "serviceName" -> requestDetails.serviceName, "filterFields" -> requestDetails.filterFields.toString())
