@@ -31,5 +31,4 @@ class DesResponseSpec extends BaseSpec with ResourceProvider {
       desErrorResponse mustBe DesMultipleFailureResponse(List(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."), DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")))
     }
   }
-
 }

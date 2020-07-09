@@ -1,18 +1,14 @@
 .*
 
 !.gitignore
+!.scalafmt.conf
 
-.cache
-/.classpath
+
 db
 dist
-.DS_Store
 **/*.DS_Store
 eclipse
 *.eml
-.history
-.idea
-/.idea_modules
 *.iml
 lib
 lib_managed
@@ -20,15 +16,11 @@ log
 logs
 /out
 precompiled
-/.project
 project/project
 project/target
 /RUNNING_PID
 server.pid
-/.settings
 target
-.target
 test-result
 tmp
-.idea_modules
 bin
