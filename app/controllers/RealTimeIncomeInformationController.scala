@@ -38,6 +38,8 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
                                                     schemaValidator: SchemaValidator,
                                                     cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
+  private val logger: Logger = Logger(this.getClass)
+
   def preSchemaValidation(correlationId: String): Action[JsValue] = authenticateAndValidate(correlationId).async(parse.json) {
     implicit request =>
       (parseJson andThen validateDate andThen validateAgainstSchema(request.body) andThen getResult)(request) {
@@ -86,7 +88,7 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
       errorCodeInvalidDatesEqual -> BadRequest(Json.toJson(r)),
       errorCodeInvalidPayload -> BadRequest(Json.toJson(r))
     ).withDefaultValue{
-      Logger.error(s"Error from DES does not match schema: $r")
+      logger.error(s"Error from DES does not match schema: $r")
       InternalServerError(Json.toJson(r))
     }(r.code)
 }

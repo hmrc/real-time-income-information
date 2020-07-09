@@ -31,6 +31,8 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfig)(implicit ec: ExecutionContext) {
 
+  private val logger: Logger = Logger(this.getClass)
+
   private def header(correlationID: String): HeaderCarrier = HeaderCarrier(extraHeaders = Seq(
     "Authorization" -> desConfig.authorization,
     "Environment" -> desConfig.environment,
@@ -50,7 +52,7 @@ class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfi
           case (path, List(validationError: JsonValidationError, _*)) => s"$path: ${validationError.message}"
         }.mkString(", ").trim
       }
-      Logger.error(s"Not able to parse the response received from DES with error ${extractValidationErrors(errors)}")
+      logger.error(s"Not able to parse the response received from DES with error ${extractValidationErrors(errors)}")
       DesUnexpectedResponse()
     }
 
@@ -65,10 +67,10 @@ class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfi
     implicit val hc: HeaderCarrier = header(correlationId)
     httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest) recover {
       case e: GatewayTimeoutException =>
-        Logger.error(s"GatewayTimeoutException occurred: ${e.message}")
+        logger.error(s"GatewayTimeoutException occurred: ${e.message}")
         DesUnexpectedResponse()
       case e: BadGatewayException =>
-        Logger.error(s"BadGatewayException occurred: ${e.message}")
+        logger.error(s"BadGatewayException occurred: ${e.message}")
         DesUnexpectedResponse()
     }
   }

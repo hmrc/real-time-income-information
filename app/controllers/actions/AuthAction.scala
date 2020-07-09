@@ -34,7 +34,7 @@ class AuthActionImpl @Inject()(val parser: BodyParsers.Default,
                            override val authConnector: AuthConnector)
                           (implicit val executionContext: ExecutionContext) extends AuthAction with AuthorisedFunctions {
 
-  val logger: Logger = Logger(this.getClass)
+  private val logger: Logger = Logger(this.getClass)
 
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
