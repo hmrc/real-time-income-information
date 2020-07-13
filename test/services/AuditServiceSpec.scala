@@ -16,8 +16,9 @@
 
 package services
 
+import java.time.Instant
+
 import models.RequestDetails
-import org.joda.time.DateTime
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -47,7 +48,7 @@ class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
     .build()
 
   val auditService: AuditService = inject[AuditService]
-  val date: DateTime = DateTime.now
+  val date: Instant = Instant.now
 
   "audit" must {
     "send data event to the AuditConnector" in {
