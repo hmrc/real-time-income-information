@@ -38,7 +38,7 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
                                                     schemaValidator: SchemaValidator,
                                                     cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  private val logger: Logger = Logger(this.getClass)
+  val logger: Logger = Logger(this.getClass)
 
   def preSchemaValidation(correlationId: String): Action[JsValue] = authenticateAndValidate(correlationId).async(parse.json) {
     implicit request =>

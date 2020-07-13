@@ -23,4 +23,12 @@ object AppDependencies {
 
   val all: Seq[ModuleID] = compile ++ test
 
+  if (true) {
+    println("do something")
+    println(2)
+  } else {
+    "somethingelse"
+    "somethingelse"
+  }
+
 }
