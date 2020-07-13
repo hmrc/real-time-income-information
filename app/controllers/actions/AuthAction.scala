@@ -37,7 +37,7 @@ class AuthActionImpl @Inject()(val parser: BodyParsers.Default,
   private val logger: Logger = Logger(this.getClass)
 
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
 
     authorised(AuthProviders(PrivilegedApplication)) {
       Future.successful(None)
