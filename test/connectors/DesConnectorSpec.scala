@@ -16,7 +16,9 @@
 
 package connectors
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import models._
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
@@ -51,6 +53,10 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
 
   def connector: DesConnector = inject[DesConnector]
 
+  def stubPostServer(willReturn: ResponseDefinitionBuilder): StubMapping =
+    stubPostServer(willReturn, s"/individuals/$nino/income")
+
+
   "retrieveCitizenIncome" must {
     "return a DesSuccessResponse" when {
       "successfully retrieved citizen income data" in {
@@ -82,12 +88,8 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
                          |}""".stripMargin)
 
         val expectedResponse = DesSuccessResponse(63, Some(List(taxYear)))
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successMatchOneYear.toString())
-            )
-        )
+
+        stubPostServer(ok(successMatchOneYear.toString))
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe expectedResponse
@@ -95,12 +97,8 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
 
       "received a 200 No match response from DES" in {
         val expectedResponse = DesSuccessResponse(0, None)
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successNoMatch.toString())
-            )
-        )
+
+        stubPostServer(ok(successNoMatch.toString))
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe expectedResponse
@@ -108,12 +106,8 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
 
       "received a 200 No match response with match pattern less than 63 from DES" in {
         val expectedResponse = DesSuccessResponse(62, None)
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successNoMatchGreaterThanZero.toString())
-            )
-        )
+        stubPostServer(ok(successNoMatchGreaterThanZero.toString))
+
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe expectedResponse
@@ -124,12 +118,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
       "the remote endpoint has indicated that there is no data for the Nino" in {
         val expectedResponse = DesSingleFailureResponse("NOT_FOUND",
           "The remote endpoint has indicated that there is no data for the Nino.")
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              notFound().withBody(noDataFoundNinoJson.toString)
-            )
-        )
+        stubPostServer(notFound().withBody(noDataFoundNinoJson.toString))
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe expectedResponse
@@ -138,12 +127,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
       "the remote endpoint has indicated that the Nino cannot be found" in {
         val expectedResponse = DesSingleFailureResponse("NOT_FOUND_NINO",
           "The remote endpoint has indicated that the Nino cannot be found.")
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              notFound().withBody(notFoundNinoJson.toString)
-            )
-        )
+        stubPostServer(notFound().withBody(notFoundNinoJson.toString))
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe expectedResponse
@@ -152,12 +136,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
       "the remote endpoint has indicated that the correlation Id is invalid" in {
         val expectedResponse = DesSingleFailureResponse("INVALID_CORRELATION_ID",
           "Submission has not passed validation. Invalid header CorrelationId.")
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              badRequest().withBody(invalidCorrelationIdJson.toString)
-            )
-        )
+        stubPostServer(badRequest().withBody(invalidCorrelationIdJson.toString))
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid"))
         result mustBe expectedResponse
@@ -166,12 +145,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
       "DES is currently experiencing problems that require live service intervention" in {
         val expectedResponse = DesSingleFailureResponse("SERVER_ERROR",
           "DES is currently experiencing problems that require live service intervention.")
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              serverError().withBody(serverErrorJson.toString)
-            )
-        )
+        stubPostServer(serverError().withBody(serverErrorJson.toString))
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe expectedResponse
@@ -180,12 +154,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
       "Dependent systems are currently not responding" in {
         val expectedResponse = DesSingleFailureResponse("SERVICE_UNAVAILABLE",
           "Dependent systems are currently not responding.")
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              serviceUnavailable().withBody(serviceUnavailableJson.toString)
-            )
-        )
+        stubPostServer(serviceUnavailable().withBody(serviceUnavailableJson.toString))
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe expectedResponse
@@ -193,17 +162,12 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
     }
 
     "Return multiple DESFailureResponse" when {
-      val responses = DesMultipleFailureResponse(List(
-        DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."),
-        DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")))
       "the DES response contains a list of failures" in {
+        val responses = DesMultipleFailureResponse(List(
+          DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."),
+          DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")))
 
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              badRequest().withBody(multipleErrors.toString)
-            )
-        )
+        stubPostServer(badRequest().withBody(multipleErrors.toString))
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe responses
@@ -213,12 +177,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
     "Return a DES unexpected response" when {
       "the DES response doesn't match the schema" in {
         val response = DesUnexpectedResponse()
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              serviceUnavailable().withBody("{}")
-            )
-        )
+        stubPostServer(serviceUnavailable().withBody("{}"))
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe response
@@ -227,34 +186,26 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
       "the status returned is OK but fails to parse as a DESSuccessResponse" in {
 
         val response = DesUnexpectedResponse()
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok().withBody("{}")
-            )
-        )
+        stubPostServer(ok().withBody("{}"))
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe response
       }
 
       "a time out exception occurs" in {
-        val response = DesUnexpectedResponse()
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok()
-                .withBody(successNoMatch.toString())
-                .withFixedDelay(5000)
-            )
-        )
+        val response = DesNoResponse()
+        stubPostServer {
+          ok()
+            .withBody(successNoMatch.toString())
+            .withFixedDelay(5000)
+        }
 
         val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe response
       }
 
       "a bad gateway exception occurs" in {
-        val response = DesUnexpectedResponse()
+        val response = DesNoResponse()
         server.stop()
 
         val result = Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)))
@@ -266,12 +217,7 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
     "send the correct headers to DES" in {
       val url = s"/individuals/$nino/income"
 
-      server.stubFor(
-        post(urlEqualTo(url))
-          .willReturn(
-            ok().withBody("{}")
-          )
-      )
+      stubPostServer(aResponse().withBody("{}"), url)
 
       await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
 

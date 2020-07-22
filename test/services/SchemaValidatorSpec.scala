@@ -26,7 +26,6 @@ class SchemaValidatorSpec extends BaseSpec {
   "validate" must {
     "return true" in {
       SUT.validate(modifiedExampleDwpRequest(nino)) mustBe true
-
     }
 
     "return false " when {

@@ -17,7 +17,7 @@
 package controllers.actions
 
 import com.google.inject.{ImplementedBy, Inject}
-import play.api.libs.json.Json
+import play.api.libs.json.Json.toJson
 import play.api.mvc.Results.BadRequest
 import play.api.mvc._
 import utils.Constants
@@ -32,10 +32,12 @@ class ValidateCorrelationIdImpl @Inject()(_parser: BodyParsers.Default)
     override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
       val correlationIdRegex = """^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$""".r
 
-      correlationId match {
-        case correlationIdRegex(_*) => successful(None)
-        case _ => successful(Some(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId))))
+      val optResult: Option[Result] = correlationId match {
+        case correlationIdRegex(_*) => None
+        case _ => Some(BadRequest(toJson(Constants.responseInvalidCorrelationId)))
       }
+
+      Future.successful(optResult)
     }
 
     override def parser: BodyParser[AnyContent] = _parser

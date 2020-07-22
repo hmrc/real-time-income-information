@@ -35,7 +35,8 @@ class RequestDetailsSpec extends BaseSpec {
         gender = Some("M"),
         initials = Some("FMS"),
         dateOfBirth = Some("03/04/2050"),
-        filterFields = List("surname", "nationalInsuranceNumber"))
+        filterFields = List("surname", "nationalInsuranceNumber")
+      )
 
       val transformedDESRequest: DesMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
 
@@ -47,10 +48,10 @@ class RequestDetailsSpec extends BaseSpec {
         middleName = Some("middleName"),
         gender = Some("M"),
         initials = Some("FMS"),
-        dateOfBirth = Some("03/04/2050"))
+        dateOfBirth = Some("03/04/2050")
+      )
 
       transformedDESRequest mustBe expectedMatchingDESRequest
     }
   }
-
 }

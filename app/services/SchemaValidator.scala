@@ -16,22 +16,25 @@
 
 package services
 
-import com.eclipsesource.schema.{SchemaType, SchemaValidator => Validator}
+import com.eclipsesource.schema.{SchemaType, SchemaValidator}
 import com.google.inject.Singleton
-import play.api.libs.json.{JsResult, JsValue, Json}
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json.{fromJson, parse}
 
 import scala.io.Source
 
 @Singleton
 class SchemaValidator {
 
-  private val schema: JsValue = {
+  private val schemaType: SchemaType = {
     val resource = getClass.getResourceAsStream("/schemas/real-time-income-information-post-schema.json")
-    Json.parse(Source.fromInputStream(resource).mkString)
+    fromJson[SchemaType](parse(Source.fromInputStream(resource).mkString))
+      .getOrElse(throw new Exception("Unable to parse real-time-income-information-post-schema to SchemaType"))
   }
 
-  private val validator: JsValue => JsResult[JsValue] = Validator().validate(Json.fromJson[SchemaType](schema).get)(_)
+  private val validator = SchemaValidator()
 
-  def validate(jsonToValidate: JsValue): Boolean = validator(jsonToValidate).isSuccess
+  def validate(jsonToValidate: JsValue): Boolean =
+    validator.validate(schemaType)(jsonToValidate).isSuccess
 
 }

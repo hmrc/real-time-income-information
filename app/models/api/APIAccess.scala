@@ -16,17 +16,12 @@
 
 package models.api
 
-import config.APIAccessConfig
-import play.api.libs.json.{JsValue, Json, OFormat}
+import play.api.libs.json.{JsValue, Json, Writes}
 
-case class APIAccess(`type`: String, whitelistedApplicationIds: Option[Seq[String]]) {
+final case class APIAccess(`type`: String, whitelistedApplicationIds: Option[Seq[String]]) {
   def toJson: JsValue = Json.toJson(this)
 }
 
 object APIAccess {
-  implicit val apiAccessFormats: OFormat[APIAccess] = Json.format[APIAccess]
-
-  def apply(apiAccessConfig: APIAccessConfig): APIAccess = {
-    APIAccess(apiAccessConfig.accessType, apiAccessConfig.whiteListedApplicationIds)
-  }
+  implicit val apiAccessWrites: Writes[APIAccess] = Json.writes[APIAccess]
 }

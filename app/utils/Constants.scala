@@ -28,7 +28,11 @@ object Constants {
   val errorCodeInvalidPayload = "INVALID_PAYLOAD"
   val errorCodeServerError = "SERVER_ERROR"
   val errorCodeServiceUnavailable = "SERVICE_UNAVAILABLE"
+  val errorCodeForbidden = "FORBIDDEN"
   val errorCodeNonPrivilegedApplication = "NON_PRIVILEGED_APPLICATION"
+
+  def forbiddenWithMsg(msg: String) = DesSingleFailureResponse(errorCodeForbidden, msg)
+
   val responseNonPrivilegedApplication: DesSingleFailureResponse =
     DesSingleFailureResponse(errorCodeNonPrivilegedApplication, "The remote endpoint has indicated the request has not passed authentication.")
   val responseInvalidDateRange: DesSingleFailureResponse =
@@ -41,7 +45,7 @@ object Constants {
     DesSingleFailureResponse(errorCodeInvalidPayload, "Submission has not passed validation. Invalid Payload.")
   val responseNotFound: DesSingleFailureResponse =
     DesSingleFailureResponse(errorCodeNotFound, "The remote endpoint has indicated that there is no data for the Nino.")
-  val responseServiceUnavailable =
+  val responseServiceUnavailable: DesSingleFailureResponse =
     DesSingleFailureResponse(errorCodeServiceUnavailable, "Dependent systems are currently not responding.")
 
 }

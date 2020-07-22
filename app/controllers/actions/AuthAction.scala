@@ -18,14 +18,14 @@ package controllers.actions
 
 import com.google.inject.{ImplementedBy, Inject}
 import play.api.Logger
-import play.api.libs.json.Json
+import play.api.libs.json.Json.toJson
 import play.api.mvc.Results.{Forbidden, InternalServerError}
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
-import utils.Constants
+import utils.Constants._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -42,13 +42,13 @@ class AuthActionImpl @Inject()(val parser: BodyParsers.Default,
     authorised(AuthProviders(PrivilegedApplication)) {
       Future.successful(None)
     } recover {
-      case _: UnsupportedAuthProvider => Some(Forbidden(Json.toJson(Constants.responseNonPrivilegedApplication)))
+      case _: UnsupportedAuthProvider => Some(Forbidden(toJson(responseNonPrivilegedApplication)))
       case e: AuthorisationException  =>
         logger.warn(e.reason)
-        Some(Forbidden)
+        Some(Forbidden(toJson(forbiddenWithMsg(e.reason))))
       case NonFatal(e)                =>
         logger.error("Unexpected exception when authorising", e)
-        Some(InternalServerError)
+        Some(InternalServerError(toJson(responseServiceUnavailable)))
     }
   }
 }

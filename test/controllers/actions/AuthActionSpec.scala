@@ -23,10 +23,10 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Results}
+import play.api.mvc.{Action, AnyContent, Result, Results}
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Injecting}
-import uk.gov.hmrc.auth.core.{AuthConnector, UnsupportedAuthProvider}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisationException, InternalError, UnsupportedAuthProvider}
 import utils.{BaseSpec, Constants}
 
 import scala.concurrent.Future
@@ -70,10 +70,11 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
 
       "unexpected unauthenticated" in {
         when(mockAuthConnector.authorise[Unit](any(), any())(any(), any()))
-          .thenReturn(Future.failed(UnsupportedAuthProvider()))
+          .thenReturn(Future.failed(InternalError("some error message")))
         val result = Harness.test()(FakeRequest())
 
         status(result) mustBe FORBIDDEN
+        contentAsJson(result) mustBe Json.toJson(Constants.forbiddenWithMsg("some error message"))
       }
     }
 

@@ -26,12 +26,13 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class RealTimeIncomeInformationService @Inject()(desConnector: DesConnector)(implicit ec: ExecutionContext) {
 
-  def pickOneValue(key: String, taxYear: JsValue): Option[(String, JsValue)] =
+  private[services] def pickOneValue(key: String, taxYear: JsValue): Option[(String, JsValue)] =
     taxYear.transform((__ \\ key).json.pick[JsValue]).asOpt.map(key -> _)
 
-  def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): List[JsValue] =
-    desSuccessResponse.taxYears.toList.flatten.map(
-      taxYear => Json.toJson(keys.flatMap(key => pickOneValue(key, taxYear)).toMap))
+  private[services] def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): List[JsValue] =
+    desSuccessResponse.taxYears.toList.flatten.map { taxYear =>
+      Json.toJson(keys.flatMap(key => pickOneValue(key, taxYear)).toMap)
+    }
 
   def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String): Future[DesResponse] =
     desConnector.retrieveCitizenIncome(requestDetails.nino, RequestDetails.toMatchingRequest(requestDetails), correlationId) map {

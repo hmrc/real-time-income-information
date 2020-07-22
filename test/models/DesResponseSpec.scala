@@ -19,8 +19,8 @@ package models
 import utils.BaseSpec
 import utils.ResourceProvider
 
-
 class DesResponseSpec extends BaseSpec with ResourceProvider {
+
   "DesErrorResponse reads" must {
     "formatting DesSingleError" in {
      val desErrorResponse: DesErrorResponse = noDataFoundNinoJson.as[DesErrorResponse]

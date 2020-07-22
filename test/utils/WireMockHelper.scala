@@ -17,7 +17,10 @@
 package utils
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
+import com.github.tomakehurst.wiremock.client.WireMock.{post, urlEqualTo}
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
 
 trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
@@ -38,5 +41,14 @@ trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
   override def afterAll(): Unit = {
     super.afterAll()
     server.stop()
+  }
+
+  def stubPostServer(willReturn: ResponseDefinitionBuilder, url: String): StubMapping = {
+    server.stubFor(
+      post(urlEqualTo(url))
+        .willReturn(
+          willReturn
+        )
+    )
   }
 }

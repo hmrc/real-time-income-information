@@ -68,10 +68,10 @@ class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfi
     httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest) recover {
       case e: GatewayTimeoutException =>
         logger.error(s"GatewayTimeoutException occurred: ${e.message}")
-        DesUnexpectedResponse()
+        DesNoResponse()
       case e: BadGatewayException =>
         logger.error(s"BadGatewayException occurred: ${e.message}")
-        DesUnexpectedResponse()
+        DesNoResponse()
     }
   }
 }

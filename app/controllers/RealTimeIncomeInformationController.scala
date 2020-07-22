@@ -50,6 +50,7 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
            case noMatchResponse: DesSuccessResponse => Ok(Json.toJson(noMatchResponse))
            case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
            case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
+           case noResponse: DesNoResponse => BadGateway(Json.toJson(noResponse))
            case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
          } recover {
            case NonFatal(_) =>
@@ -65,30 +66,31 @@ class RealTimeIncomeInformationController @Inject()(rtiiService: RealTimeIncomeI
     )
 
   private val validateDate: Either[DesSingleFailureResponse, RequestDetails] => Either[DesSingleFailureResponse, RequestDetails] =
-    _.fold[Either[DesSingleFailureResponse, RequestDetails]](Left(_), requestDetailsService.validateDates)
+    _.flatMap(requestDetailsService.validateDates)
 
   private val getResult: Either[DesSingleFailureResponse, RequestDetails] => (RequestDetails => Future[Result]) => Future[Result] =
-    either => func => either.fold(singleFailure => Future.successful(BadRequest(Json.toJson(singleFailure))), func(_))
+    either => func => either.fold(singleFailure => Future.successful(BadRequest(Json.toJson(singleFailure))), func)
+
 
   private def authenticateAndValidate(id: String): ActionBuilder[Request, AnyContent] =
     auth andThen validateCorrelationId(id)
 
-  private def validateAgainstSchema(json: JsValue): Either[DesSingleFailureResponse, RequestDetails] => Either[DesSingleFailureResponse, RequestDetails] = {
-    either => either.fold(Left(_), rd => if (schemaValidator.validate(json)) Right(rd) else Left(responseInvalidPayload))
-  }
+  private def validateAgainstSchema(json: JsValue): Either[DesSingleFailureResponse, RequestDetails] => Either[DesSingleFailureResponse, RequestDetails] =
+    _.flatMap(requestDetails => if (schemaValidator.validate(json)) Right(requestDetails) else Left(responseInvalidPayload))
 
-  private def failureResponseToResult(r: DesSingleFailureResponse): Result =
+
+  private def failureResponseToResult(response: DesSingleFailureResponse): Result =
    Map(
-      errorCodeServerError -> InternalServerError(Json.toJson(r)),
-      errorCodeNotFoundNino -> NotFound(Json.toJson(r)),
-      errorCodeNotFound -> NotFound(Json.toJson(r)),
-      errorCodeServiceUnavailable -> ServiceUnavailable(Json.toJson(r)),
-      errorCodeInvalidCorrelation -> BadRequest(Json.toJson(r)),
-      errorCodeInvalidDateRange -> BadRequest(Json.toJson(r)),
-      errorCodeInvalidDatesEqual -> BadRequest(Json.toJson(r)),
-      errorCodeInvalidPayload -> BadRequest(Json.toJson(r))
+      errorCodeServerError -> InternalServerError(Json.toJson(response)),
+      errorCodeNotFoundNino -> NotFound(Json.toJson(response)),
+      errorCodeNotFound -> NotFound(Json.toJson(response)),
+      errorCodeServiceUnavailable -> ServiceUnavailable(Json.toJson(response)),
+      errorCodeInvalidCorrelation -> BadRequest(Json.toJson(response)),
+      errorCodeInvalidDateRange -> BadRequest(Json.toJson(response)),
+      errorCodeInvalidDatesEqual -> BadRequest(Json.toJson(response)),
+      errorCodeInvalidPayload -> BadRequest(Json.toJson(response))
     ).withDefaultValue{
-      logger.error(s"Error from DES does not match schema: $r")
-      InternalServerError(Json.toJson(r))
-    }(r.code)
+      logger.error(s"Error from DES does not match schema: $response")
+      InternalServerError(Json.toJson(response))
+    }(response.code)
 }

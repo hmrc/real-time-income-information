@@ -3,7 +3,6 @@
 !.gitignore
 !.scalafmt.conf
 
-
 db
 dist
 **/*.DS_Store

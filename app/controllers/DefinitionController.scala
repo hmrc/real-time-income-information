@@ -16,7 +16,7 @@
 
 package controllers
 
-import config.{APIAccessConfig, ApiContext}
+import config.APIConfig
 import javax.inject.{Inject, Singleton}
 import models.api.APIAccess
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -24,11 +24,13 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import views.txt
 
 @Singleton
-class DefinitionController @Inject()(apiContext: ApiContext,
+class DefinitionController @Inject()(apiContext: APIConfig,
                                      cc: ControllerComponents) extends BackendController(cc) {
 
+  private val apiAccess: APIAccess = APIAccess(apiContext.apiTypeAccess, apiContext.apiWhiteList)
+
   def get(): Action[AnyContent] = Action {
-    Ok(txt.definition(APIAccess(APIAccessConfig(apiContext.apiAccess)), apiContext.apiContext))
-      .as("application/json").withHeaders(CONTENT_TYPE -> JSON)
+    Ok(txt.definition(apiAccess, apiContext.apiContext))
+      .as(contentType = "application/json").withHeaders(CONTENT_TYPE -> JSON)
   }
 }
