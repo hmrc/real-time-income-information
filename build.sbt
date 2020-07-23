@@ -20,7 +20,7 @@ lazy val microservice = Project(appName, file("."))
     publishingSettings,
     PlayKeys.playDefaultPort := 9358,
     scoverageSettings,
-    majorVersion := 1,
+    majorVersion := 2,
     resolvers ++= Seq(
       Resolver.jcenterRepo,
       Resolver.bintrayRepo("emueller", "maven"),
