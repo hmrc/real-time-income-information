@@ -3,12 +3,25 @@ import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
 val appName = "real-time-income-information"
 
-lazy val scoverageSettings = Seq(
-  ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;view.*;config.*;.*(BuildInfo|Routes).*",
-  ScoverageKeys.coverageMinimum := 95,
-  ScoverageKeys.coverageFailOnMinimum := false,
-  ScoverageKeys.coverageHighlighting := true
-)
+lazy val scoverageSettings = {
+  val sCoverageExcludesPattens = List(
+    "<empty>",
+    "Reverse.*",
+    "view.*",
+    "config.*",
+    ".*(BuildInfo|Routes).*",
+    "com.kenshoo.play.*",
+    "controllers.javascript",
+    ".*ReverseDefinitionController",
+    ".*ReverseDocumentationController"
+  )
+  Seq(
+    ScoverageKeys.coverageExcludedPackages := sCoverageExcludesPattens.mkString(";"),
+    ScoverageKeys.coverageMinimum := 95,
+    ScoverageKeys.coverageFailOnMinimum := true,
+    ScoverageKeys.coverageHighlighting := true
+  )
+}
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
