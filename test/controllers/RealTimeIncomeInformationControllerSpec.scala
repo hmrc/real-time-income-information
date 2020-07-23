@@ -26,7 +26,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
@@ -68,13 +68,15 @@ class RealTimeIncomeInformationControllerSpec
   }
 
   def fakeRequest(jsonBody: JsValue): FakeRequest[JsValue] =
-    FakeRequest(method = "POST",
-                uri = "",
-                headers = FakeHeaders(Seq("Content-type" -> "application/json")),
-                body = jsonBody
+    FakeRequest(
+      method = "POST",
+      uri = "",
+      headers = FakeHeaders(Seq("Content-type" -> "application/json")),
+      body = jsonBody
     )
 
   val controller: RealTimeIncomeInformationController = inject[RealTimeIncomeInformationController]
+
   "preSchemaValidation" must {
     "Return OK provided a valid request" when {
       val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
@@ -82,7 +84,7 @@ class RealTimeIncomeInformationControllerSpec
 
         val values = Json.toJson(
           Map(
-            "surname" -> "Surname",
+            "surname"                 -> "Surname",
             "nationalInsuranceNumber" -> nino
           )
         )
@@ -203,6 +205,14 @@ class RealTimeIncomeInformationControllerSpec
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
 
+      "Unable to parse json" in {
+        val jsonInput: JsValue     = JsObject.empty
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(Constants.responseInvalidPayload)
+      }
+
       "schemaValidator returns false" in {
         val expectedResponse               = Constants.responseInvalidPayload
         val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
@@ -267,8 +277,9 @@ class RealTimeIncomeInformationControllerSpec
 
         status(result) mustBe SERVICE_UNAVAILABLE
         contentAsJson(result) mustBe Json.toJson(
-          DesSingleFailureResponse(Constants.errorCodeServiceUnavailable,
-                                   "Dependent systems are currently not responding."
+          DesSingleFailureResponse(
+            Constants.errorCodeServiceUnavailable,
+            "Dependent systems are currently not responding."
           )
         )
       }
@@ -293,7 +304,7 @@ class RealTimeIncomeInformationControllerSpec
     "Return 502 BAD_GATEWAY " when {
       "The controller receives a DesNoResponse from the service layer" in {
         val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
-        val expectedDesResponse = DesNoResponse()
+        val expectedDesResponse            = DesNoResponse()
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
@@ -314,8 +325,9 @@ class RealTimeIncomeInformationControllerSpec
       val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
       List(
         ("The controller receives a DesUnexpectedResponse from the service layer", DesUnexpectedResponse()),
-        ("The controller receives an Error Code Server Error from the service layer",
-         DesSingleFailureResponse(Constants.errorCodeServerError, "")
+        (
+          "The controller receives an Error Code Server Error from the service layer",
+          DesSingleFailureResponse(Constants.errorCodeServerError, "")
         ),
         ("The controller receives an unmatched DES error", DesSingleFailureResponse("", ""))
       ).foreach {

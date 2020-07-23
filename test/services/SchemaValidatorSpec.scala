@@ -45,8 +45,5 @@ class SchemaValidatorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecti
         }
       }
     }
-
-    ""
-
   }
 }

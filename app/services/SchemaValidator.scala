@@ -31,8 +31,7 @@ class SchemaValidator @Inject()(applicationConfig: ApplicationConfig){
 
   private val schemaType: SchemaType = {
     val resource: InputStream = getClass.getResourceAsStream(applicationConfig.schemaResourcePath)
-    fromJson[SchemaType](parse(Source.fromInputStream(resource).mkString))
-      .getOrElse(throw new Exception("Unable to parse real-time-income-information-post-schema to SchemaType"))
+    fromJson[SchemaType](parse(Source.fromInputStream(resource).mkString)).get
   }
 
   private val validator = SchemaValidator()
