@@ -44,10 +44,14 @@ class AuthActionImpl @Inject()(val parser: BodyParsers.Default,
     } recover {
       case _: UnsupportedAuthProvider => Some(Forbidden(toJson(responseNonPrivilegedApplication)))
       case e: AuthorisationException  =>
+        //$COVERAGE-OFF$
         logger.warn(e.reason)
+        //$COVERAGE-ON$
         Some(Forbidden(toJson(forbiddenWithMsg(e.reason))))
       case NonFatal(e)                =>
+        //$COVERAGE-OFF$
         logger.error("Unexpected exception when authorising", e)
+        //$COVERAGE-ON$
         Some(InternalServerError(toJson(responseServiceUnavailable)))
     }
   }
