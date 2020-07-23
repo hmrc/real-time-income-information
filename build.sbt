@@ -12,8 +12,7 @@ lazy val scoverageSettings = {
     ".*(BuildInfo|Routes).*",
     "com.kenshoo.play.*",
     "controllers.javascript",
-    ".*ReverseDefinitionController",
-    ".*ReverseDocumentationController"
+    ".*Reverse.*Controller"
   )
   Seq(
     ScoverageKeys.coverageExcludedPackages := sCoverageExcludesPattens.mkString(";"),

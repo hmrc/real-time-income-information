@@ -69,10 +69,14 @@ class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfi
     implicit val hc: HeaderCarrier = header(correlationId)
     httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest) recover {
       case e: GatewayTimeoutException =>
+        //$COVERAGE-OFF$
         logger.error(s"GatewayTimeoutException occurred: ${e.message}")
+        //$COVERAGE-ON$
         DesNoResponse()
       case e: BadGatewayException =>
+        //$COVERAGE-OFF$
         logger.error(s"BadGatewayException occurred: ${e.message}")
+        //$COVERAGE-ON$
         DesNoResponse()
     }
   }

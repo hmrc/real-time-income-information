@@ -16,11 +16,14 @@
 
 package services
 
+import config.ApplicationConfig
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.test.Injecting
 import utils.BaseSpec
 
-class SchemaValidatorSpec extends BaseSpec {
+class SchemaValidatorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 
-  val SUT = new SchemaValidator
+  val SUT = new SchemaValidator(inject[ApplicationConfig])
   val nino: String = generateNino
 
   "validate" must {
@@ -42,5 +45,8 @@ class SchemaValidatorSpec extends BaseSpec {
         }
       }
     }
+
+    ""
+
   }
 }
