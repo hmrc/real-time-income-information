@@ -48,11 +48,13 @@ class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfi
   private def parseDesResponse[A <: DesResponse](httpResponse: HttpResponse)(implicit reads: Reads[A]): DesResponse = {
     val handleError: Seq[(JsPath, scala.Seq[JsonValidationError])] => DesUnexpectedResponse = errors => {
       val extractValidationErrors: Seq[(JsPath, scala.Seq[JsonValidationError])] => String = errors => {
+        //$COVERAGE-OFF$
         errors.map {
           case (path, List(validationError: JsonValidationError, _*)) => s"$path: ${validationError.message}"
         }.mkString(", ").trim
       }
       logger.error(s"Not able to parse the response received from DES with error ${extractValidationErrors(errors)}")
+      //$COVERAGE-ON$
       DesUnexpectedResponse()
     }
 
