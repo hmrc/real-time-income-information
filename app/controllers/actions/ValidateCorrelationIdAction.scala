@@ -22,7 +22,6 @@ import play.api.mvc.Results.BadRequest
 import play.api.mvc._
 import utils.Constants
 
-import scala.concurrent.Future.successful
 import scala.concurrent.{ExecutionContext, Future}
 
 class ValidateCorrelationIdImpl @Inject()(_parser: BodyParsers.Default)

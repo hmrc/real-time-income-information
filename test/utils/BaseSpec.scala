@@ -22,8 +22,10 @@ import org.scalatest.MustMatchers
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.domain.Generator
+
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.language.postfixOps
 import scala.util.Random
 
 trait BaseSpec extends PlaySpec with MustMatchers with MockitoSugar with ResourceProvider {

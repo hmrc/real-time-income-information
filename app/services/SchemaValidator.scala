@@ -18,7 +18,7 @@ package services
 
 import java.io.InputStream
 
-import com.eclipsesource.schema.{SchemaType, SchemaValidator}
+import com.eclipsesource.schema.{SchemaType, SchemaValidator => Validator}
 import com.google.inject.{Inject, Singleton}
 import config.ApplicationConfig
 import play.api.libs.json.JsValue
@@ -34,7 +34,7 @@ class SchemaValidator @Inject()(applicationConfig: ApplicationConfig){
     fromJson[SchemaType](parse(Source.fromInputStream(resource).mkString)).get
   }
 
-  private val validator = SchemaValidator()
+  private val validator = Validator()
 
   def validate(jsonToValidate: JsValue): Boolean =
     validator.validate(schemaType)(jsonToValidate).isSuccess

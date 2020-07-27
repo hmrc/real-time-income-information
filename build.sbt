@@ -1,3 +1,4 @@
+import play.sbt.routes.RoutesKeys
 import scoverage.ScoverageKeys
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
@@ -32,6 +33,10 @@ lazy val microservice = Project(appName, file("."))
     publishingSettings,
     PlayKeys.playDefaultPort := 9358,
     scoverageSettings,
+    RoutesKeys.routesImport := Nil,
+    TwirlKeys.templateImports := Nil,
+    scalacOptions += "-Xfatal-warnings",
+    scalacOptions += "-feature",
     majorVersion := 2,
     resolvers ++= Seq(
       Resolver.jcenterRepo,

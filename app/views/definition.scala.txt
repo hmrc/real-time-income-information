@@ -1,4 +1,6 @@
-@(access: api.APIAccess, apiContext: String)
+@import models.api.APIAccess
+
+@(access: APIAccess, apiContext: String)
 {
   "scopes":[
     {
