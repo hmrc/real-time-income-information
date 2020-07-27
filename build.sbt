@@ -36,7 +36,6 @@ lazy val microservice = Project(appName, file("."))
     RoutesKeys.routesImport := Nil,
     TwirlKeys.templateImports := Nil,
     scalacOptions += "-Xfatal-warnings",
-    scalacOptions += "-feature",
     majorVersion := 2,
     resolvers ++= Seq(
       Resolver.jcenterRepo,
