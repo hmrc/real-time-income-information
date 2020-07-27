@@ -54,7 +54,7 @@ class RealTimeIncomeInformationController @Inject() (
             case noMatchResponse: DesSuccessResponse                 => Ok(Json.toJson(noMatchResponse))
             case singleFailureResponse: DesSingleFailureResponse     => failureResponseToResult(singleFailureResponse)
             case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
-            case noResponse: DesNoResponse                           => BadGateway(Json.toJson(noResponse))
+            case noResponse: DesNoResponse                           => ServiceUnavailable(Json.toJson(noResponse))
             case unexpectedResponse: DesUnexpectedResponse           => InternalServerError(Json.toJson(unexpectedResponse))
           } recover {
             case NonFatal(_) =>

@@ -7,8 +7,3 @@
 POST       /individuals/:correlationId/income   @controllers.RealTimeIncomeInformationController.preSchemaValidation(correlationId: String)
 
 GET        /admin/metrics                       com.kenshoo.play.metrics.MetricsController.metrics
-
-#TODO there is the same route here as in app.routes. Why? API Platform strips the prefix of the URL. This app.routes
-#exists so you can use the same route locally as you would in an environment. However, this means on the api platform
-#you can hit /rtii/rtii/indi...
-#raise a ticket for this
