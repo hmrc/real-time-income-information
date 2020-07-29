@@ -42,12 +42,14 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
 
         config mustBe "PRIVATE"
       }
+
       "PRIVATE is configured" in {
         val config = SUT(Some("PRIVATE")).apiTypeAccess
 
         config mustBe "PRIVATE"
       }
     }
+
     "return the config" when {
       "something other than PRIVATE is configured" in {
         val randConfigValue = UUID.randomUUID().toString
@@ -65,6 +67,7 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
 
         config mustBe None
       }
+
       "PRIVATE is configured" in {
         val config = SUT(Some("PRIVATE"), Nil).apiWhiteList
 
@@ -77,6 +80,7 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
         config mustBe Some(Seq("white", "list"))
       }
     }
+
     "return the config" when {
       "something other than PRIVATE is configured and the list is empty" in {
         val config = SUT(Some("PUBLIC")).apiWhiteList
