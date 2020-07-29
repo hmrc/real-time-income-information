@@ -36,7 +36,7 @@ lazy val microservice = Project(appName, file("."))
     RoutesKeys.routesImport := Nil,
     TwirlKeys.templateImports := Nil,
     scalacOptions += "-Xfatal-warnings",
-    majorVersion := 2,
+    majorVersion := 1,
     resolvers ++= Seq(
       Resolver.jcenterRepo,
       Resolver.bintrayRepo("emueller", "maven"),
