@@ -16,26 +16,21 @@
 
 package controllers
 
-import config.{APIAccessConfig, AppContext}
+import config.APIConfig
 import javax.inject.{Inject, Singleton}
-
 import models.api.APIAccess
-import play.api.mvc.{Action, AnyContent}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import views.txt
 
-import scala.concurrent.Future
-
 @Singleton
-class DefinitionController @Inject()(appContext: AppContext) extends BaseController {
+class DefinitionController @Inject()(apiContext: APIConfig,
+                                     cc: ControllerComponents) extends BackendController(cc) {
 
-  def get(): Action[AnyContent] = Action.async {
-    Future.successful(Ok(txt.definition(buildAccess(), appContext.apiContext)).as("application/json").withHeaders(CONTENT_TYPE -> JSON))
+  private val apiAccess: APIAccess = APIAccess(apiContext.apiTypeAccess, apiContext.apiWhiteList)
+
+  def get(): Action[AnyContent] = Action {
+    Ok(txt.definition(apiAccess, apiContext.apiContext))
+      .as(contentType = "application/json").withHeaders(CONTENT_TYPE -> JSON)
   }
-
-  private def buildAccess(): APIAccess = {
-    val access = APIAccessConfig(appContext.apiAccess)
-    APIAccess(access.accessType, access.whiteListedApplicationIds)
-  }
-
 }

@@ -45,15 +45,15 @@
 
     <logger name="com.google.inject" level="INFO"/>
 
-    <logger name="uk.gov" level="INFO"/>
+    <logger name="uk.gov" level="${logger.uk.gov:-WARN}"/>
 
-    <logger name="application" level="DEBUG"/>
+    <logger name="application" level="${logger.application:-DEBUG}"/>
 
-    <logger name="connector" level="TRACE">
+    <logger name="connector" level="${logger.connector:-TRACE}">
         <appender-ref ref="STDOUT"/>
     </logger>
 
-    <root level="INFO">
+    <root level="${logger.root:-INFO}">
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>
     </root>

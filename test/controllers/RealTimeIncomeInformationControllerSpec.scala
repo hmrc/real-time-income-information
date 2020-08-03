@@ -16,559 +16,280 @@
 
 package controllers
 
-import java.util.UUID
+import akka.stream.Materializer
+import controllers.actions.{AuthAction, ValidateCorrelationId}
+import models._
+import org.mockito.ArgumentMatchers.{any, eq => meq}
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
+import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.mvc.Result
+import play.api.test.Helpers._
+import play.api.test.{FakeHeaders, FakeRequest, Injecting}
+import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService, SchemaValidator}
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import utils.{BaseSpec, Constants, FakeAuthAction, FakeValidateCorrelationId}
 
-import com.github.tomakehurst.wiremock.client.WireMock._
-import com.github.tomakehurst.wiremock.http.Fault
-import config.RTIIAuthConnector
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.Json
-import play.api.test.Helpers.{status, _}
-import play.api.test.{FakeHeaders, FakeRequest}
-import services.{AuditService, RealTimeIncomeInformationService}
-import test.BaseSpec
-import uk.gov.hmrc.http.HeaderCarrier
-import utils.WireMockHelper
+import scala.concurrent.Future
 
-class RealTimeIncomeInformationControllerSpec extends PlaySpec with MockitoSugar with ScalaFutures with WireMockHelper with BaseSpec with IntegrationPatience {
+class RealTimeIncomeInformationControllerSpec
+    extends BaseSpec
+    with GuiceOneAppPerSuite
+    with Injecting
+    with BeforeAndAfterEach {
 
-  override protected def portConfigKey: String = "microservice.services.des-hod.port"
+  val correlationId: String                             = generateUUId
+  val nino: String                                      = generateNino
+  val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]
+  val mockAuditService: AuditService                    = mock[AuditService]
+  val mockRequestDetailsService: RequestDetailsService  = mock[RequestDetailsService]
+  val mockSchemaValidator: SchemaValidator              = mock[SchemaValidator]
+  implicit val mat: Materializer                        = app.materializer
 
-  protected lazy val service: RealTimeIncomeInformationService = injector.instanceOf[RealTimeIncomeInformationService]
-  protected lazy val auditService: AuditService = injector.instanceOf[AuditService]
-  protected lazy val rtiiAuthConnector: RTIIAuthConnector = injector.instanceOf[RTIIAuthConnector]
-  protected lazy val controller: RealTimeIncomeInformationController = injector.instanceOf[RealTimeIncomeInformationController]
+  override def fakeApplication(): Application =
+    new GuiceApplicationBuilder()
+      .overrides(
+        bind[RealTimeIncomeInformationService].toInstance(mockRtiiService),
+        bind[AuditService].toInstance(mockAuditService),
+        bind[AuthAction].to[FakeAuthAction],
+        bind[RequestDetailsService].toInstance(mockRequestDetailsService),
+        bind[ValidateCorrelationId].to[FakeValidateCorrelationId],
+        bind[SchemaValidator].toInstance(mockSchemaValidator)
+      )
+      .build()
 
-  "RealTimeIncomeInformationController" should {
-    "Return 200 provided a valid request" when {
-      "the service returns a successfully filtered response" in  {
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRtiiService, mockAuditService, mockSchemaValidator, mockRequestDetailsService)
+  }
 
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+  def fakeRequest(jsonBody: JsValue): FakeRequest[JsValue] =
+    FakeRequest(
+      method = "POST",
+      uri = "",
+      headers = FakeHeaders(Seq("Content-type" -> "application/json")),
+      body = jsonBody
+    )
 
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successMatchOneYear.toString())
-            )
+  val controller: RealTimeIncomeInformationController = inject[RealTimeIncomeInformationController]
+  val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
+
+  "preSchemaValidation" must {
+    "Return OK provided a valid request" when {
+      "the service returns a successfully filtered response" in {
+        val values = Json.toJson(
+          Map(
+            "surname"                 -> "Surname",
+            "nationalInsuranceNumber" -> nino
+          )
         )
 
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
+        val expectedDesResponse = DesFilteredSuccessResponse(63, List(values))
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+          .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
 
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 200
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        status(result) mustBe OK
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
+
+        verify(mockSchemaValidator, times(1)).validate(any())
+        verify(mockAuditService, times(1)).rtiiAudit(meq(correlationId), meq(requestDetails))(any())
       }
 
-      "the service returns a successful no match with a match pattern of 0" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok().withBody(successsNoMatch.toString)
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 200
-      }
-
-      "the service returns a successful no match with match pattern greater than 0" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok().withBody(successsNoMatchGreaterThanZero.toString)
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 200
-      }
-
-    }
-
-    "Return 400" when {
-      "the request contains an unexpected matching field" in {
-
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidMatchingFieldDwpRequest))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successMatchOneYear.toString())
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-      }
-
-      "the request contains an unexpected filter field" in {
-
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidFilterFieldDwpRequest))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successMatchOneYear.toString())
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-      }
-
-      "the filter fields array is empty" in {
-
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpEmptyFieldsRequest))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successMatchOneYear.toString())
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-      }
-
-      "the filter fields array contains duplicate fields" in {
-
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpDuplicateFields))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successMatchOneYear.toString())
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-      }
-
-      "the filter fields array contains an empty string field" in {
-
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDwpEmptyStringField))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successMatchOneYear.toString())
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-      }
-
-      "the service returns a single error response" in {
-
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              badRequest().withBody(invalidCorrelationIdJson.toString)
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-
-      }
-
-      "the service returns multiple error responses" in {
-
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              badRequest().withBody(multipleErrors.toString)
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-
-      }
-
-      "the correlationId is invalid" in {
-
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(invalidCorrelationId)(fakeRequest)
-        status(result) mustBe 400
-      }
-
-      "the toDate is before fromDate" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateRangeRequest))
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-      }
-
-      "the toDate is equal to fromDate" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesEqualRequest))
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-      }
-
-      "a date is in the wrong format" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDateFormat))
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-
-      }
-      "either fromDate or toDate is not defined in the request" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleInvalidDatesNotDefined))
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
-      }
-
-      "the nino is invalid" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequestInvalidNino))
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 400
+      "the service returns a successful when match pattern is 0 and None is returned" in {
+        val expectedDesResponse = DesSuccessResponse(0, None)
+
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+          .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        status(result) mustBe OK
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
     }
 
-    "Return 403 (FORBIDDEN)" when {
-      "A non privileged application attempts to call the endpoint" in {
+    "Return Bad Request" when {
+      List(
+        ("a single error response", Constants.responseInvalidCorrelationId),
+        ("multiple error responses",  DesMultipleFailureResponse(List(Constants.responseInvalidCorrelationId, Constants.responseInvalidDateRange))),
+        ("a single failure response with invalid date range code", DesSingleFailureResponse(Constants.errorCodeInvalidDateRange, "")),
+        ("a single failure response with invalid dates equal code", DesSingleFailureResponse(Constants.errorCodeInvalidDatesEqual, "")),
+        ("a single failure response with invalid payload code", DesSingleFailureResponse(Constants.errorCodeInvalidPayload, ""))
+      ).foreach {
+        case (testDescription, expectedDesResponse ) =>
+          s"the service returns $testDescription" in {
+            when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+              .thenReturn(Future.successful(AuditResult.Success))
+            when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+              .thenReturn(Future.successful(expectedDesResponse))
+            when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+            when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-          val fakeRequest = FakeRequest(method = "POST", uri = "",
-            headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+            val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+            status(result) mustBe BAD_REQUEST
 
-          server.stubFor(
-            post(urlEqualTo(s"/individuals/$nino/income"))
-              .willReturn(
-                ok(successMatchOneYear.toString())
-              )
-          )
+            (expectedDesResponse: @unchecked) match {
+              case failureResponse: DesSingleFailureResponse =>
+                contentAsJson(result) mustBe Json.toJson(failureResponse)
+              case failureResponse: DesMultipleFailureResponse =>
+                contentAsJson(result) mustBe Json.toJson(failureResponse)
+            }
+          }
+      }
 
-          server.stubFor(
-            post(urlEqualTo("/auth/authorise"))
-              .willReturn(
-                unauthorized().withHeader("WWW-Authenticate", "MDTP detail=\"UnsupportedAuthProvider\"")
-              )
-          )
+      "Unable to parse json" in {
+        val jsonInput: JsValue     = JsObject.empty
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
 
-          val sut = createSUT(service, auditService, rtiiAuthConnector)
-          val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-          status(result) mustBe 403
-        }
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(Constants.responseInvalidPayload)
+      }
+
+      "schemaValidator returns false" in {
+        val expectedResponse = Constants.responseInvalidPayload
+
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(false)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(expectedResponse)
+      }
     }
 
     "Return 404 (NOT_FOUND)" when {
       "The remote endpoint has indicated that there is no data for the Nino" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+        val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeNotFoundNino, "")
 
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              notFound().withBody(notFoundNinoJson.toString)
-            )
-        )
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+          .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 404
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        status(result) mustBe NOT_FOUND
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
 
-    }
+      "The controller receives an Error Code Not Found Error from the service layer" in {
+        val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeNotFound, "")
 
-    "Return 500 (SERVER_ERROR)" when {
-      "DES is currently experiencing problems that require live service intervention." in {
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+          .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              serverError().withBody(serverErrorJson.toString)
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 500
+        status(result) mustBe NOT_FOUND
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
     }
 
-    "Return 503 (SERVICE_UNAVAILABLE)" when {
-      "Dependent systems are currently not responding" in {
+    "Service unavailable" when {
+      "The controller receives a failure response from DES in the service layer" in {
 
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+          .thenReturn(Future.failed(new Exception))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              serviceUnavailable().withBody(serviceUnavailableJson.toString)
-            )
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+
+        status(result) mustBe SERVICE_UNAVAILABLE
+        contentAsJson(result) mustBe Json.toJson(
+          DesSingleFailureResponse(
+            Constants.errorCodeServiceUnavailable,
+            "Dependent systems are currently not responding."
+          )
         )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 503
       }
 
-      "DesConnector has thrown an Exception" in {
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
+      "The controller receives Des single failure response service unavailable" in {
+        val expectedDesResponse = DesSingleFailureResponse(Constants.errorCodeServiceUnavailable, "")
 
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)
-            )
-        )
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+          .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 503
+        status(result) mustBe SERVICE_UNAVAILABLE
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
+      }
+
+      "The controller receives a DesNoResponse from the service layer" in {
+        val expectedDesResponse            = DesNoResponse()
+        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+          .thenReturn(Future.successful(expectedDesResponse))
+        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+
+        status(result) mustBe SERVICE_UNAVAILABLE
+
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
+
+      }
+    }
+
+    "Return 500 Internal Server Error" when {
+      List(
+        ("The controller receives a DesUnexpectedResponse from the service layer", DesUnexpectedResponse()),
+        (
+          "The controller receives an Error Code Server Error from the service layer",
+          DesSingleFailureResponse(Constants.errorCodeServerError, "")
+        ),
+        ("The controller receives an unmatched DES error", DesSingleFailureResponse("", ""))
+      ).foreach {
+        case (testName, expectedDesResponse) =>
+          testName in {
+
+            when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
+              .thenReturn(Future.successful(AuditResult.Success))
+            when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+              .thenReturn(Future.successful(expectedDesResponse))
+            when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
+            when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
+            val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+
+            status(result) mustBe INTERNAL_SERVER_ERROR
+
+            val expectedJSON: JsValue = (expectedDesResponse: @unchecked) match {
+              case expectedResponse: DesSingleFailureResponse => Json.toJson(expectedResponse)
+              case expectedResponse: DesUnexpectedResponse    => Json.toJson(expectedResponse)
+            }
+            contentAsJson(result) mustBe expectedJSON
+          }
       }
     }
 
-    "Return INTERNAL_SERVER_ERROR" when {
-      "DES has given an unexpected response" in {
-
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              serverError().withBody("INTERNAL_SERVER_ERROR")
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 500
-      }
-
-      "DES has given a failure code and reason that do not match schema" in {
-
-        val fakeRequest = FakeRequest(method = "POST", uri = "",
-          headers = FakeHeaders(Seq("Content-type" -> "application/json")), body = Json.toJson(exampleDwpRequest))
-
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              serverError().withBody("""{ "code": "error", "reason":"error"}""")
-            )
-        )
-
-        server.stubFor(
-          post(urlEqualTo("/auth/authorise"))
-            .willReturn(
-              ok("true")
-            )
-        )
-
-        val sut = createSUT(service, auditService, rtiiAuthConnector)
-        val result = sut.preSchemaValidation(correlationId)(fakeRequest)
-        status(result) mustBe 500
-      }
-    }
   }
-
-  def createSUT(rtiiService: RealTimeIncomeInformationService, auditService: AuditService, authConnector: RTIIAuthConnector) =
-    new RealTimeIncomeInformationController(rtiiService, auditService, rtiiAuthConnector)
-
-  private implicit val hc = HeaderCarrier()
-
-  private val nino: String = "AB123456C"
-
-  private val correlationId = UUID.randomUUID().toString
-  private val invalidCorrelationId = "invalidCorrelationId"
 }

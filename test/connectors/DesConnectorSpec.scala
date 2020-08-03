@@ -16,45 +16,57 @@
 
 package connectors
 
-import java.util.UUID
-
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock._
-import config.ApplicationConfig
-import models.response.{DesMultipleFailureResponse, DesSingleFailureResponse, DesSuccessResponse, DesUnexpectedResponse}
-import models.{DesMatchingRequest, RequestDetails}
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import models._
+import org.scalatestplus.play.guice.GuiceOneAppPerTest
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
-import test.BaseSpec
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
-import uk.gov.hmrc.domain.Generator
+import play.api.test.Injecting
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.WireMockHelper
+import utils.{BaseSpec, WireMockHelper}
 
-import scala.util.Random
+import scala.util.Try
 
-class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with IntegrationPatience with WireMockHelper with BaseSpec with AuthorisedFunctions {
+class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting with WireMockHelper {
 
-  override protected def portConfigKey: String = "microservice.services.des-hod.port"
+  val testAuthToken = "TestAuthToken"
+  val testEnv = "TestEnv"
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+  val nino: String = generateNino
+  val correlationId: String = generateUUId
 
-  protected lazy val connector: DesConnector = injector.instanceOf[DesConnector]
-  protected lazy val desConfig: ApplicationConfig = injector.instanceOf[ApplicationConfig]
-  override lazy val authConnector: AuthConnector = injector.instanceOf[AuthConnector]
+  override def fakeApplication: Application =
+    new GuiceApplicationBuilder()
+      .configure(
+        "microservice.services.des-hod.port" -> server.port().toString,
+        "microservice.services.auth.port" -> server.port().toString,
+        "auditing.enabled" -> false,
+        "metrics.enabled" -> false,
+        "microservice.services.des-hod.authorizationToken" -> testAuthToken,
+        "microservice.services.des-hod.env" -> testEnv,
+        "play.ws.timeout.request" -> "2.seconds"
+      )
+      .build()
 
-  "DesConnector" must {
+  def connector: DesConnector = inject[DesConnector]
 
+  def stubPostServer(willReturn: ResponseDefinitionBuilder): StubMapping =
+    stubPostServer(willReturn, s"/individuals/$nino/income")
+
+
+  "retrieveCitizenIncome" must {
     "return a DesSuccessResponse" when {
-
       "successfully retrieved citizen income data" in {
-
         val taxYear = Json.parse("""{
                          |      "taxYear": "16-17",
                          |      "taxYearIndicator": "P",
                          |      "hmrcOfficeNumber": "099",
                          |      "employerPayeRef": "A1B2c3d4e5",
                          |      "employerName1": "Employer",
-                         |      "nationalInsuranceNumber": "AB123456C",
+                         |      "nationalInsuranceNumber": "QQ123456C",
                          |      "surname": "Surname",
                          |      "gender": "M",
                          |      "uniqueEmploymentSequenceNumber": 9999,
@@ -77,149 +89,75 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
 
         val expectedResponse = DesSuccessResponse(63, Some(List(taxYear)))
 
-        val nino = randomNino
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successMatchOneYear.toString())
-            )
-        )
+        stubPostServer(ok(successMatchOneYear.toString))
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
-        }
-
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe expectedResponse
       }
 
       "received a 200 No match response from DES" in {
-
         val expectedResponse = DesSuccessResponse(0, None)
 
-        val nino = randomNino
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successsNoMatch.toString())
-            )
-        )
+        stubPostServer(ok(successNoMatch.toString))
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
-        }
-
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe expectedResponse
       }
 
       "received a 200 No match response with match pattern less than 63 from DES" in {
-
         val expectedResponse = DesSuccessResponse(62, None)
+        stubPostServer(ok(successNoMatchGreaterThanZero.toString))
 
-        val nino = randomNino
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              ok(successsNoMatchGreaterThanZero.toString())
-            )
-        )
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
-        }
-
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe expectedResponse
       }
     }
 
     "return a single DesFailureResponse with the appropriate code and reason" when {
-
       "the remote endpoint has indicated that there is no data for the Nino" in {
-
         val expectedResponse = DesSingleFailureResponse("NOT_FOUND",
           "The remote endpoint has indicated that there is no data for the Nino.")
+        stubPostServer(notFound().withBody(noDataFoundNinoJson.toString))
 
-        val nino = randomNino
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              notFound().withBody(noDataFoundNinoJson.toString)
-            )
-        )
-
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe expectedResponse
       }
 
       "the remote endpoint has indicated that the Nino cannot be found" in {
-
         val expectedResponse = DesSingleFailureResponse("NOT_FOUND_NINO",
           "The remote endpoint has indicated that the Nino cannot be found.")
+        stubPostServer(notFound().withBody(notFoundNinoJson.toString))
 
-        val nino = randomNino
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              notFound().withBody(notFoundNinoJson.toString)
-            )
-        )
-
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe expectedResponse
       }
 
       "the remote endpoint has indicated that the correlation Id is invalid" in {
-
         val expectedResponse = DesSingleFailureResponse("INVALID_CORRELATION_ID",
           "Submission has not passed validation. Invalid header CorrelationId.")
+        stubPostServer(badRequest().withBody(invalidCorrelationIdJson.toString))
 
-        val nino = randomNino
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              badRequest().withBody(invalidCorrelationIdJson.toString)
-            )
-        )
-
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid")) {
-          result => result mustBe expectedResponse
-        }
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid"))
+        result mustBe expectedResponse
       }
 
       "DES is currently experiencing problems that require live service intervention" in {
-
         val expectedResponse = DesSingleFailureResponse("SERVER_ERROR",
           "DES is currently experiencing problems that require live service intervention.")
+        stubPostServer(serverError().withBody(serverErrorJson.toString))
 
-        val nino = randomNino
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              serverError().withBody(serverErrorJson.toString)
-            )
-        )
-
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
-        }
-
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe expectedResponse
       }
 
       "Dependent systems are currently not responding" in {
-
         val expectedResponse = DesSingleFailureResponse("SERVICE_UNAVAILABLE",
           "Dependent systems are currently not responding.")
+        stubPostServer(serviceUnavailable().withBody(serviceUnavailableJson.toString))
 
-        val nino = randomNino
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              serviceUnavailable().withBody(serviceUnavailableJson.toString)
-            )
-        )
-
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe expectedResponse
-        }
-
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe expectedResponse
       }
     }
 
@@ -229,54 +167,65 @@ class DesConnectorSpec extends PlaySpec with MockitoSugar with ScalaFutures with
           DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."),
           DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")))
 
-        val nino = randomNino
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              badRequest().withBody(multipleErrors.toString)
-            )
-        )
+        stubPostServer(badRequest().withBody(multipleErrors.toString))
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe responses
-        }
-
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe responses
       }
     }
 
     "Return a DES unexpected response" when {
       "the DES response doesn't match the schema" in {
+        val response = DesUnexpectedResponse()
+        stubPostServer(serviceUnavailable().withBody("{}"))
+
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe response
+      }
+
+      "the status returned is OK but fails to parse as a DESSuccessResponse" in {
 
         val response = DesUnexpectedResponse()
+        stubPostServer(ok().withBody("{}"))
 
-        val nino = randomNino
-        server.stubFor(
-          post(urlEqualTo(s"/individuals/$nino/income"))
-            .willReturn(
-              serviceUnavailable().withBody("{}")
-            )
-        )
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe response
+      }
 
-        whenReady(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)) {
-          result => result mustBe response
+      "a time out exception occurs" in {
+        val response = DesNoResponse()
+        stubPostServer {
+          ok()
+            .withBody(successNoMatch.toString())
+            .withFixedDelay(5000)
         }
+
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe response
+      }
+
+      "a bad gateway exception occurs" in {
+        val response = DesNoResponse()
+        server.stop()
+
+        val result = Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)))
+        server.start()
+        result.get mustBe response
       }
     }
-  }
 
-  "Request Details" must {
-    "Form a Des Matching request" when {
-      "Given a valid dwp request" in {
-        val requestDetails = RequestDetails("AB123456C", "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, List("surname", "nationalInsuranceNumber"))
-        val transformedRequest = RequestDetails.toMatchingRequest(requestDetails)
-        transformedRequest mustBe DesMatchingRequest("2016-12-31", "2017-12-31", "Smith", None, None, None, None, None)
-      }
+    "send the correct headers to DES" in {
+      val url = s"/individuals/$nino/income"
+
+      stubPostServer(aResponse().withBody("{}"), url)
+
+      await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+
+      server.verify(postRequestedFor(urlEqualTo(url))
+        .withHeader("Authorization", equalTo(s"Bearer $testAuthToken"))
+        .withHeader("Environment", equalTo(testEnv))
+        .withHeader("CorrelationId", equalTo(correlationId))
+      )
     }
   }
-
-  private implicit val hc = HeaderCarrier()
-
-  private def randomNino: String = new Generator(new Random).nextNino.toString()
-
-  private val correlationId = UUID.randomUUID().toString
 }

@@ -18,37 +18,30 @@ package services
 
 import com.google.inject.{Inject, Singleton}
 import connectors.DesConnector
-import models.RequestDetails
-import models.response._
-import play.api.libs.json.{JsValue, Json, _}
-import uk.gov.hmrc.http.HeaderCarrier
+import models.{DesFilteredSuccessResponse, DesResponse, DesSuccessResponse, RequestDetails}
+import play.api.libs.json._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RealTimeIncomeInformationService @Inject()(val desConnector: DesConnector) {
+class RealTimeIncomeInformationService @Inject()(desConnector: DesConnector)(implicit ec: ExecutionContext) {
 
-  def pickOneValue(key: String, taxYear: JsValue): Option[(String, JsValue)] = {
-    taxYear.transform((__ \\ key).json.pick[JsValue]).asOpt match {
-      case Some(x) => Some(key -> x)
-      case None => None
+  private[services] def pickOneValue(key: String, taxYear: JsValue): Option[(String, JsValue)] =
+    taxYear.transform((__ \\ key).json.pick[JsValue]).asOpt.map(key -> _)
+
+  private[services] def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): List[JsValue] =
+    desSuccessResponse.taxYears.toList.flatten.map { taxYear =>
+      Json.toJson(keys.flatMap(key => pickOneValue(key, taxYear)).toMap)
     }
-  }
 
-  def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): List[JsValue] = {
-      desSuccessResponse.taxYears.getOrElse(Nil).map(
-        taxYear => Json.toJson(keys.flatMap(key => pickOneValue(key, taxYear)).toMap))
-  }
-
-  def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String)(implicit hc: HeaderCarrier) : Future[DesResponse] = {
-    desConnector.retrieveCitizenIncome(requestDetails.nino, RequestDetails.toMatchingRequest(requestDetails), correlationId)(hc) map {
-      case desSuccess: DesSuccessResponse => if(desSuccess.taxYears.isDefined) {
-        DesFilteredSuccessResponse(desSuccess.matchPattern, pickAll(requestDetails.filterFields, desSuccess))
-      } else {
-        DesSuccessResponse(desSuccess.matchPattern, None)
-      }
+  def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String): Future[DesResponse] =
+    desConnector.retrieveCitizenIncome(requestDetails.nino, RequestDetails.toMatchingRequest(requestDetails), correlationId) map {
+      case desSuccess: DesSuccessResponse =>
+        if(desSuccess.taxYears.isDefined) {
+          DesFilteredSuccessResponse(desSuccess.matchPattern, pickAll(requestDetails.filterFields, desSuccess))
+        } else {
+          DesSuccessResponse(desSuccess.matchPattern, None)
+        }
       case failure: DesResponse => failure
     }
-  }
 }

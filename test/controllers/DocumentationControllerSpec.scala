@@ -16,41 +16,28 @@
 
 package controllers
 
-import java.io.FileNotFoundException
-
 import akka.stream.Materializer
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status._
-import play.api.test.FakeRequest
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+import play.api.mvc.Result
+import play.api.test.Helpers.{defaultAwaitTimeout, status, contentAsString}
+import play.api.test.{FakeRequest, Injecting}
+import utils.BaseSpec
 
-class DocumentationControllerSpec extends UnitSpec with MockitoSugar with WithFakeApplication {
+import scala.concurrent.Future
 
-  private implicit val materializer: Materializer = fakeApplication.materializer
+class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 
-  private lazy val controller = fakeApplication.injector.instanceOf[DocumentationController]
-  private lazy val applicationRamlContent = getResourceFileContent("/public/api/conf/1.0/application.raml")
+  implicit val materializer: Materializer = app.materializer
 
+  lazy val controller: DocumentationController = inject[DocumentationController]
+  lazy val applicationRamlContent: String = getResourceFileContent("/public/api/conf/1.0/application.raml")
 
-  "DocumentationController" should {
-    lazy val result = getDocumentation(controller)
-
-    "return OK status" in {
-      status(result) shouldBe OK
+  "DocumentationController" must {
+    "return OK status with application.raml in the body" in {
+      val result: Future[Result] = controller.conf("1.0","application.raml")(FakeRequest("GET", "/api/conf/1.0/application.raml"))
+      status(result) mustBe OK
+      contentAsString(result) mustBe applicationRamlContent
     }
-
-    "return application.raml in the body" in {
-      bodyOf(result) shouldBe applicationRamlContent
-    }
-  }
-
-  private def getDocumentation(controller: DocumentationController) = {
-    await(controller.conf("1.0","application.raml").apply(FakeRequest("GET", "/api/conf/1.0/application.raml")))
-  }
-
-  private def getResourceFileContent(resourceFile: String): String = {
-    val is = Option(getClass.getResourceAsStream(resourceFile)).getOrElse(
-      throw new FileNotFoundException(s"Resource file not found: $resourceFile"))
-    scala.io.Source.fromInputStream(is).mkString
   }
 }

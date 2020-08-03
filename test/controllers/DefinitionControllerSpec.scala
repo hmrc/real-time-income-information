@@ -17,45 +17,46 @@
 package controllers
 
 import akka.stream.Materializer
-import config.AppContext
 import models.api.APIAccess
-import play.api.Configuration
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.Status._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.test.FakeRequest
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
+import play.api.test.{FakeRequest, Injecting, Helpers}
+import Helpers.{status, contentAsJson, defaultAwaitTimeout, headers}
+import utils.BaseSpec
 import views._
 
-class DefinitionControllerSpec extends UnitSpec with WithFakeApplication {
-
-  private implicit val materializer: Materializer = fakeApplication.materializer
+class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 
   private val apiScope = "scope"
   private val apiContext = "context"
   private val apiWhitelist = "whitelist"
-  private val apiAccess = APIAccess("PRIVATE", Some(Seq()))
-  private val appContext = new AppContext(Configuration("api.definition.scope" -> apiScope, "api.context" -> apiContext, "api.whitelistedApplicationIds" -> apiWhitelist))
-  private val controller = new DefinitionController(appContext)
+  private val apiAccess = APIAccess("PRIVATE", Some(Seq.empty))
+  private lazy val controller = inject[DefinitionController]
+  private implicit val materializer: Materializer = app.materializer
 
-  "DefinitionController.definition" should {
-    lazy val result = getDefinition(controller)
-
-    "return OK status" in {
-      status(result) shouldBe OK
-    }
-
-    "have a JSON content type" in {
-      result.header.headers should contain (CONTENT_TYPE -> "application/json;charset=utf-8")
-    }
-
-    "return definition in the body" in {
-      jsonBodyOf(result) shouldBe Json.parse(txt.definition(apiAccess, apiContext).toString())
-    }
+  override def fakeApplication(): Application = {
+    new GuiceApplicationBuilder()
+      .configure(
+        "api.definition.scope" -> apiScope,
+        "api.context" -> apiContext,
+        "api.whitelistedApplicationIds" -> apiWhitelist,
+        "api.access.type" -> "PRIVATE",
+        "api.access.whitelistedApplicationIds" -> Seq.empty
+      )
+      .build()
   }
 
-  private def getDefinition(controller: DefinitionController) = {
-    await(controller.get().apply(FakeRequest("GET", "/api/definition")))
-  }
+  "get" must {
+    "return a Json definition" in {
+      val result = controller.get()(FakeRequest("GET", "/api/definition"))
 
+      status(result) mustBe OK
+      headers(result) must contain (CONTENT_TYPE -> "application/json;charset=utf-8")
+      contentAsJson(result) mustBe Json.parse(txt.definition(apiAccess, apiContext).toString())
+    }
+  }
 }

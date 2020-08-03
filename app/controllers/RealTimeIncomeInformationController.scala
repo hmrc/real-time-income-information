@@ -16,126 +16,88 @@
 
 package controllers
 
-import app.Constants
 import com.google.inject.{Inject, Singleton}
-import config.RTIIAuthConnector
-import models.RequestDetails
-import models.response._
-import org.joda.time.LocalDate
+import controllers.actions.{AuthAction, ValidateCorrelationId}
+import models._
 import play.api.Logger
-import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
-import services.{AuditService, RealTimeIncomeInformationService}
-import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
-import uk.gov.hmrc.auth.core.{AuthProviders, AuthorisedFunctions, UnsupportedAuthProvider}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
-import utils.SchemaValidationHandler
+import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService, SchemaValidator}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import utils.Constants._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
 
 @Singleton
-class RealTimeIncomeInformationController @Inject()(val rtiiService: RealTimeIncomeInformationService, val auditService: AuditService, override val authConnector: RTIIAuthConnector) extends BaseController with SchemaValidationHandler with AuthorisedFunctions {
+class RealTimeIncomeInformationController @Inject() (
+    rtiiService: RealTimeIncomeInformationService,
+    auditService: AuditService,
+    auth: AuthAction,
+    validateCorrelationId: ValidateCorrelationId,
+    requestDetailsService: RequestDetailsService,
+    schemaValidator: SchemaValidator,
+    cc: ControllerComponents
+)(implicit
+    ec: ExecutionContext
+) extends BackendController(cc) {
 
-  def preSchemaValidation(correlationId: String): Action[JsValue] = Action.async(parse.json) {
-    implicit request =>
-      authorised(AuthProviders(PrivilegedApplication)) {
-        if (validateCorrelationId(correlationId)) {
-          validateDates(request.body) match {
-            case Right(_) => retrieveCitizenIncome(correlationId)
-            case Left(failure: DesSingleFailureResponse) => Future.successful(BadRequest(Json.toJson(failure)))
-          }
-        } else {
-          Future.successful(BadRequest(Json.toJson(Constants.responseInvalidCorrelationId)))
-        }
-      } recover {
-        case _: UnsupportedAuthProvider => Forbidden(Json.toJson(Constants.responseNonPrivilegedApplication))
-      }
-  }
+  private val logger: Logger = Logger(this.getClass)
 
-  private def retrieveCitizenIncome(correlationId: String)(implicit hc: HeaderCarrier, request: Request[JsValue]) = {
-    schemaValidationHandler(request.body) match {
-      case Left(JsError(_)) => Future.successful(BadRequest(Json.toJson(Constants.responseInvalidPayload)))
-      case Right(JsSuccess(_, _)) => withJsonBody[RequestDetails] {
-        body =>
-          auditService.rtiiAudit(correlationId, body)
-          rtiiService.retrieveCitizenIncome(body, correlationId) map {
-            case filteredResponse: DesFilteredSuccessResponse => Ok(Json.toJson(filteredResponse))
-            case noMatchResponse: DesSuccessResponse => Ok(Json.toJson(noMatchResponse))
-            case singleFailureResponse: DesSingleFailureResponse => failureResponseToResult(singleFailureResponse)
+  def preSchemaValidation(correlationId: String): Action[JsValue] =
+    authenticateAndValidate(correlationId).async(parse.json) { implicit request =>
+      (parseJson andThen validateDate andThen validateAgainstSchema(request.body) andThen getResult)(request) {
+        requestDetails =>
+          auditService.rtiiAudit(correlationId, requestDetails)
+          rtiiService.retrieveCitizenIncome(requestDetails, correlationId) map {
+            case filteredResponse: DesFilteredSuccessResponse        => Ok(Json.toJson(filteredResponse))
+            case noMatchResponse: DesSuccessResponse                 => Ok(Json.toJson(noMatchResponse))
+            case singleFailureResponse: DesSingleFailureResponse     => failureResponseToResult(singleFailureResponse)
             case multipleFailureResponse: DesMultipleFailureResponse => BadRequest(Json.toJson(multipleFailureResponse))
-            case unexpectedResponse: DesUnexpectedResponse => InternalServerError(Json.toJson(unexpectedResponse))
+            case noResponse: DesNoResponse                           => ServiceUnavailable(Json.toJson(noResponse))
+            case unexpectedResponse: DesUnexpectedResponse           => InternalServerError(Json.toJson(unexpectedResponse))
           } recover {
             case NonFatal(_) =>
-              ServiceUnavailable(Json.toJson(DesSingleFailureResponse(Constants.errorCodeServiceUnavailable,
-                "Dependent systems are currently not responding.")))
+              ServiceUnavailable(Json.toJson(responseServiceUnavailable))
           }
       }
     }
-  }
 
-  private def failureResponseToResult(r: DesSingleFailureResponse): Result = {
-    val results = Map(
-      Constants.errorCodeServerError -> InternalServerError(Json.toJson(r)),
-      Constants.errorCodeNotFoundNino -> NotFound(Json.toJson(r)),
-      Constants.errorCodeNotFound -> NotFound(Json.toJson(r)),
-      Constants.errorCodeServiceUnavailable -> ServiceUnavailable(Json.toJson(r)),
-      Constants.errorCodeInvalidCorrelation -> BadRequest(Json.toJson(r)),
-      Constants.errorCodeInvalidDateRange -> BadRequest(Json.toJson(r)),
-      Constants.errorCodeInvalidDatesEqual -> BadRequest(Json.toJson(r)),
-      Constants.errorCodeInvalidPayload -> BadRequest(Json.toJson(r))
+  private val parseJson: Request[JsValue] => Either[DesSingleFailureResponse, RequestDetails] =
+    request => request.body.validate[RequestDetails].asOpt.toRight(responseInvalidPayload)
+
+  private val validateDate
+      : Either[DesSingleFailureResponse, RequestDetails] => Either[DesSingleFailureResponse, RequestDetails] =
+    _.flatMap(requestDetailsService.validateDates)
+
+  private val getResult
+      : Either[DesSingleFailureResponse, RequestDetails] => (RequestDetails => Future[Result]) => Future[Result] =
+    either => func => either.fold(singleFailure => Future.successful(BadRequest(Json.toJson(singleFailure))), func)
+
+  private def authenticateAndValidate(id: String): ActionBuilder[Request, AnyContent] =
+    auth andThen validateCorrelationId(id)
+
+  private def validateAgainstSchema(
+      json: JsValue
+  ): Either[DesSingleFailureResponse, RequestDetails] => Either[DesSingleFailureResponse, RequestDetails] =
+    _.flatMap(requestDetails =>
+      if (schemaValidator.validate(json)) Right(requestDetails) else Left(responseInvalidPayload)
     )
 
-    Try(results(r.code)) match {
-      case Success(result) => result
-      case Failure(_) => Logger.info(s"Error from DES does not match schema: $r")
-        InternalServerError(Json.toJson(r))
-    }
-  }
-
-  private def validateCorrelationId(correlationId: String): Boolean = {
-    val correlationIdRegex = """^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$""".r
-
-    correlationId match {
-      case correlationIdRegex(_*) => true
-      case _ => false
-    }
-  }
-
-  private def parseAsDate(string: String): Option[LocalDate] = {
-
-    Try(new LocalDate(string)) match {
-      case Success(date) => Some(date)
-      case Failure(_) => None
-    }
-  }
-
-  private def validateDates(requestBody: JsValue): Either[DesSingleFailureResponse, Boolean] = {
-
-    val requestDetails: Try[RequestDetails] = Try(requestBody.as[RequestDetails])
-
-    if (requestDetails.isFailure)
-      Left(Constants.responseInvalidPayload)
-    else {
-      val toDate = parseAsDate(requestBody.as[RequestDetails].toDate)
-      val fromDate = parseAsDate(requestBody.as[RequestDetails].fromDate)
-      
-      (toDate, fromDate) match {
-        case (Some(endDate), Some(startDate)) => {
-          val dateRangeValid = startDate.isBefore(endDate)
-          val datesEqual = endDate.isEqual(startDate)
-
-          (dateRangeValid, datesEqual) match {
-            case (true, false) => Right(true)
-            case (false, false) => Left(Constants.responseInvalidDateRange)
-            case (_, true) => Left(Constants.responseInvalidDatesEqual)
-          }
-        }
-        case _ => Left(Constants.responseInvalidPayload)
-      }
-    }
-  }
+  private def failureResponseToResult(response: DesSingleFailureResponse): Result =
+    Map(
+      errorCodeServerError        -> InternalServerError(Json.toJson(response)),
+      errorCodeNotFoundNino       -> NotFound(Json.toJson(response)),
+      errorCodeNotFound           -> NotFound(Json.toJson(response)),
+      errorCodeServiceUnavailable -> ServiceUnavailable(Json.toJson(response)),
+      errorCodeInvalidCorrelation -> BadRequest(Json.toJson(response)),
+      errorCodeInvalidDateRange   -> BadRequest(Json.toJson(response)),
+      errorCodeInvalidDatesEqual  -> BadRequest(Json.toJson(response)),
+      errorCodeInvalidPayload     -> BadRequest(Json.toJson(response))
+    ).withDefaultValue {
+      //$COVERAGE-OFF$
+      logger.error(s"Error from DES does not match schema: $response")
+      //$COVERAGE-ON$
+      InternalServerError(Json.toJson(response))
+    }(response.code)
 }

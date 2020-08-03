@@ -14,30 +14,17 @@
  * limitations under the License.
  */
 
-package config
+package utils
 
-import play.api.Configuration
+import com.google.inject.Inject
+import controllers.actions.AuthAction
+import play.api.mvc.{BodyParsers, Request, Result}
 
-case class APIAccessConfig(value: Option[Configuration]) {
+import scala.concurrent.{ExecutionContext, Future}
 
-  val PRIVATE = "PRIVATE"
+class FakeAuthAction @Inject()(val parser: BodyParsers.Default)
+                              (val executionContext: ExecutionContext) extends AuthAction {
 
-  def accessType: String = {
-    value match {
-      case Some(config) => config.getString("type").getOrElse(PRIVATE)
-      case None => PRIVATE
-    }
-  }
-
-  def whiteListedApplicationIds: Option[Seq[String]] = {
-    if(accessType == PRIVATE) {
-      value match {
-        case Some(config) => Some(config.getStringSeq("whitelistedApplicationIds").getOrElse(Seq()))
-        case None => Some(Seq())
-      }
-    } else {
-      None
-    }
-  }
+  override protected def filter[A](request: Request[A]): Future[Option[Result]] = Future.successful(None)
 
 }
