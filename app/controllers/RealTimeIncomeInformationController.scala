@@ -94,7 +94,7 @@ class RealTimeIncomeInformationController @Inject() (
       errorCodeInvalidDateRange   -> BadRequest(Json.toJson(response)),
       errorCodeInvalidDatesEqual  -> BadRequest(Json.toJson(response)),
       errorCodeInvalidPayload     -> BadRequest(Json.toJson(response))
-    ).withDefaultValue {
+    ).withDefault { _ =>
       //$COVERAGE-OFF$
       logger.error(s"Error from DES does not match schema: $response")
       //$COVERAGE-ON$
