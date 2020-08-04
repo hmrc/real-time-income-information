@@ -43,12 +43,12 @@ trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
     server.stop()
   }
 
-  def stubPostServer(willReturn: ResponseDefinitionBuilder, url: String): StubMapping = {
+  def stubPostServer(willReturn: ResponseDefinitionBuilder, url: String): StubMapping =
     server.stubFor(
       post(urlEqualTo(url))
         .willReturn(
           willReturn
         )
     )
-  }
+
 }

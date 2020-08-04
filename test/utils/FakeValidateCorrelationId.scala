@@ -22,8 +22,9 @@ import play.api.mvc.{AnyContent, BodyParser, BodyParsers, Request, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FakeValidateCorrelationId @Inject()(bodyParser: BodyParsers.Default,
-                                          ec: ExecutionContext) extends ValidateCorrelationId {
+class FakeValidateCorrelationId @Inject() (bodyParser: BodyParsers.Default, ec: ExecutionContext)
+    extends ValidateCorrelationId {
+
   override def apply(correlationId: String): ValidateCorrelationIdAction =
     new ValidateCorrelationIdAction {
       override def parser: BodyParser[AnyContent] = bodyParser
@@ -32,4 +33,5 @@ class FakeValidateCorrelationId @Inject()(bodyParser: BodyParsers.Default,
 
       override protected def executionContext: ExecutionContext = ec
     }
+
 }

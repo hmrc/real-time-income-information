@@ -25,25 +25,24 @@ import scala.util.Try
 class RequestDetailsService {
 
   def validateDates(requestDetails: RequestDetails): Either[DesSingleFailureResponse, RequestDetails] = {
-    val toDate = parseAsDate(requestDetails.toDate)
+    val toDate   = parseAsDate(requestDetails.toDate)
     val fromDate = parseAsDate(requestDetails.fromDate)
 
     (toDate, fromDate) match {
       case (Some(endDate), Some(startDate)) =>
         val dateRangeValid = startDate.isBefore(endDate)
-        val datesEqual = endDate.isEqual(startDate)
+        val datesEqual     = endDate.isEqual(startDate)
 
         (dateRangeValid, datesEqual) match {
-          case (true, false) => Right(requestDetails)
+          case (true, false)  => Right(requestDetails)
           case (false, false) => Left(Constants.responseInvalidDateRange)
-          case (_, true) => Left(Constants.responseInvalidDatesEqual)
+          case (_, true)      => Left(Constants.responseInvalidDatesEqual)
         }
       case _ => Left(Constants.responseInvalidPayload)
     }
   }
 
-  private def parseAsDate(string: String): Option[LocalDate] = {
+  private def parseAsDate(string: String): Option[LocalDate] =
     Try(new LocalDate(string)).toOption
-  }
 
 }

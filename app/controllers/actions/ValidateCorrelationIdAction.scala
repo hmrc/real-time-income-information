@@ -24,25 +24,29 @@ import utils.Constants
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ValidateCorrelationIdImpl @Inject()(_parser: BodyParsers.Default)
-                                         (implicit _executionContext: ExecutionContext) extends ValidateCorrelationId {
+class ValidateCorrelationIdImpl @Inject() (_parser: BodyParsers.Default)(implicit
+    _executionContext: ExecutionContext
+) extends ValidateCorrelationId {
 
-  override def apply(correlationId: String): ValidateCorrelationIdAction = new ValidateCorrelationIdAction {
-    override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
-      val correlationIdRegex = """^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$""".r
+  override def apply(correlationId: String): ValidateCorrelationIdAction =
+    new ValidateCorrelationIdAction {
 
-      val optResult: Option[Result] = correlationId match {
-        case correlationIdRegex(_*) => None
-        case _ => Some(BadRequest(toJson(Constants.responseInvalidCorrelationId)))
+      override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
+        val correlationIdRegex = """^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$""".r
+
+        val optResult: Option[Result] = correlationId match {
+          case correlationIdRegex(_*) => None
+          case _                      => Some(BadRequest(toJson(Constants.responseInvalidCorrelationId)))
+        }
+
+        Future.successful(optResult)
       }
 
-      Future.successful(optResult)
+      override def parser: BodyParser[AnyContent] = _parser
+
+      override protected def executionContext: ExecutionContext = _executionContext
     }
 
-    override def parser: BodyParser[AnyContent] = _parser
-
-    override protected def executionContext: ExecutionContext = _executionContext
-  }
 }
 
 trait ValidateCorrelationIdAction extends ActionFilter[Request] with ActionBuilder[Request, AnyContent]

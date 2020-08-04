@@ -27,11 +27,9 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
   val realConfig: Configuration = app.configuration
 
   def SUT(accessType: Option[String] = None, whitelist: List[String] = Nil): APIConfig =
-    accessType.fold(new APIConfig(Configuration())){ _type =>
+    accessType.fold(new APIConfig(Configuration())) { _type =>
       new APIConfig(
-        realConfig ++ Configuration(
-          "api.access.type" -> _type,
-          "api.access.whitelistedApplicationIds" -> whitelist)
+        realConfig ++ Configuration("api.access.type" -> _type, "api.access.whitelistedApplicationIds" -> whitelist)
       )
     }
 
@@ -53,7 +51,7 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
     "return the config" when {
       "something other than PRIVATE is configured" in {
         val randConfigValue = UUID.randomUUID().toString
-        val config = SUT(Some(randConfigValue)).apiTypeAccess
+        val config          = SUT(Some(randConfigValue)).apiTypeAccess
 
         config mustBe randConfigValue
       }

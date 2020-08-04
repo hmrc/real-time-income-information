@@ -23,7 +23,7 @@ import utils.BaseSpec
 
 class SchemaValidatorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 
-  val SUT = new SchemaValidator(inject[ApplicationConfig])
+  val SUT          = new SchemaValidator(inject[ApplicationConfig])
   val nino: String = generateNino
 
   "validate" must {
@@ -40,9 +40,10 @@ class SchemaValidatorSpec extends BaseSpec with GuiceOneAppPerSuite with Injecti
         ("the request contains an unexpected filter field", exampleInvalidFilterFieldDwpRequest(nino)),
         ("the request contains an unexpected matching field", exampleInvalidMatchingFieldDwpRequest(nino))
       ).foreach {
-        case (testName, json) => testName in {
-          SUT.validate(json) mustBe false
-        }
+        case (testName, json) =>
+          testName in {
+            SUT.validate(json) mustBe false
+          }
       }
     }
   }

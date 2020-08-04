@@ -19,14 +19,14 @@ package models
 import play.api.libs.json.Json
 
 case class DesMatchingRequest(
-  fromDate: String,
-  toDate: String,
-  surname: String,
-  firstName: Option[String],
-  middleName: Option[String],
-  gender: Option[String],
-  initials: Option[String],
-  dateOfBirth: Option[String]
+    fromDate: String,
+    toDate: String,
+    surname: String,
+    firstName: Option[String],
+    middleName: Option[String],
+    gender: Option[String],
+    initials: Option[String],
+    dateOfBirth: Option[String]
 )
 
 object DesMatchingRequest {

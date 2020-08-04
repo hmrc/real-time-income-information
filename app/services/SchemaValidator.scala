@@ -27,7 +27,7 @@ import play.api.libs.json.Json.{fromJson, parse}
 import scala.io.Source
 
 @Singleton
-class SchemaValidator @Inject()(applicationConfig: ApplicationConfig){
+class SchemaValidator @Inject() (applicationConfig: ApplicationConfig) {
 
   private val schemaType: SchemaType = {
     val resource: InputStream = getClass.getResourceAsStream(applicationConfig.schemaResourcePath)

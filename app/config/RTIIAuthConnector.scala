@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
-class RTIIAuthConnector @Inject()(appConfig: ApplicationConfig,
-                                  override val http: HttpClient) extends PlayAuthConnector {
+class RTIIAuthConnector @Inject() (appConfig: ApplicationConfig, override val http: HttpClient)
+    extends PlayAuthConnector {
   lazy val serviceUrl: String = appConfig.authBaseUrl
 }

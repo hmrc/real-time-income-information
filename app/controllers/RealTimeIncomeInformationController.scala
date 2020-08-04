@@ -100,4 +100,5 @@ class RealTimeIncomeInformationController @Inject() (
       //$COVERAGE-ON$
       InternalServerError(Json.toJson(response))
     }(response.code)
+
 }

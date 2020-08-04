@@ -20,31 +20,49 @@ import models.DesSingleFailureResponse
 
 object Constants {
 
-  val errorCodeNotFoundNino = "NOT_FOUND_NINO"
-  val errorCodeNotFound = "NOT_FOUND"
-  val errorCodeInvalidCorrelation = "INVALID_CORRELATION_ID"
-  val errorCodeInvalidDateRange = "INVALID_DATE_RANGE"
-  val errorCodeInvalidDatesEqual = "INVALID_DATES_EQUAL"
-  val errorCodeInvalidPayload = "INVALID_PAYLOAD"
-  val errorCodeServerError = "SERVER_ERROR"
-  val errorCodeServiceUnavailable = "SERVICE_UNAVAILABLE"
-  val errorCodeForbidden = "FORBIDDEN"
+  val errorCodeNotFoundNino             = "NOT_FOUND_NINO"
+  val errorCodeNotFound                 = "NOT_FOUND"
+  val errorCodeInvalidCorrelation       = "INVALID_CORRELATION_ID"
+  val errorCodeInvalidDateRange         = "INVALID_DATE_RANGE"
+  val errorCodeInvalidDatesEqual        = "INVALID_DATES_EQUAL"
+  val errorCodeInvalidPayload           = "INVALID_PAYLOAD"
+  val errorCodeServerError              = "SERVER_ERROR"
+  val errorCodeServiceUnavailable       = "SERVICE_UNAVAILABLE"
+  val errorCodeForbidden                = "FORBIDDEN"
   val errorCodeNonPrivilegedApplication = "NON_PRIVILEGED_APPLICATION"
 
   def forbiddenWithMsg(msg: String) = DesSingleFailureResponse(errorCodeForbidden, msg)
 
   val responseNonPrivilegedApplication: DesSingleFailureResponse =
-    DesSingleFailureResponse(errorCodeNonPrivilegedApplication, "The remote endpoint has indicated the request has not passed authentication.")
+    DesSingleFailureResponse(
+      errorCodeNonPrivilegedApplication,
+      "The remote endpoint has indicated the request has not passed authentication."
+    )
+
   val responseInvalidDateRange: DesSingleFailureResponse =
-    DesSingleFailureResponse(errorCodeInvalidDateRange, "The remote endpoint has indicated that the date range is invalid.")
+    DesSingleFailureResponse(
+      errorCodeInvalidDateRange,
+      "The remote endpoint has indicated that the date range is invalid."
+    )
+
   val responseInvalidDatesEqual: DesSingleFailureResponse =
-    DesSingleFailureResponse(errorCodeInvalidDatesEqual, "The remote endpoint has indicated that the from and to dates are the same.")
+    DesSingleFailureResponse(
+      errorCodeInvalidDatesEqual,
+      "The remote endpoint has indicated that the from and to dates are the same."
+    )
+
   val responseInvalidCorrelationId: DesSingleFailureResponse =
-    DesSingleFailureResponse(errorCodeInvalidCorrelation, "Submission has not passed validation. Invalid header CorrelationId.")
+    DesSingleFailureResponse(
+      errorCodeInvalidCorrelation,
+      "Submission has not passed validation. Invalid header CorrelationId."
+    )
+
   val responseInvalidPayload: DesSingleFailureResponse =
     DesSingleFailureResponse(errorCodeInvalidPayload, "Submission has not passed validation. Invalid Payload.")
+
   val responseNotFound: DesSingleFailureResponse =
     DesSingleFailureResponse(errorCodeNotFound, "The remote endpoint has indicated that there is no data for the Nino.")
+
   val responseServiceUnavailable: DesSingleFailureResponse =
     DesSingleFailureResponse(errorCodeServiceUnavailable, "Dependent systems are currently not responding.")
 

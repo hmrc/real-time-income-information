@@ -24,38 +24,37 @@ import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.Status._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.test.{FakeRequest, Injecting, Helpers}
-import Helpers.{status, contentAsJson, defaultAwaitTimeout, headers}
+import play.api.test.{FakeRequest, Helpers, Injecting}
+import Helpers.{contentAsJson, defaultAwaitTimeout, headers, status}
 import utils.BaseSpec
 import views._
 
 class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 
-  private val apiScope = "scope"
-  private val apiContext = "context"
-  private val apiWhitelist = "whitelist"
-  private val apiAccess = APIAccess("PRIVATE", Some(Seq.empty))
-  private lazy val controller = inject[DefinitionController]
-  private implicit val materializer: Materializer = app.materializer
+  private val apiScope                            = "scope"
+  private val apiContext                          = "context"
+  private val apiWhitelist                        = "whitelist"
+  private val apiAccess                           = APIAccess("PRIVATE", Some(Seq.empty))
+  private lazy val controller                     = inject[DefinitionController]
+  implicit private val materializer: Materializer = app.materializer
 
-  override def fakeApplication(): Application = {
+  override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
       .configure(
-        "api.definition.scope" -> apiScope,
-        "api.context" -> apiContext,
-        "api.whitelistedApplicationIds" -> apiWhitelist,
-        "api.access.type" -> "PRIVATE",
+        "api.definition.scope"                 -> apiScope,
+        "api.context"                          -> apiContext,
+        "api.whitelistedApplicationIds"        -> apiWhitelist,
+        "api.access.type"                      -> "PRIVATE",
         "api.access.whitelistedApplicationIds" -> Seq.empty
       )
       .build()
-  }
 
   "get" must {
     "return a Json definition" in {
       val result = controller.get()(FakeRequest("GET", "/api/definition"))
 
       status(result) mustBe OK
-      headers(result) must contain (CONTENT_TYPE -> "application/json;charset=utf-8")
+      headers(result) must contain(CONTENT_TYPE -> "application/json;charset=utf-8")
       contentAsJson(result) mustBe Json.parse(txt.definition(apiAccess, apiContext).toString())
     }
   }

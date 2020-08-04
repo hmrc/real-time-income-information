@@ -22,10 +22,10 @@ import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
-class ApplicationConfig @Inject()(sc: ServicesConfig, configuration: Configuration) {
+class ApplicationConfig @Inject() (sc: ServicesConfig, configuration: Configuration) {
   val schemaResourcePath: String = configuration.get[String]("schemaResourcePath")
-  val hodUrl: String = sc.baseUrl("des-hod")
-  val environment: String = sc.getConfString("des-hod.env", "local")
-  val authorization: String = "Bearer " + sc.getConfString("des-hod.authorizationToken", "local")
-  val authBaseUrl: String = sc.baseUrl("auth")
+  val hodUrl: String             = sc.baseUrl("des-hod")
+  val environment: String        = sc.getConfString("des-hod.env", "local")
+  val authorization: String      = "Bearer " + sc.getConfString("des-hod.authorizationToken", "local")
+  val authBaseUrl: String        = sc.baseUrl("auth")
 }

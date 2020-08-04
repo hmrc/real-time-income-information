@@ -20,18 +20,24 @@ import com.google.inject.{Inject, Singleton}
 import play.api.{ConfigLoader, Configuration}
 
 @Singleton
-class APIConfig @Inject()(configuration: Configuration) {
-  private val apiContextConfigKey = "api.context"
+class APIConfig @Inject() (configuration: Configuration) {
+  private val apiContextConfigKey             = "api.context"
   private val apiWhitelistedServicesConfigKey = "api.access.whitelistedApplicationIds"
-  private val apiAccessTypeKey = "api.access.type"
-  private val privateAccessKey = "PRIVATE"
+  private val apiAccessTypeKey                = "api.access.type"
+  private val privateAccessKey                = "PRIVATE"
 
-  lazy val apiContext: String = getOptApiConf[String](apiContextConfigKey).getOrElse(throw apiConfigException(apiContextConfigKey))
+  lazy val apiContext: String =
+    getOptApiConf[String](apiContextConfigKey).getOrElse(throw apiConfigException(apiContextConfigKey))
+
   lazy val apiTypeAccess: String = getOptApiConf[String](apiAccessTypeKey).getOrElse(privateAccessKey)
-  lazy val apiWhiteList: Option[Seq[String]] = if(apiTypeAccess == privateAccessKey) getOptApiConf[Seq[String]](apiWhitelistedServicesConfigKey) else None
+
+  lazy val apiWhiteList: Option[Seq[String]] =
+    if (apiTypeAccess == privateAccessKey) getOptApiConf[Seq[String]](apiWhitelistedServicesConfigKey) else None
 
   private def apiConfigException(key: String) = new IllegalStateException(s"$key is not configured")
 
-  private def getOptApiConf[A](key: String)(implicit configLoader: ConfigLoader[A]): Option[A] = configuration.getOptional[A](key)
+  private def getOptApiConf[A](key: String)(implicit
+      configLoader: ConfigLoader[A]
+  ): Option[A] = configuration.getOptional[A](key)
 
 }

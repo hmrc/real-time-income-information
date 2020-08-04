@@ -29,7 +29,7 @@ import scala.language.postfixOps
 import scala.util.Random
 
 trait BaseSpec extends PlaySpec with MustMatchers with MockitoSugar with ResourceProvider {
-  def generateUUId: String = UUID.randomUUID().toString
-  def generateNino: String = new Generator(new Random).nextNino.toString()
+  def generateUUId: String           = UUID.randomUUID().toString
+  def generateNino: String           = new Generator(new Random).nextNino.toString()
   def await[A](future: Future[A]): A = Await.result(future, 5 seconds)
 }

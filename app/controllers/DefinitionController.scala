@@ -24,13 +24,15 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import views.txt
 
 @Singleton
-class DefinitionController @Inject()(apiContext: APIConfig,
-                                     cc: ControllerComponents) extends BackendController(cc) {
+class DefinitionController @Inject() (apiContext: APIConfig, cc: ControllerComponents) extends BackendController(cc) {
 
   private val apiAccess: APIAccess = APIAccess(apiContext.apiTypeAccess, apiContext.apiWhiteList)
 
-  def get(): Action[AnyContent] = Action {
-    Ok(txt.definition(apiAccess, apiContext.apiContext))
-      .as(contentType = "application/json").withHeaders(CONTENT_TYPE -> JSON)
-  }
+  def get(): Action[AnyContent] =
+    Action {
+      Ok(txt.definition(apiAccess, apiContext.apiContext))
+        .as(contentType = "application/json")
+        .withHeaders(CONTENT_TYPE -> JSON)
+    }
+
 }
