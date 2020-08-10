@@ -37,10 +37,10 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
 
   override implicit lazy val app: Application =
     new GuiceApplicationBuilder()
-    .overrides(
-      bind[AuthConnector].toInstance(mockAuthConnector)
-    )
-    .build()
+      .overrides(
+        bind[AuthConnector].toInstance(mockAuthConnector)
+      )
+      .build()
 
   object Harness extends Results {
     val authAction: AuthAction = inject[AuthAction]

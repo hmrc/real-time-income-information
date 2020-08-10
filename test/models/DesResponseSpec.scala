@@ -23,12 +23,20 @@ class DesResponseSpec extends BaseSpec with ResourceProvider {
 
   "DesErrorResponse reads" must {
     "formatting DesSingleError" in {
-     val desErrorResponse: DesErrorResponse = noDataFoundNinoJson.as[DesErrorResponse]
-      desErrorResponse mustBe DesSingleFailureResponse("NOT_FOUND", "The remote endpoint has indicated that there is no data for the Nino.")
+      val desErrorResponse: DesErrorResponse = noDataFoundNinoJson.as[DesErrorResponse]
+      desErrorResponse mustBe DesSingleFailureResponse(
+        "NOT_FOUND",
+        "The remote endpoint has indicated that there is no data for the Nino."
+      )
     }
     "formatting DesMultipleError" in {
       val desErrorResponse: DesErrorResponse = multipleErrors.as[DesErrorResponse]
-      desErrorResponse mustBe DesMultipleFailureResponse(List(DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."), DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")))
+      desErrorResponse mustBe DesMultipleFailureResponse(
+        List(
+          DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."),
+          DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")
+        )
+      )
     }
   }
 }

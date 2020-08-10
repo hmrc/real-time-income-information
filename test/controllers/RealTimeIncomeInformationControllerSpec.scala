@@ -76,7 +76,7 @@ class RealTimeIncomeInformationControllerSpec
     )
 
   val controller: RealTimeIncomeInformationController = inject[RealTimeIncomeInformationController]
-  val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
+  val requestDetails: RequestDetails                  = exampleDwpRequest.as[RequestDetails]
 
   "preSchemaValidation" must {
     "Return OK provided a valid request" when {
@@ -123,12 +123,24 @@ class RealTimeIncomeInformationControllerSpec
     "Return Bad Request" when {
       List(
         ("a single error response", Constants.responseInvalidCorrelationId),
-        ("multiple error responses",  DesMultipleFailureResponse(List(Constants.responseInvalidCorrelationId, Constants.responseInvalidDateRange))),
-        ("a single failure response with invalid date range code", DesSingleFailureResponse(Constants.errorCodeInvalidDateRange, "")),
-        ("a single failure response with invalid dates equal code", DesSingleFailureResponse(Constants.errorCodeInvalidDatesEqual, "")),
-        ("a single failure response with invalid payload code", DesSingleFailureResponse(Constants.errorCodeInvalidPayload, ""))
+        (
+          "multiple error responses",
+          DesMultipleFailureResponse(List(Constants.responseInvalidCorrelationId, Constants.responseInvalidDateRange))
+        ),
+        (
+          "a single failure response with invalid date range code",
+          DesSingleFailureResponse(Constants.errorCodeInvalidDateRange, "")
+        ),
+        (
+          "a single failure response with invalid dates equal code",
+          DesSingleFailureResponse(Constants.errorCodeInvalidDatesEqual, "")
+        ),
+        (
+          "a single failure response with invalid payload code",
+          DesSingleFailureResponse(Constants.errorCodeInvalidPayload, "")
+        )
       ).foreach {
-        case (testDescription, expectedDesResponse ) =>
+        case (testDescription, expectedDesResponse) =>
           s"the service returns $testDescription" in {
             when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
               .thenReturn(Future.successful(AuditResult.Success))
@@ -242,7 +254,7 @@ class RealTimeIncomeInformationControllerSpec
       }
 
       "The controller receives a DesNoResponse from the service layer" in {
-        val expectedDesResponse            = DesNoResponse()
+        val expectedDesResponse = DesNoResponse()
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))

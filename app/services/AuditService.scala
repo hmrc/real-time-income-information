@@ -27,10 +27,13 @@ import uk.gov.hmrc.play.audit.model.DataEvent
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AuditService @Inject()(connector: AuditConnector,
-                             @Named("appName") appName: String)(implicit ec: ExecutionContext) {
+class AuditService @Inject() (connector: AuditConnector, @Named("appName") appName: String)(implicit
+    ec: ExecutionContext
+) {
 
-  def audit(auditType: String, path: String, auditData: Map[String, String])(implicit hc:HeaderCarrier): Future[AuditResult] = {
+  def audit(auditType: String, path: String, auditData: Map[String, String])(implicit
+      hc: HeaderCarrier
+  ): Future[AuditResult] = {
     val event = DataEvent(
       auditSource = appName,
       auditType = auditType,
@@ -41,8 +44,17 @@ class AuditService @Inject()(connector: AuditConnector,
     connector.sendEvent(event)
   }
 
-  def rtiiAudit(correlationId: String, body: RequestDetails)(implicit hc: HeaderCarrier): Future[AuditResult] =
-    audit("ServiceRequestReceived", s"/individuals/$correlationId/income",
-      auditData = Map("correlationId" -> correlationId, "serviceName" -> body.serviceName, "filterFields" -> body.filterFields.toString()))
+  def rtiiAudit(correlationId: String, body: RequestDetails)(implicit
+      hc: HeaderCarrier
+  ): Future[AuditResult] =
+    audit(
+      "ServiceRequestReceived",
+      s"/individuals/$correlationId/income",
+      auditData = Map(
+        "correlationId" -> correlationId,
+        "serviceName"   -> body.serviceName,
+        "filterFields"  -> body.filterFields.toString()
+      )
+    )
 
 }

@@ -16,7 +16,6 @@
 
 package connectors
 
-
 import com.google.inject.{Inject, Singleton}
 import config.ApplicationConfig
 import models._
@@ -29,43 +28,63 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfig)(implicit ec: ExecutionContext) {
+class DesConnector @Inject() (httpClient: HttpClient, desConfig: ApplicationConfig)(implicit
+    ec: ExecutionContext
+) {
 
   private val logger: Logger = Logger(this.getClass)
 
-  private def header(correlationID: String): HeaderCarrier = HeaderCarrier(extraHeaders = Seq(
-    "Authorization" -> desConfig.authorization,
-    "Environment" -> desConfig.environment,
-    "CorrelationId" -> correlationID))
+  private def header(correlationID: String): HeaderCarrier =
+    HeaderCarrier(extraHeaders =
+      Seq(
+        "Authorization" -> desConfig.authorization,
+        "Environment"   -> desConfig.environment,
+        "CorrelationId" -> correlationID
+      )
+    )
 
   implicit val desReponseReads: HttpReads[DesResponse] = new HttpReads[DesResponse] {
-    override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse = httpResponse.status match {
-      case OK => parseDesResponse[DesSuccessResponse](httpResponse)
-      case _  => parseDesResponse[DesErrorResponse](httpResponse)
-    }
+
+    override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse =
+      httpResponse.status match {
+        case OK => parseDesResponse[DesSuccessResponse](httpResponse)
+        case _  => parseDesResponse[DesErrorResponse](httpResponse)
+      }
+
   }
 
-  private def parseDesResponse[A <: DesResponse](httpResponse: HttpResponse)(implicit reads: Reads[A]): DesResponse = {
+  private def parseDesResponse[A <: DesResponse](httpResponse: HttpResponse)(implicit
+      reads: Reads[A]
+  ): DesResponse = {
     val handleError: Seq[(JsPath, scala.Seq[JsonValidationError])] => DesUnexpectedResponse = errors => {
       val extractValidationErrors: Seq[(JsPath, scala.Seq[JsonValidationError])] => String = errors => {
         //$COVERAGE-OFF$
-        errors.map {
-          case (path, List(validationError: JsonValidationError, _*)) => s"$path: ${validationError.message}"
-        }.mkString(", ").trim
+        errors
+          .map {
+            case (path, List(validationError: JsonValidationError, _*)) => s"$path: ${validationError.message}"
+          }
+          .mkString(", ")
+          .trim
       }
       logger.error(s"Not able to parse the response received from DES with error ${extractValidationErrors(errors)}")
       //$COVERAGE-ON$
       DesUnexpectedResponse()
     }
 
-    httpResponse.json.validate[A].fold(
-      invalid = handleError,
-      valid = identity
-    )
+    httpResponse.json
+      .validate[A]
+      .fold(
+        invalid = handleError,
+        valid = identity
+      )
   }
 
-  def retrieveCitizenIncome(nino: String, matchingRequest: DesMatchingRequest, correlationId: String): Future[DesResponse] = {
-    val postUrl: String = s"${desConfig.hodUrl}/individuals/$nino/income"
+  def retrieveCitizenIncome(
+      nino: String,
+      matchingRequest: DesMatchingRequest,
+      correlationId: String
+  ): Future[DesResponse] = {
+    val postUrl: String            = s"${desConfig.hodUrl}/individuals/$nino/income"
     implicit val hc: HeaderCarrier = header(correlationId)
     httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest) recover {
       case e: GatewayTimeoutException =>
@@ -80,4 +99,5 @@ class DesConnector @Inject()(httpClient: HttpClient, desConfig: ApplicationConfi
         DesNoResponse()
     }
   }
+
 }

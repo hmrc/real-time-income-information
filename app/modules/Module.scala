@@ -21,6 +21,8 @@ import config.RTIIAuthConnector
 import uk.gov.hmrc.auth.core.AuthConnector
 
 class Module extends AbstractModule {
+
   override def configure(): Unit =
     bind(classOf[AuthConnector]).to(classOf[RTIIAuthConnector])
+
 }

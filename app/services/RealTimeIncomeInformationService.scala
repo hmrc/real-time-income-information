@@ -24,7 +24,9 @@ import play.api.libs.json._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RealTimeIncomeInformationService @Inject()(desConnector: DesConnector)(implicit ec: ExecutionContext) {
+class RealTimeIncomeInformationService @Inject() (desConnector: DesConnector)(implicit
+    ec: ExecutionContext
+) {
 
   private[services] def pickOneValue(key: String, taxYear: JsValue): Option[(String, JsValue)] =
     taxYear.transform((__ \\ key).json.pick[JsValue]).asOpt.map(key -> _)
@@ -35,13 +37,17 @@ class RealTimeIncomeInformationService @Inject()(desConnector: DesConnector)(imp
     }
 
   def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String): Future[DesResponse] =
-    desConnector.retrieveCitizenIncome(requestDetails.nino, RequestDetails.toMatchingRequest(requestDetails), correlationId) map {
+    desConnector.retrieveCitizenIncome(
+      requestDetails.nino,
+      RequestDetails.toMatchingRequest(requestDetails),
+      correlationId
+    ) map {
       case desSuccess: DesSuccessResponse =>
-        if(desSuccess.taxYears.isDefined) {
+        if (desSuccess.taxYears.isDefined)
           DesFilteredSuccessResponse(desSuccess.matchPattern, pickAll(requestDetails.filterFields, desSuccess))
-        } else {
+        else
           DesSuccessResponse(desSuccess.matchPattern, None)
-        }
       case failure: DesResponse => failure
     }
+
 }

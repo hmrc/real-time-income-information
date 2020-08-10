@@ -21,9 +21,9 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 @Singleton
-class DocumentationController @Inject()(cc: ControllerComponents,
-                                        assets: Assets) extends BackendController(cc) {
-  def conf(version: String, file: String): Action[AnyContent] = {
+class DocumentationController @Inject() (cc: ControllerComponents, assets: Assets) extends BackendController(cc) {
+
+  def conf(version: String, file: String): Action[AnyContent] =
     assets.at(s"/public/api/conf/$version", file)
-  }
+
 }

@@ -30,14 +30,16 @@ import utils.Constants._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
-class AuthActionImpl @Inject()(val parser: BodyParsers.Default,
-                           override val authConnector: AuthConnector)
-                          (implicit val executionContext: ExecutionContext) extends AuthAction with AuthorisedFunctions {
+class AuthActionImpl @Inject() (val parser: BodyParsers.Default, override val authConnector: AuthConnector)(implicit
+    val executionContext: ExecutionContext
+) extends AuthAction
+    with AuthorisedFunctions {
 
   private val logger: Logger = Logger(this.getClass)
 
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
+    implicit val hc: HeaderCarrier =
+      HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
 
     authorised(AuthProviders(PrivilegedApplication)) {
       Future.successful(None)
@@ -48,13 +50,14 @@ class AuthActionImpl @Inject()(val parser: BodyParsers.Default,
         logger.warn(e.reason)
         //$COVERAGE-ON$
         Some(Forbidden(toJson(forbiddenWithMsg(e.reason))))
-      case NonFatal(e)                =>
+      case NonFatal(e) =>
         //$COVERAGE-OFF$
         logger.error("Unexpected exception when authorising", e)
         //$COVERAGE-ON$
         Some(InternalServerError(toJson(responseServiceUnavailable)))
     }
   }
+
 }
 
 @ImplementedBy(classOf[AuthActionImpl])

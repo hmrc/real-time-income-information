@@ -25,22 +25,29 @@ final case class DesSuccessResponse(matchPattern: Int, taxYears: Option[List[JsV
 final case class DesFilteredSuccessResponse(matchPattern: Int, taxYears: List[JsValue]) extends DesResponse
 final case class DesSingleFailureResponse(code: String, reason: String) extends DesErrorResponse
 final case class DesMultipleFailureResponse(failures: List[DesSingleFailureResponse]) extends DesErrorResponse
-final case class DesUnexpectedResponse(code: String = "INTERNAL_SERVER_ERROR", reason: String = "Internal Server Error") extends DesErrorResponse
-final case class DesNoResponse(code: String = "BAD_GATEWAY", reason: String = "Bad gateway calling des") extends DesErrorResponse
+
+final case class DesUnexpectedResponse(code: String = "INTERNAL_SERVER_ERROR", reason: String = "Internal Server Error")
+    extends DesErrorResponse
+
+final case class DesNoResponse(code: String = "BAD_GATEWAY", reason: String = "Bad gateway calling des")
+    extends DesErrorResponse
 
 object DesResponse {
-  implicit val desSuccessFormats: Format[DesSuccessResponse] = Json.format[DesSuccessResponse]
+  implicit val desSuccessFormats: Format[DesSuccessResponse]                 = Json.format[DesSuccessResponse]
   implicit val desFilteredSuccessFormats: Format[DesFilteredSuccessResponse] = Json.format[DesFilteredSuccessResponse]
-  implicit val desUnexpectedFormats: Format[DesUnexpectedResponse] = Json.format[DesUnexpectedResponse]
-  implicit val desSingleFailureFormats: Format[DesSingleFailureResponse] = Json.format[DesSingleFailureResponse]
+  implicit val desUnexpectedFormats: Format[DesUnexpectedResponse]           = Json.format[DesUnexpectedResponse]
+  implicit val desSingleFailureFormats: Format[DesSingleFailureResponse]     = Json.format[DesSingleFailureResponse]
   implicit val desMultipleFailureFormats: Format[DesMultipleFailureResponse] = Json.format[DesMultipleFailureResponse]
-  implicit val desNoResponseWrites: Writes[DesNoResponse] = Json.writes[DesNoResponse]
+  implicit val desNoResponseWrites: Writes[DesNoResponse]                    = Json.writes[DesNoResponse]
 
   implicit val desErrorResponseRead: Reads[DesErrorResponse] = new Reads[DesErrorResponse] {
+
     override def reads(json: JsValue): JsResult[DesErrorResponse] =
       if ((json \ "failures").asOpt[JsArray].isDefined)
         desMultipleFailureFormats.reads(json)
       else
         desSingleFailureFormats.reads(json)
+
   }
+
 }
