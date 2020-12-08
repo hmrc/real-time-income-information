@@ -2,8 +2,6 @@
 ->         /                                    definition.Routes
 ->         /                                    health.Routes
 
-->         /real-time-income-information        app.Routes
-
 POST       /individuals/:correlationId/income   @controllers.RealTimeIncomeInformationController.preSchemaValidation(correlationId: String)
 
 GET        /admin/metrics                       com.kenshoo.play.metrics.MetricsController.metrics
