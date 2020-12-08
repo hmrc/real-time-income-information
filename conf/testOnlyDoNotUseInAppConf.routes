@@ -12,4 +12,4 @@
 # Add all the application routes to the prod.routes file
 ->         /                                                            prod.Routes
 
-POST        /real-time-income-information/individuals            @controllers.testonly.RealTimeIncomeInformationController.preSchemaValidation(correlationId: String)
+POST        /real-time-income-information/individuals            @controllers.RealTimeIncomeInformationController.preSchemaValidation(correlationId: String)
