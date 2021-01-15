@@ -32,7 +32,8 @@ object Constants {
   val errorCodeNonPrivilegedApplication = "NON_PRIVILEGED_APPLICATION"
 
   def forbiddenWithMsg(msg: String) = DesSingleFailureResponse(errorCodeForbidden, msg)
-
+  def invalidPayloadWithMsg(msg: String) = DesSingleFailureResponse(errorCodeInvalidPayload, msg)
+  
   val responseNonPrivilegedApplication: DesSingleFailureResponse =
     DesSingleFailureResponse(
       errorCodeNonPrivilegedApplication,
