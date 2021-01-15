@@ -26,14 +26,13 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
 import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService, SchemaValidator}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import utils.{BaseSpec, Constants, FakeAuthAction, FakeValidateCorrelationId}
-import play.api.libs.json._
 
 import scala.concurrent.Future
 
