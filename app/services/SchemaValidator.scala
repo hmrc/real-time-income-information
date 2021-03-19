@@ -23,6 +23,7 @@ import com.google.inject.{Inject, Singleton}
 import config.ApplicationConfig
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json.{fromJson, parse}
+import com.eclipsesource.schema.drafts.Version4._
 
 import scala.io.Source
 

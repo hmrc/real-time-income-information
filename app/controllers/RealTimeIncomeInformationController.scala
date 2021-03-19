@@ -65,25 +65,11 @@ class RealTimeIncomeInformationController @Inject() (
     }
 
   private val parseJson: Request[JsValue] => Either[DesSingleFailureResponse, RequestDetails] = { request =>
-    request.body.validate[RequestDetails] match {
-      case s: JsSuccess[RequestDetails] => Right(s.get)
-      case e: JsError =>
-        Left(
-          invalidPayloadWithMsg(
-            e.fold(
-              invalid = { fieldErrors =>
-                val error = fieldErrors.map { x =>
-                  x._1
-                }
-                "Invalid Payload. Invalid " + error.mkString(", ").replace("/", "");
-              },
-              valid = { Nothing =>
-                ""
-              }
-            )
-          )
-        )
-    }
+    request.body.validate[RequestDetails].fold(invalid =
+      {
+        fieldErrors => val error = fieldErrors.map(_._1)
+          Left(invalidPayloadWithMsg("Invalid Payload. Invalid " + error.mkString(", ").replace("/", "")))
+      }, valid = Right(_) )
   }
 
   private val validateDate
