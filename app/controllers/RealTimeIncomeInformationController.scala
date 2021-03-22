@@ -25,6 +25,7 @@ import play.api.mvc._
 import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService, SchemaValidator}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.Constants._
+import play.api.libs.json._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -63,8 +64,13 @@ class RealTimeIncomeInformationController @Inject() (
       }
     }
 
-  private val parseJson: Request[JsValue] => Either[DesSingleFailureResponse, RequestDetails] =
-    request => request.body.validate[RequestDetails].asOpt.toRight(responseInvalidPayload)
+  private val parseJson: Request[JsValue] => Either[DesSingleFailureResponse, RequestDetails] = { request =>
+    request.body.validate[RequestDetails].fold(invalid =
+      {
+        fieldErrors => val error = fieldErrors.map(_._1)
+          Left(invalidPayloadWithMsg("Invalid Payload. Invalid " + error.mkString(", ").replace("/", "")))
+      }, valid = Right(_) )
+  }
 
   private val validateDate
       : Either[DesSingleFailureResponse, RequestDetails] => Either[DesSingleFailureResponse, RequestDetails] =
