@@ -37,18 +37,18 @@ import utils.{BaseSpec, Constants, FakeAuthAction, FakeValidateCorrelationId}
 import scala.concurrent.Future
 
 class RealTimeIncomeInformationControllerSpec
-    extends BaseSpec
+  extends BaseSpec
     with GuiceOneAppPerSuite
     with Injecting
     with BeforeAndAfterEach {
 
-  val correlationId: String                             = generateUUId
-  val nino: String                                      = generateNino
+  val correlationId: String = generateUUId
+  val nino: String = generateNino
   val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]
-  val mockAuditService: AuditService                    = mock[AuditService]
-  val mockRequestDetailsService: RequestDetailsService  = mock[RequestDetailsService]
-  val mockSchemaValidator: SchemaValidator              = mock[SchemaValidator]
-  implicit val mat: Materializer                        = app.materializer
+  val mockAuditService: AuditService = mock[AuditService]
+  val mockRequestDetailsService: RequestDetailsService = mock[RequestDetailsService]
+  val mockSchemaValidator: SchemaValidator = mock[SchemaValidator]
+  implicit val mat: Materializer = app.materializer
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
@@ -76,14 +76,14 @@ class RealTimeIncomeInformationControllerSpec
     )
 
   val controller: RealTimeIncomeInformationController = inject[RealTimeIncomeInformationController]
-  val requestDetails: RequestDetails                  = exampleDwpRequest.as[RequestDetails]
+  val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
 
   "preSchemaValidation" must {
     "Return OK provided a valid request" when {
       "the service returns a successfully filtered response" in {
         val values = Json.toJson(
           Map(
-            "surname"                 -> "Surname",
+            "surname" -> "Surname",
             "nationalInsuranceNumber" -> nino
           )
         )
@@ -162,11 +162,98 @@ class RealTimeIncomeInformationControllerSpec
       }
 
       "Unable to parse json" in {
-        val jsonInput: JsValue     = JsObject.empty
+        val jsonInput: JsValue = JsObject.empty
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
 
         status(result) mustBe BAD_REQUEST
-        contentAsJson(result) mustBe Json.toJson(Constants.responseInvalidPayload)
+        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
+          "Invalid Payload. Invalid fromDate, surname, toDate, filterFields, serviceName, nino"))
+      }
+
+      "missing nino in Json, return desciptive error message" in {
+        val jsonInput: JsValue = Json.parse(
+          """
+          {
+            "serviceName": "some value",
+            "fromDate": "some value",
+            "toDate": "some value",
+            "surname": "some value"
+          }
+         """)
+
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
+          "Invalid Payload. Invalid nino, filterFields"))
+      }
+
+      "missing surname in Json, return desciptive error message" in {
+        val jsonInput: JsValue = Json.parse(
+          """
+          {
+            "nino": "some value",
+            "serviceName": "some value",
+            "fromDate": "some value",
+            "toDate": "some value"
+          }
+        """)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
+          "Invalid Payload. Invalid filterFields, surname"))
+      }
+
+      "missing servicename in Json, return desciptive error message" in {
+        val jsonInput: JsValue = Json.parse(
+          """
+          {
+            "nino": "some value",
+            "fromDate": "some value",
+            "toDate": "some value",
+            "surname": "some value"
+          }
+        """)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
+          "Invalid Payload. Invalid filterFields, serviceName"))
+      }
+
+      "missing fromDate in Json, return desciptive error message" in {
+        val jsonInput: JsValue = Json.parse(
+          """
+          {
+            "nino": "some value",
+            "serviceName": "some value",
+            "toDate": "some value",
+            "surname": "some value"
+          }
+        """)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
+          "Invalid Payload. Invalid fromDate, filterFields"))
+      }
+
+      "missing toDate in Json, return desciptive error message" in {
+        val jsonInput: JsValue = Json.parse(
+          """
+          {
+            "nino": "some value",
+            "serviceName": "some value",
+            "fromDate": "some value",
+            "surname": "some value"
+          }
+        """)
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
+
+        status(result) mustBe BAD_REQUEST
+        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
+          "Invalid Payload. Invalid toDate, filterFields"))
       }
 
       "schemaValidator returns false" in {
@@ -296,12 +383,11 @@ class RealTimeIncomeInformationControllerSpec
 
             val expectedJSON: JsValue = (expectedDesResponse: @unchecked) match {
               case expectedResponse: DesSingleFailureResponse => Json.toJson(expectedResponse)
-              case expectedResponse: DesUnexpectedResponse    => Json.toJson(expectedResponse)
+              case expectedResponse: DesUnexpectedResponse => Json.toJson(expectedResponse)
             }
             contentAsJson(result) mustBe expectedJSON
           }
       }
     }
-
   }
 }
