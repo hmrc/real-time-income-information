@@ -38,9 +38,5 @@ lazy val microservice = Project(appName, file("."))
     TwirlKeys.templateImports := Nil,
     scalacOptions += "-Xfatal-warnings",
     majorVersion := 2,
-    resolvers ++= Seq(
-      Resolver.jcenterRepo,
-      Resolver.bintrayRepo("emueller", "maven"),
-      Resolver.bintrayRepo("hmrc", "releases")
-    )
+    resolvers += Resolver.jcenterRepo
   )
