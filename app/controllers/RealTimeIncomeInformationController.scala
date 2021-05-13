@@ -23,7 +23,7 @@ import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.Constants._
 import play.api.libs.json._
 

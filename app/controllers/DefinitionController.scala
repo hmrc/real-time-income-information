@@ -20,7 +20,7 @@ import config.APIConfig
 import javax.inject.{Inject, Singleton}
 import models.api.APIAccess
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import views.txt
 
 @Singleton
