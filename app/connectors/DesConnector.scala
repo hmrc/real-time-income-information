@@ -34,14 +34,13 @@ class DesConnector @Inject() (httpClient: HttpClient, desConfig: ApplicationConf
 
   private val logger: Logger = Logger(this.getClass)
 
-  private def header(correlationID: String): HeaderCarrier =
-    HeaderCarrier(extraHeaders =
-      Seq(
-        "Authorization" -> desConfig.authorization,
-        "Environment"   -> desConfig.environment,
-        "CorrelationId" -> correlationID
-      )
+  private def header(correlationID: String): Seq[(String, String)] =
+    Seq(
+      "Authorization" -> desConfig.authorization,
+      "Environment"   -> desConfig.environment,
+      "CorrelationId" -> correlationID
     )
+
 
   implicit val desReponseReads: HttpReads[DesResponse] = new HttpReads[DesResponse] {
 
@@ -83,10 +82,9 @@ class DesConnector @Inject() (httpClient: HttpClient, desConfig: ApplicationConf
       nino: String,
       matchingRequest: DesMatchingRequest,
       correlationId: String
-  ): Future[DesResponse] = {
+  )(implicit hc: HeaderCarrier): Future[DesResponse] = {
     val postUrl: String            = s"${desConfig.hodUrl}/individuals/$nino/income"
-    implicit val hc: HeaderCarrier = header(correlationId)
-    httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest) recover {
+    httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest, header(correlationId)) recover {
       case e: GatewayTimeoutException =>
         //$COVERAGE-OFF$
         logger.error(s"GatewayTimeoutException occurred: ${e.message}")

@@ -90,7 +90,7 @@ class RealTimeIncomeInformationControllerSpec
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
@@ -106,7 +106,7 @@ class RealTimeIncomeInformationControllerSpec
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
@@ -139,7 +139,7 @@ class RealTimeIncomeInformationControllerSpec
           s"the service returns $testDescription" in {
             when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
               .thenReturn(Future.successful(AuditResult.Success))
-            when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+            when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
               .thenReturn(Future.successful(expectedDesResponse))
             when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
@@ -257,7 +257,7 @@ class RealTimeIncomeInformationControllerSpec
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
@@ -271,7 +271,7 @@ class RealTimeIncomeInformationControllerSpec
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
@@ -287,7 +287,7 @@ class RealTimeIncomeInformationControllerSpec
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.failed(new Exception))
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
@@ -307,7 +307,7 @@ class RealTimeIncomeInformationControllerSpec
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
@@ -321,7 +321,7 @@ class RealTimeIncomeInformationControllerSpec
         val expectedDesResponse = DesNoResponse()
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
@@ -348,7 +348,7 @@ class RealTimeIncomeInformationControllerSpec
 
             when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
               .thenReturn(Future.successful(AuditResult.Success))
-            when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+            when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
               .thenReturn(Future.successful(expectedDesResponse))
             when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
