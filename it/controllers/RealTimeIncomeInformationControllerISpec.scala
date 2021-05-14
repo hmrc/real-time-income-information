@@ -36,13 +36,11 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
       stubPostServer(serviceUnavailable(), s"/individuals/$generatedNino/income")
       val requestDetails = exampleDwpRequest
 
-      val json = Json.toJson(requestDetails)
-
-      val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(json)
+      val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
       val result = route(fakeApplication(), request)
-      val expected = Json.toJson(responseServiceUnavailable)
+      val expected = Some(Json.toJson(responseServiceUnavailable))
 
-      result.map(statusResult) mustBe SERVICE_UNAVAILABLE
+      result.map(statusResult) mustBe Some(SERVICE_UNAVAILABLE)
       result.map(contentAsJson(_)) mustBe expected
 
     }
