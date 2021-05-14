@@ -17,7 +17,7 @@ object AppDependencies {
     "org.mockito"             % "mockito-core"       % "3.4.0",
     "com.typesafe.play"      %% "play-test"          % PlayVersion.current,
     "com.github.tomakehurst"  % "wiremock-jre8"      % "2.27.0"
-  ).map(_ % "test")
+  ).map(_ % "test,it")
 
   val all: Seq[ModuleID] = compile ++ test
 

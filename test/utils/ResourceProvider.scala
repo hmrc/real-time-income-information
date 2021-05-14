@@ -73,7 +73,9 @@ trait ResourceProvider {
   private def readJson(path: String): JsValue =
     Json.parse(getResourceFileContent(path))
 
-  private def readJson(path: String, nino: String): JsValue =
+  private def readJson(path: String, nino: String): JsValue = {
+    print(s"\n\n$path\n\n\n")
     Json.parse(getResourceFileContent(path).replace(fakeTestNino, nino))
+  }
 
 }
