@@ -30,7 +30,14 @@ class RequestDetailsSpec extends BaseSpec {
         ("the filter fields array contains duplicate fields", exampleInvalidDwpDuplicateFields(nino)),
         ("the filter fields array is empty", exampleInvalidDwpEmptyFieldsRequest(nino)),
         ("the request contains an unexpected filter field", exampleInvalidFilterFieldDwpRequest(nino)),
-        ("the request contains an unexpected matching field", exampleInvalidMatchingFieldDwpRequest(nino))
+        ("the request contains an unexpected matching field", exampleInvalidMatchingFieldDwpRequest(nino)),
+        ("the request contains an invalid serviceName", exampleInvalidServiceName),
+        ("the request contains an invalid date", exampleInvalidDateFormat),
+        ("the request contains an invalid surname", exampleInvalidSurname),
+        ("the request contains an invalid firstName", exampleInvalidFirstName),
+        ("the request contains an invalid gender", exampleInvalidGender),
+        ("the request contains invalid initials", exampleInvalidInitials),
+        ("the request contains invalid date of birth", exampleInvalidDob)
       ).foreach {
         case (testName, json) =>
           testName in {

@@ -42,6 +42,12 @@ trait ResourceProvider {
   val exampleInvalidDatesEqualRequest: JsValue = readJson("/example-dwp-request-invalid-dates-equal.json")
   val exampleInvalidDatesNotDefined: JsValue   = readJson("/example-dwp-request-invalid-dates-not-defined.json")
   val exampleInvalidDateFormat: JsValue        = readJson("/example-dwp-request-invalid-date-format.json")
+  val exampleInvalidSurname: JsValue           = readJson("/example-invalid-dwp-surname.json")
+  val exampleInvalidFirstName: JsValue         = readJson("/example-invalid-dwp-firstName.json")
+  val exampleInvalidGender: JsValue            = readJson("/example-invalid-dwp-gender.json")
+  val exampleInvalidInitials: JsValue          = readJson("/example-invalid-dwp-initials.json")
+  val exampleInvalidDob: JsValue               = readJson("/example-invalid-dwp-date-of-birth.json")
+  val exampleInvalidServiceName: JsValue       = readJson("/example-invalid-dwp-serviceName.json")
 
   def modifiedExampleDwpRequest(nino: String): JsValue =
     Json.parse(getResourceFileContent("/example-dwp-request.json").replace("QQ123456C", nino))
