@@ -74,7 +74,7 @@ class RealTimeIncomeInformationControllerSpec
     )
 
   val controller: RealTimeIncomeInformationController = inject[RealTimeIncomeInformationController]
-  val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
+  val requestDetails: RequestDetails = modifiedExampleDwpRequest(nino).as[RequestDetails]
 
   "preSchemaValidation" must {
     "Return OK provided a valid request" when {
@@ -93,7 +93,7 @@ class RealTimeIncomeInformationControllerSpec
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
         status(result) mustBe OK
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
 
@@ -109,7 +109,7 @@ class RealTimeIncomeInformationControllerSpec
         when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
         status(result) mustBe OK
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
@@ -143,7 +143,7 @@ class RealTimeIncomeInformationControllerSpec
               .thenReturn(Future.successful(expectedDesResponse))
             when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-            val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+            val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
             status(result) mustBe BAD_REQUEST
 
             (expectedDesResponse: @unchecked) match {
@@ -261,7 +261,7 @@ class RealTimeIncomeInformationControllerSpec
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
         status(result) mustBe NOT_FOUND
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
@@ -275,7 +275,7 @@ class RealTimeIncomeInformationControllerSpec
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
 
         status(result) mustBe NOT_FOUND
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
@@ -291,7 +291,7 @@ class RealTimeIncomeInformationControllerSpec
           .thenReturn(Future.failed(new Exception))
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
 
         status(result) mustBe SERVICE_UNAVAILABLE
         contentAsJson(result) mustBe Json.toJson(
@@ -311,7 +311,7 @@ class RealTimeIncomeInformationControllerSpec
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
 
         status(result) mustBe SERVICE_UNAVAILABLE
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
@@ -325,7 +325,7 @@ class RealTimeIncomeInformationControllerSpec
           .thenReturn(Future.successful(expectedDesResponse))
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
 
         status(result) mustBe SERVICE_UNAVAILABLE
 
@@ -352,7 +352,7 @@ class RealTimeIncomeInformationControllerSpec
               .thenReturn(Future.successful(expectedDesResponse))
             when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-            val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+            val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
 
             status(result) mustBe INTERNAL_SERVER_ERROR
 

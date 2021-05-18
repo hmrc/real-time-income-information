@@ -22,6 +22,25 @@ class RequestDetailsSpec extends BaseSpec {
 
   val nino: String = generateNino
 
+
+  "return error message" when {
+      List(
+        ("the nino is invalid", exampleDwpRequestInvalidNino(nino)),
+        ("the filter fields array contains an empty string field", exampleInvalidDwpEmptyStringField(nino)),
+        ("the filter fields array contains duplicate fields", exampleInvalidDwpDuplicateFields(nino)),
+        ("the filter fields array is empty", exampleInvalidDwpEmptyFieldsRequest(nino)),
+        ("the request contains an unexpected filter field", exampleInvalidFilterFieldDwpRequest(nino)),
+        ("the request contains an unexpected matching field", exampleInvalidMatchingFieldDwpRequest(nino))
+      ).foreach {
+        case (testName, json) =>
+          testName in {
+           intercept[IllegalArgumentException] {
+           json.as[RequestDetails]
+           }.getMessage mustBe "requirement failed: Submission has not passed validation. Invalid Payload."
+          }
+        }
+  }
+
   "toMatchingRequest" must {
     "create a DesMatchingRequest" in {
       val requestDetails = RequestDetails(
@@ -34,7 +53,7 @@ class RequestDetailsSpec extends BaseSpec {
         middleName = Some("middleName"),
         gender = Some("M"),
         initials = Some("FMS"),
-        dateOfBirth = Some("03/04/2050"),
+        dateOfBirth = Some("2050-03-04"),
         filterFields = List("surname", "nationalInsuranceNumber")
       )
 
@@ -48,7 +67,7 @@ class RequestDetailsSpec extends BaseSpec {
         middleName = Some("middleName"),
         gender = Some("M"),
         initials = Some("FMS"),
-        dateOfBirth = Some("03/04/2050")
+        dateOfBirth = Some("2050-03-04")
       )
 
       transformedDESRequest mustBe expectedMatchingDESRequest

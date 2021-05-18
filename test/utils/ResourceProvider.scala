@@ -36,7 +36,6 @@ trait ResourceProvider {
   val successMatchTwoYear: JsValue             = readJson("/200-success-matched-two-years.json")
   val successNoMatch: JsValue                  = readJson("/200-success-no-match.json")
   val successNoMatchGreaterThanZero: JsValue   = readJson("/200-success-no-match-greater-than-zero.json")
-  val exampleDwpRequest: JsValue               = readJson("/example-dwp-request.json")
   val exampleDesRequest: JsValue               = readJson("/example-des-request.json")
   val multipleErrors: JsValue                  = readJson("/400-multiple-errors.json")
   val exampleInvalidDateRangeRequest: JsValue  = readJson("/example-dwp-request-invalid-date-range.json")
@@ -74,7 +73,6 @@ trait ResourceProvider {
     Json.parse(getResourceFileContent(path))
 
   private def readJson(path: String, nino: String): JsValue = {
-    print(s"\n\n$path\n\n\n")
     Json.parse(getResourceFileContent(path).replace(fakeTestNino, nino))
   }
 
