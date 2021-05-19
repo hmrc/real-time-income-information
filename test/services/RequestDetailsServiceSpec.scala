@@ -47,14 +47,6 @@ class RequestDetailsServiceSpec extends BaseSpec {
         SUT.validateDates(requestDetails) mustBe Left(Constants.responseInvalidDatesEqual)
       }
     }
-
-//    "return responseInvalidPayload" when {
-//      "the dates are not parsable" in {
-//        val requestDetails = createRequestDetails("202-04-1", "122-01-01")
-//
-//        SUT.validateDates(requestDetails) mustBe Left(Constants.responseInvalidPayload)
-//      }
-//    }
   }
 
   def createRequestDetails(fromDate: String, toDate: String) =
