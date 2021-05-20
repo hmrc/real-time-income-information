@@ -1,0 +1,12 @@
+{
+  "nino": "QQ123456C",
+  "serviceName": "serviceName",
+  "fromDate": "2016/10/31",
+  "toDate": "2016-12-31",
+  "surname": "Surname",
+  "firstName": "FirstName",
+  "gender": "M",
+  "initials": "J B",
+  "dateOfBirth": "2000-03-29",
+  "filterFields": ["surname", "nationalInsuranceNumber"]
+}
