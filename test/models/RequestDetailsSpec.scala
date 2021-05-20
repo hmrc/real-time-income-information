@@ -24,28 +24,29 @@ class RequestDetailsSpec extends BaseSpec {
 
 
   "return error message" when {
-      List(
-        ("the nino is invalid", exampleDwpRequestInvalidNino(nino)),
-        ("the filter fields array contains an empty string field", exampleInvalidDwpEmptyStringField(nino)),
-        ("the filter fields array contains duplicate fields", exampleInvalidDwpDuplicateFields(nino)),
-        ("the filter fields array is empty", exampleInvalidDwpEmptyFieldsRequest(nino)),
-        ("the request contains an unexpected filter field", exampleInvalidFilterFieldDwpRequest(nino)),
-        ("the request contains an unexpected matching field", exampleInvalidMatchingFieldDwpRequest(nino)),
-        ("the request contains an invalid serviceName", exampleInvalidServiceName),
-        ("the request contains an invalid date", exampleInvalidDateFormat),
-        ("the request contains an invalid surname", exampleInvalidSurname),
-        ("the request contains an invalid firstName", exampleInvalidFirstName),
-        ("the request contains an invalid gender", exampleInvalidGender),
-        ("the request contains invalid initials", exampleInvalidInitials),
-        ("the request contains invalid date of birth", exampleInvalidDob)
-      ).foreach {
-        case (testName, json) =>
-          testName in {
-           intercept[IllegalArgumentException] {
-           json.as[RequestDetails]
-           }.getMessage mustBe "requirement failed: Submission has not passed validation. Invalid Payload."
-          }
+    List(
+      ("the nino is invalid", exampleDwpRequestInvalidNino(nino),  "nino"),
+      ("the filter fields array contains an empty string field", exampleInvalidDwpEmptyStringField(nino), "filter-fields"),
+      ("the filter fields array contains duplicate fields", exampleInvalidDwpDuplicateFields(nino), "filter-fields"),
+      ("the filter fields array is empty", exampleInvalidDwpEmptyFieldsRequest(nino), "filter-fields"),
+      ("the request contains an unexpected filter field", exampleInvalidFilterFieldDwpRequest(nino), "filter-fields"),
+      ("the request contains an invalid serviceName", exampleInvalidServiceName(nino), "serviceName"),
+      ("the request contains an invalid todate", exampleInvalidToDateFormat(nino), "toDate"),
+      ("the request contains an invalid fromdate", exampleInvalidFromDateFormat(nino), "fromDate"),
+      ("the request contains an invalid surname", exampleInvalidSurname(nino), "surname"),
+      ("the request contains an invalid middleName", exampleInvalidMiddleName(nino), "middle name"),
+      ("the request contains an invalid firstName", exampleInvalidFirstName(nino), "first name"),
+      ("the request contains an invalid gender", exampleInvalidGender(nino), "gender"),
+      ("the request contains invalid initials", exampleInvalidInitials(nino), "initials"),
+      ("the request contains invalid date of birth", exampleInvalidDob(nino), "date of birth")
+    ).foreach {
+      case (testName, json, error) =>
+        testName in {
+         intercept[IllegalArgumentException] {
+         json.as[RequestDetails]
+         }.getMessage mustBe s"requirement failed: Submission has not passed validation. Invalid $error in payload."
         }
+      }
   }
 
   "toMatchingRequest" must {

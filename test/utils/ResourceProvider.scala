@@ -22,7 +22,7 @@ import scala.io.Source
 
 trait ResourceProvider {
 
-  private val fakeTestNino = "QQ123456A"
+  private val fakeTestNino = "QQ123456C"
 
   val invalidCorrelationIdJson: JsValue        = readJson("/400-invalid-correlation-id.json")
   val invalidPayload: JsValue                  = readJson("/400-invalid-payload.json")
@@ -41,13 +41,15 @@ trait ResourceProvider {
   val exampleInvalidDateRangeRequest: JsValue  = readJson("/example-dwp-request-invalid-date-range.json")
   val exampleInvalidDatesEqualRequest: JsValue = readJson("/example-dwp-request-invalid-dates-equal.json")
   val exampleInvalidDatesNotDefined: JsValue   = readJson("/example-dwp-request-invalid-dates-not-defined.json")
-  val exampleInvalidDateFormat: JsValue        = readJson("/example-dwp-request-invalid-date-format.json")
-  val exampleInvalidSurname: JsValue           = readJson("/example-invalid-dwp-surname.json")
-  val exampleInvalidFirstName: JsValue         = readJson("/example-invalid-dwp-firstName.json")
-  val exampleInvalidGender: JsValue            = readJson("/example-invalid-dwp-gender.json")
-  val exampleInvalidInitials: JsValue          = readJson("/example-invalid-dwp-initials.json")
-  val exampleInvalidDob: JsValue               = readJson("/example-invalid-dwp-date-of-birth.json")
-  val exampleInvalidServiceName: JsValue       = readJson("/example-invalid-dwp-serviceName.json")
+  def exampleInvalidToDateFormat(nino: String): JsValue      = readJson("/example-dwp-request-invalid-to-date-format.json", nino)
+  def exampleInvalidFromDateFormat(nino: String): JsValue    = readJson("/example-dwp-request-invalid-from-date-format.json", nino)
+  def exampleInvalidSurname(nino: String): JsValue           = readJson("/example-invalid-dwp-surname.json", nino)
+  def exampleInvalidFirstName(nino: String): JsValue         = readJson("/example-invalid-dwp-firstName.json", nino)
+  def exampleInvalidMiddleName(nino: String): JsValue         = readJson("/example-invalid-dwp-middle-name.json", nino)
+  def exampleInvalidGender(nino: String): JsValue            = readJson("/example-invalid-dwp-gender.json", nino)
+  def exampleInvalidInitials(nino: String): JsValue          = readJson("/example-invalid-dwp-initials.json", nino)
+  def exampleInvalidDob(nino: String): JsValue               = readJson("/example-invalid-dwp-date-of-birth.json", nino)
+  def exampleInvalidServiceName(nino: String): JsValue       = readJson("/example-invalid-dwp-serviceName.json", nino)
 
   def modifiedExampleDwpRequest(nino: String): JsValue =
     Json.parse(getResourceFileContent("/example-dwp-request.json").replace("QQ123456C", nino))
@@ -69,6 +71,7 @@ trait ResourceProvider {
 
   def exampleInvalidDwpEmptyStringField(nino: String): JsValue =
     readJson("/example-invalid-dwp-empty-string-fields-request.json", nino)
+
 
   def getResourceFileContent(resourceFile: String): String = {
     val is = getClass.getResourceAsStream(resourceFile)

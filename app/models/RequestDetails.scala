@@ -31,22 +31,26 @@ case class RequestDetails(
     dateOfBirth: Option[String],
     filterFields: List[String]
 ) {
-  require(nino.matches("^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D ]$"), "Submission has not passed validation. Invalid Payload.")
-  require(serviceName.matches("^[a-zA-Z0-9 &`\\-\\'\\.^]{1,128}$"), "Submission has not passed validation. Invalid Payload.")
+  require(nino.matches("^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D ]$"), "Submission has not passed validation. Invalid nino in payload.")
+  require(serviceName.matches("^[a-zA-Z0-9 &`\\-\\'\\.^]{1,128}$"), "Submission has not passed validation. Invalid serviceName in payload.")
   require(
-    fromDate.matches("^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$") &&
-      toDate.matches("^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$"),
-    "Submission has not passed validation. Invalid Payload."
+    toDate.matches("^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$"),
+    "Submission has not passed validation. Invalid toDate in payload."
   )
-  require(surname.matches("^[a-zA-Z &`\\-\\'\\.^]{1,35}$"), "Submission has not passed validation. Invalid Payload.")
-  require(RequestDetails.optionalNameValidation(middleName) && RequestDetails.optionalNameValidation(firstName), "Submission has not passed validation. Invalid Payload.")
-  require(RequestDetails.optionalGenderValidation(gender), "Submission has not passed validation. Invalid Payload.")
-  require(RequestDetails.optionalInitialsValidation(initials), "Submission has not passed validation. Invalid Payload.")
+  require(
+    fromDate.matches("^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$"),
+    "Submission has not passed validation. Invalid fromDate in payload."
+  )
+  require(surname.matches("^[a-zA-Z &`\\-\\'\\.^]{1,35}$"), "Submission has not passed validation. Invalid surname in payload.")
+  require(RequestDetails.optionalNameValidation(middleName), "Submission has not passed validation. Invalid middle name in payload.")
+  require(RequestDetails.optionalNameValidation(firstName), "Submission has not passed validation. Invalid first name in payload.")
+  require(RequestDetails.optionalGenderValidation(gender), "Submission has not passed validation. Invalid gender in payload.")
+  require(RequestDetails.optionalInitialsValidation(initials), "Submission has not passed validation. Invalid initials in payload.")
   require(
    RequestDetails.optionalDateValidation(dateOfBirth),
-    "Submission has not passed validation. Invalid Payload."
+    "Submission has not passed validation. Invalid date of birth in payload."
   )
-  require(RequestDetails.filterFieldsValidation(filterFields), "Submission has not passed validation. Invalid Payload.")
+  require(RequestDetails.filterFieldsValidation(filterFields), "Submission has not passed validation. Invalid filter-fields in payload.")
 }
 
 object RequestDetails {
