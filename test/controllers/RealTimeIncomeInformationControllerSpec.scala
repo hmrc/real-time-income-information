@@ -32,7 +32,8 @@ import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
 import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
-import utils.{BaseSpec, Constants, FakeAuthAction, FakeValidateCorrelationId}
+import utils.Constants.errorCodeInvalidPayload
+import utils.{BaseSpec, Constants, FakeAuthAction, FakeValidateCorrelationId, ResourceProvider}
 
 import scala.concurrent.Future
 
@@ -40,7 +41,8 @@ class RealTimeIncomeInformationControllerSpec
   extends BaseSpec
     with GuiceOneAppPerSuite
     with Injecting
-    with BeforeAndAfterEach {
+    with BeforeAndAfterEach
+    with ResourceProvider {
 
   val correlationId: String = generateUUId
   val nino: String = generateNino
@@ -278,6 +280,16 @@ class RealTimeIncomeInformationControllerSpec
         val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
 
         status(result) mustBe NOT_FOUND
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
+      }
+
+      "json doesn't pass RequestDetails schema validation" in {
+        val expectedDesResponse =
+          DesSingleFailureResponse(errorCodeInvalidPayload, "requirement failed: Submission has not passed validation. Invalid nino in payload.")
+
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+
+        status(result) mustBe BAD_REQUEST
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
     }

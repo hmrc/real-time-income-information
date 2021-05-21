@@ -34,7 +34,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
     "ServiceUnavailable when endpoint returns errorCode" in {
 
       stubPostServer(serviceUnavailable(), s"/individuals/$generatedNino/income")
-      val requestDetails = exampleDwpRequest
+      val requestDetails = exampleDwpRequest(generatedNino.nino)
 
       val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
       val result = route(fakeApplication(), request)

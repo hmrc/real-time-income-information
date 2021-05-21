@@ -37,6 +37,7 @@ trait ResourceProvider {
   val successNoMatch: JsValue                  = readJson("/200-success-no-match.json")
   val successNoMatchGreaterThanZero: JsValue   = readJson("/200-success-no-match-greater-than-zero.json")
   val exampleDesRequest: JsValue               = readJson("/example-des-request.json")
+  val exampleDwpRequest: JsValue               = readJson("/example-dwp-request.json")
   val multipleErrors: JsValue                  = readJson("/400-multiple-errors.json")
   val exampleInvalidDateRangeRequest: JsValue  = readJson("/example-dwp-request-invalid-date-range.json")
   val exampleInvalidDatesEqualRequest: JsValue = readJson("/example-dwp-request-invalid-dates-equal.json")

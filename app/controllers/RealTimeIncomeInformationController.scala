@@ -28,6 +28,7 @@ import utils.Constants._
 import play.api.libs.json._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 @Singleton
@@ -64,11 +65,14 @@ class RealTimeIncomeInformationController @Inject() (
     }
 
   private val parseJson: Request[JsValue] => Either[DesSingleFailureResponse, RequestDetails] = { request =>
-    request.body.validate[RequestDetails].fold(invalid =
-      {
-        fieldErrors => val error = fieldErrors.map(_._1)
-          Left(invalidPayloadWithMsg("Invalid Payload. Invalid " + error.mkString(", ").replace("/", "")))
-      }, valid = Right(_) )
+    Try(request.body.validate[RequestDetails]) match {
+      case Success(JsSuccess(value, _)) => Right(value)
+      case Success(JsError(fieldErrors)) => {
+        val error = fieldErrors.map(_._1)
+        Left(invalidPayloadWithMsg("Invalid Payload. Invalid " + error.mkString(", ").replace("/", "")))
+      }
+      case Failure(exception) => Left(invalidPayloadWithMsg(exception.getMessage))
+    }
   }
 
   private val validateDate
