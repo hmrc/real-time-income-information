@@ -1,5 +1,6 @@
 import play.sbt.routes.RoutesKeys
 import scoverage.ScoverageKeys
+import uk.gov.hmrc.DefaultBuildSettings.addTestReportOption
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
 val appName = "real-time-income-information"
@@ -39,4 +40,11 @@ lazy val microservice = Project(appName, file("."))
     scalacOptions += "-Xfatal-warnings",
     majorVersion := 2,
     resolvers += Resolver.jcenterRepo
+  )
+  .configs(IntegrationTest)
+  .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
+  .settings(
+    unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
+    addTestReportOption(IntegrationTest, "int-test-reports"),
+    parallelExecution in IntegrationTest := false
   )

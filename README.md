@@ -9,3 +9,5 @@ https://developer.service.hmrc.gov.uk/api-documentation/docs/using-the-hub
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html")
+
+Note: when testing this service manually run the command 'sbt -Dapplication.router=testOnlyDoNotUseInAppConf.Routes run'

@@ -30,9 +30,10 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
-import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService, SchemaValidator}
+import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
-import utils.{BaseSpec, Constants, FakeAuthAction, FakeValidateCorrelationId}
+import utils.Constants.errorCodeInvalidPayload
+import utils.{BaseSpec, Constants, FakeAuthAction, FakeValidateCorrelationId, ResourceProvider}
 
 import scala.concurrent.Future
 
@@ -40,14 +41,14 @@ class RealTimeIncomeInformationControllerSpec
   extends BaseSpec
     with GuiceOneAppPerSuite
     with Injecting
-    with BeforeAndAfterEach {
+    with BeforeAndAfterEach
+    with ResourceProvider {
 
   val correlationId: String = generateUUId
   val nino: String = generateNino
   val mockRtiiService: RealTimeIncomeInformationService = mock[RealTimeIncomeInformationService]
   val mockAuditService: AuditService = mock[AuditService]
   val mockRequestDetailsService: RequestDetailsService = mock[RequestDetailsService]
-  val mockSchemaValidator: SchemaValidator = mock[SchemaValidator]
   implicit val mat: Materializer = app.materializer
 
   override def fakeApplication(): Application =
@@ -58,13 +59,12 @@ class RealTimeIncomeInformationControllerSpec
         bind[AuthAction].to[FakeAuthAction],
         bind[RequestDetailsService].toInstance(mockRequestDetailsService),
         bind[ValidateCorrelationId].to[FakeValidateCorrelationId],
-        bind[SchemaValidator].toInstance(mockSchemaValidator)
       )
       .build()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRtiiService, mockAuditService, mockSchemaValidator, mockRequestDetailsService)
+    reset(mockRtiiService, mockAuditService, mockRequestDetailsService)
   }
 
   def fakeRequest(jsonBody: JsValue): FakeRequest[JsValue] =
@@ -76,7 +76,7 @@ class RealTimeIncomeInformationControllerSpec
     )
 
   val controller: RealTimeIncomeInformationController = inject[RealTimeIncomeInformationController]
-  val requestDetails: RequestDetails = exampleDwpRequest.as[RequestDetails]
+  val requestDetails: RequestDetails = modifiedExampleDwpRequest(nino).as[RequestDetails]
 
   "preSchemaValidation" must {
     "Return OK provided a valid request" when {
@@ -92,15 +92,13 @@ class RealTimeIncomeInformationControllerSpec
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
-        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
         status(result) mustBe OK
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
 
-        verify(mockSchemaValidator, times(1)).validate(any())
         verify(mockAuditService, times(1)).rtiiAudit(meq(correlationId), meq(requestDetails))(any())
       }
 
@@ -110,11 +108,10 @@ class RealTimeIncomeInformationControllerSpec
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
-        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
         status(result) mustBe OK
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
@@ -144,12 +141,11 @@ class RealTimeIncomeInformationControllerSpec
           s"the service returns $testDescription" in {
             when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
               .thenReturn(Future.successful(AuditResult.Success))
-            when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+            when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
               .thenReturn(Future.successful(expectedDesResponse))
-            when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
             when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-            val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+            val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
             status(result) mustBe BAD_REQUEST
 
             (expectedDesResponse: @unchecked) match {
@@ -255,19 +251,6 @@ class RealTimeIncomeInformationControllerSpec
         contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
           "Invalid Payload. Invalid toDate, filterFields"))
       }
-
-      "schemaValidator returns false" in {
-        val expectedResponse = Constants.responseInvalidPayload
-
-        when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
-          .thenReturn(Future.successful(AuditResult.Success))
-        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(false)
-        when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
-
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
-        status(result) mustBe BAD_REQUEST
-        contentAsJson(result) mustBe Json.toJson(expectedResponse)
-      }
     }
 
     "Return 404 (NOT_FOUND)" when {
@@ -276,12 +259,11 @@ class RealTimeIncomeInformationControllerSpec
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
-        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
         status(result) mustBe NOT_FOUND
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
@@ -291,14 +273,23 @@ class RealTimeIncomeInformationControllerSpec
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
-        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
+
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
+
+        status(result) mustBe NOT_FOUND
+        contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
+      }
+
+      "json doesn't pass RequestDetails schema validation" in {
+        val expectedDesResponse =
+          DesSingleFailureResponse(errorCodeInvalidPayload, "requirement failed: Submission has not passed validation. Invalid nino in payload.")
 
         val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
 
-        status(result) mustBe NOT_FOUND
+        status(result) mustBe BAD_REQUEST
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
       }
     }
@@ -308,12 +299,11 @@ class RealTimeIncomeInformationControllerSpec
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.failed(new Exception))
-        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
 
         status(result) mustBe SERVICE_UNAVAILABLE
         contentAsJson(result) mustBe Json.toJson(
@@ -329,12 +319,11 @@ class RealTimeIncomeInformationControllerSpec
 
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
-        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
 
         status(result) mustBe SERVICE_UNAVAILABLE
         contentAsJson(result) mustBe Json.toJson(expectedDesResponse)
@@ -344,12 +333,11 @@ class RealTimeIncomeInformationControllerSpec
         val expectedDesResponse = DesNoResponse()
         when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
           .thenReturn(Future.successful(AuditResult.Success))
-        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+        when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
           .thenReturn(Future.successful(expectedDesResponse))
-        when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
         when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-        val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+        val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
 
         status(result) mustBe SERVICE_UNAVAILABLE
 
@@ -372,12 +360,11 @@ class RealTimeIncomeInformationControllerSpec
 
             when(mockAuditService.rtiiAudit(meq(correlationId), meq(requestDetails))(any()))
               .thenReturn(Future.successful(AuditResult.Success))
-            when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId)))
+            when(mockRtiiService.retrieveCitizenIncome(meq(requestDetails), meq(correlationId))(any()))
               .thenReturn(Future.successful(expectedDesResponse))
-            when(mockSchemaValidator.validate(exampleDwpRequest)).thenReturn(true)
             when(mockRequestDetailsService.validateDates(requestDetails)).thenReturn(Right(requestDetails))
 
-            val result = controller.preSchemaValidation(correlationId)(fakeRequest(exampleDwpRequest))
+            val result = controller.preSchemaValidation(correlationId)(fakeRequest(modifiedExampleDwpRequest(nino)))
 
             status(result) mustBe INTERNAL_SERVER_ERROR
 

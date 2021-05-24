@@ -25,7 +25,7 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import play.api.test.Injecting
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 import utils.{BaseSpec, WireMockHelper}
 
 import scala.util.Try
@@ -241,9 +241,11 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
 
       server.verify(
         postRequestedFor(urlEqualTo(url))
-          .withHeader("Authorization", equalTo(s"Bearer $testAuthToken"))
+          .withHeader(HeaderNames.authorisation, equalTo(s"Bearer $testAuthToken"))
           .withHeader("Environment", equalTo(testEnv))
-          .withHeader("CorrelationId", equalTo(correlationId))
+          .withHeader("CorrelationId", matching("[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}"))
+          .withHeader(HeaderNames.xRequestId, equalTo("-"))
+          .withHeader(HeaderNames.xSessionId, equalTo("-"))
       )
     }
   }

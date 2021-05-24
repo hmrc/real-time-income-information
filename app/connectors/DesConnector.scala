@@ -16,6 +16,8 @@
 
 package connectors
 
+import java.util.UUID
+
 import com.google.inject.{Inject, Singleton}
 import config.ApplicationConfig
 import models._
@@ -23,7 +25,7 @@ import play.api.Logger
 import play.api.http.Status.OK
 import play.api.libs.json.{JsPath, JsonValidationError, Reads}
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,16 +35,6 @@ class DesConnector @Inject() (httpClient: HttpClient, desConfig: ApplicationConf
 ) {
 
   private val logger: Logger = Logger(this.getClass)
-
-  private def header(correlationID: String): HeaderCarrier =
-    HeaderCarrier(extraHeaders =
-      Seq(
-        "Authorization" -> desConfig.authorization,
-        "Environment"   -> desConfig.environment,
-        "CorrelationId" -> correlationID
-      )
-    )
-
   implicit val desReponseReads: HttpReads[DesResponse] = new HttpReads[DesResponse] {
 
     override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse =
@@ -83,10 +75,18 @@ class DesConnector @Inject() (httpClient: HttpClient, desConfig: ApplicationConf
       nino: String,
       matchingRequest: DesMatchingRequest,
       correlationId: String
-  ): Future[DesResponse] = {
+  )(implicit hc: HeaderCarrier): Future[DesResponse] = {
     val postUrl: String            = s"${desConfig.hodUrl}/individuals/$nino/income"
-    implicit val hc: HeaderCarrier = header(correlationId)
-    httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest) recover {
+    val header: Seq[(String, String)] =
+    Seq(
+      HeaderNames.authorisation -> desConfig.authorization,
+      HeaderNames.xRequestId -> hc.requestId.fold("-")(_.value),
+      HeaderNames.xSessionId -> hc.sessionId.fold("-")(_.value),
+      "Environment" -> desConfig.environment,
+      "CorrelationId" -> UUID.randomUUID().toString
+    )
+
+    httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest, header) recover {
       case e: GatewayTimeoutException =>
         //$COVERAGE-OFF$
         logger.error(s"GatewayTimeoutException occurred: ${e.message}")

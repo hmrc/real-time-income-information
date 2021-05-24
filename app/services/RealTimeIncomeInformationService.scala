@@ -20,6 +20,7 @@ import com.google.inject.{Inject, Singleton}
 import connectors.DesConnector
 import models.{DesFilteredSuccessResponse, DesResponse, DesSuccessResponse, RequestDetails}
 import play.api.libs.json._
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,7 +37,7 @@ class RealTimeIncomeInformationService @Inject() (desConnector: DesConnector)(im
       Json.toJson(keys.flatMap(key => pickOneValue(key, taxYear)).toMap)
     }
 
-  def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String): Future[DesResponse] =
+  def retrieveCitizenIncome(requestDetails: RequestDetails, correlationId: String)(implicit hc: HeaderCarrier): Future[DesResponse] =
     desConnector.retrieveCitizenIncome(
       requestDetails.nino,
       RequestDetails.toMatchingRequest(requestDetails),

@@ -22,12 +22,13 @@ import models._
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
-import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService, SchemaValidator}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.Constants._
 import play.api.libs.json._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 @Singleton
@@ -37,7 +38,6 @@ class RealTimeIncomeInformationController @Inject() (
     auth: AuthAction,
     validateCorrelationId: ValidateCorrelationId,
     requestDetailsService: RequestDetailsService,
-    schemaValidator: SchemaValidator,
     cc: ControllerComponents
 )(implicit
     ec: ExecutionContext
@@ -47,7 +47,7 @@ class RealTimeIncomeInformationController @Inject() (
 
   def preSchemaValidation(correlationId: String): Action[JsValue] =
     authenticateAndValidate(correlationId).async(parse.json) { implicit request =>
-      (parseJson andThen validateDate andThen validateAgainstSchema(request.body) andThen getResult)(request) {
+      (parseJson andThen validateDate andThen getResult)(request) {
         requestDetails =>
           auditService.rtiiAudit(correlationId, requestDetails)
           rtiiService.retrieveCitizenIncome(requestDetails, correlationId) map {
@@ -65,11 +65,14 @@ class RealTimeIncomeInformationController @Inject() (
     }
 
   private val parseJson: Request[JsValue] => Either[DesSingleFailureResponse, RequestDetails] = { request =>
-    request.body.validate[RequestDetails].fold(invalid =
-      {
-        fieldErrors => val error = fieldErrors.map(_._1)
-          Left(invalidPayloadWithMsg("Invalid Payload. Invalid " + error.mkString(", ").replace("/", "")))
-      }, valid = Right(_) )
+    Try(request.body.validate[RequestDetails]) match {
+      case Success(JsSuccess(value, _)) => Right(value)
+      case Success(JsError(fieldErrors)) => {
+        val error = fieldErrors.map(_._1)
+        Left(invalidPayloadWithMsg("Invalid Payload. Invalid " + error.mkString(", ").replace("/", "")))
+      }
+      case Failure(exception) => Left(invalidPayloadWithMsg(exception.getMessage))
+    }
   }
 
   private val validateDate
@@ -82,13 +85,6 @@ class RealTimeIncomeInformationController @Inject() (
 
   private def authenticateAndValidate(id: String): ActionBuilder[Request, AnyContent] =
     auth andThen validateCorrelationId(id)
-
-  private def validateAgainstSchema(
-      json: JsValue
-  ): Either[DesSingleFailureResponse, RequestDetails] => Either[DesSingleFailureResponse, RequestDetails] =
-    _.flatMap(requestDetails =>
-      if (schemaValidator.validate(json)) Right(requestDetails) else Left(responseInvalidPayload)
-    )
 
   private def failureResponseToResult(response: DesSingleFailureResponse): Result =
     Map(

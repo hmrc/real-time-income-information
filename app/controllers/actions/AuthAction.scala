@@ -24,7 +24,7 @@ import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.Constants._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,7 +39,7 @@ class AuthActionImpl @Inject() (val parser: BodyParsers.Default, override val au
 
   override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier =
-      HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
+      HeaderCarrierConverter.fromRequest(request)
 
     authorised(AuthProviders(PrivilegedApplication)) {
       Future.successful(None)
