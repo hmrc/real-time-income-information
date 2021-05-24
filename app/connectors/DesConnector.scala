@@ -16,6 +16,8 @@
 
 package connectors
 
+import java.util.UUID
+
 import com.google.inject.{Inject, Singleton}
 import config.ApplicationConfig
 import models._
@@ -33,15 +35,6 @@ class DesConnector @Inject() (httpClient: HttpClient, desConfig: ApplicationConf
 ) {
 
   private val logger: Logger = Logger(this.getClass)
-
-  private def header(correlationID: String): Seq[(String, String)] =
-    Seq(
-      "Authorization" -> desConfig.authorization,
-      "Environment"   -> desConfig.environment,
-      "CorrelationId" -> correlationID
-    )
-
-
   implicit val desReponseReads: HttpReads[DesResponse] = new HttpReads[DesResponse] {
 
     override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse =
@@ -84,7 +77,16 @@ class DesConnector @Inject() (httpClient: HttpClient, desConfig: ApplicationConf
       correlationId: String
   )(implicit hc: HeaderCarrier): Future[DesResponse] = {
     val postUrl: String            = s"${desConfig.hodUrl}/individuals/$nino/income"
-    httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest, header(correlationId)) recover {
+    val header: Seq[(String, String)] =
+    Seq(
+      HeaderNames.authorisation -> desConfig.authorization,
+      HeaderNames.xRequestId -> hc.requestId.fold("-")(_.value),
+      HeaderNames.xSessionId -> hc.sessionId.fold("-")(_.value),
+      "Environment" -> desConfig.environment,
+      "CorrelationId" -> UUID.randomUUID().toString
+    )
+
+    httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest, header) recover {
       case e: GatewayTimeoutException =>
         //$COVERAGE-OFF$
         logger.error(s"GatewayTimeoutException occurred: ${e.message}")
