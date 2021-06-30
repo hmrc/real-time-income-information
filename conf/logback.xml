@@ -53,6 +53,10 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
+    <Logger name="uk.gov.hmrc.audit.handler.DatastreamHandler" level="OFF" additivity="false">
+        <AppenderRef ref="Console" />
+    </Logger>
+
     <root level="${logger.root:-INFO}">
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>
