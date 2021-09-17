@@ -16,7 +16,7 @@
 
 package config
 
-import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
+import org.scalatest.matchers.must.Matchers._
 
 import java.util.UUID
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -30,7 +30,7 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
   def SUT(accessType: Option[String] = None, whitelist: List[String] = Nil): APIConfig =
     accessType.fold(new APIConfig(Configuration())) { _type =>
       new APIConfig(
-        realConfig ++ Configuration("api.access.type" -> _type, "api.access.whitelistedApplicationIds" -> whitelist)
+        realConfig.withFallback(Configuration("api.access.type" -> _type, "api.access.whitelistedApplicationIds" -> whitelist))
       )
     }
 

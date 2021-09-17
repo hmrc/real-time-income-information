@@ -18,7 +18,7 @@ package controllers
 
 import akka.stream.Materializer
 import models.api.APIAccess
-import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
+import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.http.HeaderNames.CONTENT_TYPE
