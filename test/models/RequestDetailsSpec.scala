@@ -16,6 +16,7 @@
 
 package models
 
+import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import utils.BaseSpec
 
 class RequestDetailsSpec extends BaseSpec {

@@ -17,6 +17,7 @@
 package services
 
 import models.RequestDetails
+import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import utils.{BaseSpec, Constants}
 
 class RequestDetailsServiceSpec extends BaseSpec {

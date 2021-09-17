@@ -18,14 +18,15 @@ package controllers
 
 import akka.stream.Materializer
 import models.api.APIAccess
+import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.Status._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.test.{FakeRequest, Helpers, Injecting}
-import Helpers.{contentAsJson, defaultAwaitTimeout, headers, status}
+import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, headers}
+import play.api.test.{FakeRequest, Injecting}
 import utils.BaseSpec
 import views._
 

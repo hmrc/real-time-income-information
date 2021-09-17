@@ -16,8 +16,9 @@
 
 package config
 
-import java.util.UUID
+import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 
+import java.util.UUID
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 import utils.BaseSpec
