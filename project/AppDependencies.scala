@@ -16,7 +16,8 @@ object AppDependencies {
     "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0",
     "org.mockito"             % "mockito-core"       % "3.4.0",
     "com.typesafe.play"      %% "play-test"          % PlayVersion.current,
-    "com.github.tomakehurst"  % "wiremock-jre8"      % "2.27.0"
+    "com.github.tomakehurst"  % "wiremock-jre8"      % "2.26.3",
+    "com.vladsch.flexmark" % "flexmark-all" % "0.35.10"
   ).map(_ % "test,it")
 
   val all: Seq[ModuleID] = compile ++ test

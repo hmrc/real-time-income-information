@@ -2,8 +2,6 @@ package test_utils
 
   import akka.stream.Materializer
   import akka.util.ByteString
-  import org.mockito.Mockito
-  import org.mockito.stubbing.Answer
   import org.scalatest.OptionValues
   import org.scalatest.matchers.should.Matchers
   import org.scalatest.wordspec.AnyWordSpec
@@ -14,7 +12,7 @@ package test_utils
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.duration._
   import scala.concurrent.{Await, Future}
-  import scala.reflect.ClassTag
+  import scala.language.{implicitConversions, postfixOps}
 
   trait UnitSpec extends AnyWordSpec with Matchers with OptionValues {
 
@@ -53,10 +51,4 @@ package test_utils
     def bodyOf(resultF: Future[Result])(implicit mat: Materializer): Future[String] = {
       resultF.map(bodyOf)
     }
-
-    def mock[T](implicit ev: ClassTag[T]): T =
-      Mockito.mock(ev.runtimeClass.asInstanceOf[Class[T]])
-
-    def mock[T](answer: Answer[Object])(implicit ev: ClassTag[T]): T =
-      Mockito.mock(ev.runtimeClass.asInstanceOf[Class[T]], answer)
   }

@@ -1,8 +1,8 @@
 package controllers
 
 import java.util.UUID
-
 import com.github.tomakehurst.wiremock.client.WireMock._
+import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json

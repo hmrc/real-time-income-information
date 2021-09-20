@@ -16,7 +16,6 @@
 
 package services
 
-import java.time.Instant
 import models.RequestDetails
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -33,6 +32,7 @@ import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.DataEvent
 import utils.BaseSpec
 
+import java.time.Instant
 import scala.concurrent.Future
 
 class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
