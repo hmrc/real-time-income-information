@@ -20,6 +20,7 @@ import connectors.DesConnector
 import models._
 import org.mockito.ArgumentMatchers.{any, eq => meq}
 import org.mockito.Mockito._
+import org.scalatest.matchers.must.Matchers._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.BaseSpec

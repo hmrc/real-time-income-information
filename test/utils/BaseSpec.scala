@@ -16,19 +16,15 @@
 
 package utils
 
-import java.util.UUID
-
-import org.scalatest.MustMatchers
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.domain.Generator
 
+import java.util.UUID
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 import scala.util.Random
 
-trait BaseSpec extends PlaySpec with MustMatchers with MockitoSugar with ResourceProvider {
+trait BaseSpec extends UnitSpec with ResourceProvider {
   def generateUUId: String           = UUID.randomUUID().toString
   def generateNino: String           = new Generator(new Random).nextNino.toString()
   def await[A](future: Future[A]): A = Await.result(future, 5 seconds)

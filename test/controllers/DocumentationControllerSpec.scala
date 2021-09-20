@@ -17,10 +17,11 @@
 package controllers
 
 import akka.stream.Materializer
+import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status._
 import play.api.mvc.Result
-import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout, status}
+import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout}
 import play.api.test.{FakeRequest, Injecting}
 import utils.BaseSpec
 
