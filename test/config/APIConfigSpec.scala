@@ -56,34 +56,4 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
       }
     }
   }
-
-  "apiWhiteList" must {
-    "return None" when {
-      "there is no configuration" in {
-        val config = SUT().apiWhiteList
-
-        config mustBe None
-      }
-
-      "PRIVATE is configured" in {
-        val config = SUT(Some("PRIVATE"), Nil).apiWhiteList
-
-        config mustBe Some(Nil)
-      }
-
-      "PRIVATE is configured and the list has elements" in {
-        val config = SUT(Some("PRIVATE"), List("white", "list")).apiWhiteList
-
-        config mustBe Some(Seq("white", "list"))
-      }
-    }
-
-    "return the config" when {
-      "something other than PRIVATE is configured and the list is empty" in {
-        val config = SUT(Some("PUBLIC")).apiWhiteList
-
-        config mustBe None
-      }
-    }
-  }
 }

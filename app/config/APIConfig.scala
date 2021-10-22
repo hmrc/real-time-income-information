@@ -22,7 +22,6 @@ import play.api.{ConfigLoader, Configuration}
 @Singleton
 class APIConfig @Inject() (configuration: Configuration) {
   private val apiContextConfigKey             = "api.context"
-  private val apiWhitelistedServicesConfigKey = "api.access.whitelistedApplicationIds"
   private val apiAccessTypeKey                = "api.access.type"
   private val privateAccessKey                = "PRIVATE"
 
@@ -30,9 +29,6 @@ class APIConfig @Inject() (configuration: Configuration) {
     getOptApiConf[String](apiContextConfigKey).getOrElse(throw apiConfigException(apiContextConfigKey))
 
   lazy val apiTypeAccess: String = getOptApiConf[String](apiAccessTypeKey).getOrElse(privateAccessKey)
-
-  lazy val apiWhiteList: Option[Seq[String]] =
-    if (apiTypeAccess == privateAccessKey) getOptApiConf[Seq[String]](apiWhitelistedServicesConfigKey) else None
 
   private def apiConfigException(key: String) = new IllegalStateException(s"$key is not configured")
 

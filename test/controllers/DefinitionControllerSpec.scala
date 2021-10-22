@@ -34,8 +34,7 @@ class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with In
 
   private val apiScope                            = "scope"
   private val apiContext                          = "context"
-  private val apiWhitelist                        = "whitelist"
-  private val apiAccess                           = APIAccess("PRIVATE", Some(Seq.empty))
+  private val apiAccess                           = APIAccess("PRIVATE")
   private lazy val controller                     = inject[DefinitionController]
   implicit private val materializer: Materializer = app.materializer
 
@@ -44,9 +43,7 @@ class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with In
       .configure(
         "api.definition.scope"                 -> apiScope,
         "api.context"                          -> apiContext,
-        "api.whitelistedApplicationIds"        -> apiWhitelist,
-        "api.access.type"                      -> "PRIVATE",
-        "api.access.whitelistedApplicationIds" -> Seq.empty
+        "api.access.type"                      -> "PRIVATE"
       )
       .build()
 
