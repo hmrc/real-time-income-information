@@ -18,7 +18,7 @@ package models.api
 
 import play.api.libs.json.{JsValue, Json, Writes}
 
-final case class APIAccess(`type`: String, whitelistedApplicationIds: Option[Seq[String]]) {
+final case class APIAccess(`type`: String) {
   def toJson: JsValue = Json.toJson(this)
 }
 
