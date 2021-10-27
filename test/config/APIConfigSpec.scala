@@ -23,7 +23,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 import utils.BaseSpec
 
-class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
+class APIConfigSpec extends BaseSpec {
 
   def SUT(accessType: Option[String] = None, whitelist: List[String] = Nil): APIConfig =
     accessType.fold(new APIConfig(Configuration())) { _type =>
@@ -35,13 +35,13 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
   "apiTypeAccess" must {
     "return PRIVATE" when {
       "there is no configuration" in {
-        val config = SUT().apiTypeAccess
+        val config = SUT().apiAccessType
 
         config mustBe "PRIVATE"
       }
 
       "PRIVATE is configured" in {
-        val config = SUT(Some("PRIVATE")).apiTypeAccess
+        val config = SUT(Some("PRIVATE")).apiAccessType
 
         config mustBe "PRIVATE"
       }
@@ -50,7 +50,7 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
     "return the config" when {
       "something other than PRIVATE is configured" in {
         val randConfigValue = UUID.randomUUID().toString
-        val config          = SUT(Some(randConfigValue)).apiTypeAccess
+        val config          = SUT(Some(randConfigValue)).apiAccessType
 
         config mustBe randConfigValue
       }

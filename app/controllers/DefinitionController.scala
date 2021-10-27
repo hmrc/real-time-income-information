@@ -26,7 +26,7 @@ import views.txt
 @Singleton
 class DefinitionController @Inject() (apiContext: APIConfig, cc: ControllerComponents) extends BackendController(cc) {
 
-  private val apiAccess: APIAccess = APIAccess(apiContext.apiTypeAccess)
+  private val apiAccess: APIAccess = APIAccess(apiContext.apiAccessType)
 
   def get(): Action[AnyContent] =
     Action {
