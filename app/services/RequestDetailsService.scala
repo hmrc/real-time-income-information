@@ -16,13 +16,21 @@
 
 package services
 
+import com.google.inject.Inject
+import config.APIConfig
 import models.{DesSingleFailureResponse, RequestDetails}
 import org.joda.time.LocalDate
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions, Enrolments}
+import uk.gov.hmrc.http.HeaderCarrier
 import utils.Constants
 
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
 
-class RequestDetailsService {
+class RequestDetailsService @Inject()(apiConfig: APIConfig,
+                                      val authConnector: AuthConnector) extends AuthorisedFunctions {
 
   def validateDates(requestDetails: RequestDetails): Either[DesSingleFailureResponse, RequestDetails] = {
     val toDate   = parseAsDate(requestDetails.toDate)
@@ -42,7 +50,20 @@ class RequestDetailsService {
     }
   }
 
+  def processFilterFields(requestDetails: RequestDetails)(implicit headerCarrier: HeaderCarrier,
+                                                          executionContext: ExecutionContext): Either[DesSingleFailureResponse, RequestDetails] = {
+
+    val enrolmentsFuture = authorised.retrieve(Retrievals.allEnrolments) {
+      scopes => {
+        println(scopes)
+        Future.successful(scopes)
+      }
+    }
+    val enrolments: Enrolments = Await.result(enrolmentsFuture, atMost = 30 seconds)
+    println(enrolments)
+    Right(requestDetails)
+  }
+
   private def parseAsDate(string: String): Option[LocalDate] =
     Try(new LocalDate(string)).toOption
-
 }

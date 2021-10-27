@@ -20,16 +20,16 @@ import com.google.inject.{Inject, Singleton}
 import controllers.actions.{AuthAction, ValidateCorrelationId}
 import models._
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc._
 import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.Constants._
-import play.api.libs.json._
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class RealTimeIncomeInformationController @Inject() (
@@ -47,7 +47,7 @@ class RealTimeIncomeInformationController @Inject() (
 
   def preSchemaValidation(correlationId: String): Action[JsValue] =
     authenticateAndValidate(correlationId).async(parse.json) { implicit request =>
-      (parseJson andThen validateDate andThen getResult)(request) {
+      (parseJson andThen filterFields andThen validateDate andThen getResult)(request) {
         requestDetails =>
           auditService.rtiiAudit(correlationId, requestDetails)
           rtiiService.retrieveCitizenIncome(requestDetails, correlationId) map {
@@ -63,6 +63,10 @@ class RealTimeIncomeInformationController @Inject() (
           }
       }
     }
+
+  private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit headerCarrier: HeaderCarrier): Either[DesSingleFailureResponse, RequestDetails] = {
+    input.flatMap(requestDetailsService.processFilterFields(_))
+  }
 
   private val parseJson: Request[JsValue] => Either[DesSingleFailureResponse, RequestDetails] = { request =>
     Try(request.body.validate[RequestDetails]) match {
