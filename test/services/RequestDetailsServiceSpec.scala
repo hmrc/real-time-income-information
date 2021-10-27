@@ -18,11 +18,13 @@ package services
 
 import models.RequestDetails
 import org.scalatest.matchers.must.Matchers._
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.test.Injecting
 import utils.{BaseSpec, Constants}
 
-class RequestDetailsServiceSpec extends BaseSpec {
+class RequestDetailsServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 
-  val SUT = new RequestDetailsService
+  val SUT = inject[RequestDetailsService]
 
   "validateDates" must {
     "return requestDetails" when {
@@ -52,5 +54,4 @@ class RequestDetailsServiceSpec extends BaseSpec {
 
   def createRequestDetails(fromDate: String, toDate: String) =
     RequestDetails(generateNino, "serviceName", fromDate, toDate, "surname", None, None, None, None, None, List("surname"))
-
 }

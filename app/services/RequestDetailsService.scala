@@ -21,7 +21,7 @@ import config.APIConfig
 import models.{DesSingleFailureResponse, RequestDetails}
 import org.joda.time.LocalDate
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions, Enrolments}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.Constants
 
@@ -56,11 +56,11 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig,
     val enrolmentsFuture = authorised.retrieve(Retrievals.allEnrolments) {
       scopes => {
         println(scopes)
-        Future.successful(scopes)
+        Future.successful(scopes.enrolments.map(_.key))
       }
     }
-    val enrolments: Enrolments = Await.result(enrolmentsFuture, atMost = 30 seconds)
-    println(enrolments)
+    val enrolments: Set[String] = Await.result(enrolmentsFuture, atMost = 30 seconds)
+    println(s"\n\n\n\n TESTTTTT $enrolments TTTTTSET \n\n\n\n")
     Right(requestDetails)
   }
 
