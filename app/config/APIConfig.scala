@@ -32,7 +32,7 @@ class APIConfig @Inject() (configuration: Configuration) {
 
   private lazy val apiFields: List[ApiField] = getOptional[List[ApiField]](apiFieldsKey).getOrElse(throw apiConfigException(apiFieldsKey))
 
-  lazy val apiScopes: List[ApiScope] = getOptional[List[ApiScope]](apiScopesKey).getOrElse(throw apiConfigException(apiScopesKey))
+  private lazy val apiScopes: List[ApiScope] = getOptional[List[ApiScope]](apiScopesKey).getOrElse(throw apiConfigException(apiScopesKey))
 
   private def apiConfigException(key: String) = new IllegalStateException(s"$key is not configured")
 
@@ -53,18 +53,23 @@ class APIConfig @Inject() (configuration: Configuration) {
 
   implicit val apiScopesConfigLoader: ConfigLoader[List[ApiScope]] = new ConfigLoader[List[ApiScope]] {
     override def load(rootConfig: Config, path: String): List[ApiScope] = {
+
+      def generateScopeName(entryKey: String) = {
+        entryKey.replace(".fields", "").replace("\"", "")
+      }
+
       val scopesConfig = rootConfig.getConfig(apiScopesKey)
 
       val scopes = scopesConfig.entrySet().asScala.map { entry =>
 
-      val name = entry.getKey.replace(".fields", "")
       val fields = scopesConfig.getIntList(entry.getKey).asScala.map { key =>
         val value = getField(key).getOrElse(throw apiConfigException(apiFieldsKey))
         val apiField = ApiField(key, value.name)
         apiField
       }.toList
 
-      val apiScope = ApiScope(name, fields)
+      val scopeName = generateScopeName(entry.getKey)
+      val apiScope = ApiScope(scopeName, fields)
         apiScope
       }.toList
       scopes
@@ -75,5 +80,5 @@ class APIConfig @Inject() (configuration: Configuration) {
 
   lazy val apiContext: String = getOptional[String](apiContextKey).getOrElse(throw apiConfigException(apiContextKey))
 
-  def getScope(scopeName: String): Option[ApiScope] = apiScopes.find(apiScope => apiScope.name == scopeName)
+  def findScope(scopeName: String): Option[ApiScope] = apiScopes.find(apiScope => apiScope.name == scopeName)
 }
