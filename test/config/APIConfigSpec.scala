@@ -39,8 +39,8 @@ class APIConfigSpec extends BaseSpec {
         val scope = SUT.findScope(scopeName)
 
         scope.isDefined mustBe true
-        scope.get.name == scopeName
-        scope.get.fields.map(f => f.id) == Seq(1,2,3)
+        scope.get.name mustBe scopeName
+        scope.get.fields.map(f => f.id) mustBe Seq(1,2,3)
       }
     }
 
