@@ -17,7 +17,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
   val body= """{
               | "clientId": "localBearer",
-              | "enrolments": ["write:real-time-income-information"],
+              | "allEnrolments": [{"key": "write:real-time-income-information", "value": ""}],
               | "ttl": 2000
               |}""".stripMargin
 
@@ -55,12 +55,34 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
     "return requestDetails with filtered fields" when {
       "enrolment filters fields" in {
 
+        val body =
+          """
+            |{
+            |  "matchPattern": 63,
+            |  "taxYears":
+            |  [
+            |    {
+            |      "nationalInsuranceNumber": "AA111111A",
+            |      "surname": "Surname"
+            |    }
+            |  ]
+            |}
+            |""".stripMargin
+
+        stubPostServer(ok(body), s"/individuals/$generatedNino/income")
+
         val requestDetails = exampleDwpRequest(generatedNino.nino)
         val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
         val result = route(fakeApplication(), request)
 
         result.map(statusResult) mustBe Some(OK)
       }
+
+      // Does not have access to requested and filters out
+      // Has access but filters based on subset requested
+      // Has no access to scope returns no data
+
+
     }
   }
 }

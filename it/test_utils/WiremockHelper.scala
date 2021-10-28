@@ -2,10 +2,12 @@ package test_utils
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
-import com.github.tomakehurst.wiremock.client.WireMock.{post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
+import com.github.tomakehurst.wiremock.matching.StringValuePattern
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
+import play.api.libs.json.JsObject
 
 trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
   this: Suite =>
@@ -34,4 +36,16 @@ trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
           willReturn
         )
     )
+
+  def stubPostServerWithBody(willReturn: ResponseDefinitionBuilder, body: JsObject, url: String): StubMapping =
+    server.stubFor(
+      post(urlEqualTo(url))
+        .withRequestBody(similarToJson(body.toString()))
+        .willReturn(
+          willReturn
+        )
+    )
+
+  private def similarToJson(value: String): StringValuePattern =
+    equalToJson(value.stripMargin, true, false)
 }

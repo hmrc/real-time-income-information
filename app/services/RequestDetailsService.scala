@@ -17,7 +17,7 @@
 package services
 
 import com.google.inject.Inject
-import config.APIConfig
+import config.{APIConfig, ApiField}
 import models.{DesSingleFailureResponse, RequestDetails}
 import org.joda.time.LocalDate
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
@@ -27,6 +27,7 @@ import utils.Constants
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.language.postfixOps
 import scala.util.Try
 
 class RequestDetailsService @Inject()(apiConfig: APIConfig,
@@ -52,7 +53,6 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig,
 
   def processFilterFields(requestDetails: RequestDetails)(implicit headerCarrier: HeaderCarrier,
                                                           executionContext: ExecutionContext): Either[DesSingleFailureResponse, RequestDetails] = {
-
     val enrolmentsFuture = authorised.retrieve(Retrievals.allEnrolments) {
       scopes => {
         println(scopes)
@@ -60,7 +60,10 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig,
       }
     }
     val enrolments: Set[String] = Await.result(enrolmentsFuture, atMost = 30 seconds)
-    println(s"\n\n\n\n TESTTTTT $enrolments TTTTTSET \n\n\n\n")
+
+    //val accessibleFields: Set[ApiField] = enrolments.map(apiConfig.findScope).flatMap(_.map(_.fields)).flatten
+    //val usableFields = requestDetails.filterFields.filter(accessibleFields.map(_.name).contains(_))
+
     Right(requestDetails)
   }
 
