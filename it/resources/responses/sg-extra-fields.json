@@ -1,0 +1,9 @@
+{
+  "matchPattern": 63,
+  "taxYears": [
+    {
+      "employmentEndDate": "2018-03-31",
+      "payFrequency": "W1"
+    }
+  ]
+}

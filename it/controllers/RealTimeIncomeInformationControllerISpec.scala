@@ -3,12 +3,13 @@ package controllers
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Play.materializer
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, status => statusResult, _}
 import test_utils.{IntegrationBaseSpec, WireMockHelper}
-import uk.gov.hmrc.domain.{Generator, Nino}
+import uk.gov.hmrc.domain.Generator
 import utils.Constants.responseServiceUnavailable
 
 import java.util.UUID
@@ -51,26 +52,63 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
     "return requestDetails with filtered fields" when {
       "Consumer has access to all fields" in {
 
+        val expectedResponse = getResponse("dwp-response", generatedNino)
+        val desResponse = fullDesResponse(generatedNino)
+
         stubPostServer(ok(authBody("write:real-time-income-information")) ,"/auth/authorise")
-
-
-        val desBody = getDesRequest("dwp-request", generatedNino)
-        val desResponse = getResponse("dwp-response", generatedNino)
-
-        stubPostServerWithBody(ok(desResponse.toString()), desBody, s"/individuals/$generatedNino/income")
+        stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
 
         val requestDetails = dwpRequest(generatedNino)
         val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
         val result = route(fakeApplication(), request)
 
         result.map(statusResult) mustBe Some(OK)
+        val resultValue: JsValue = result.map(x => await(jsonBodyOf(x))).get
+        resultValue mustBe expectedResponse
       }
 
-      // Does not have access to requested and filters out
-      // Has access but filters based on subset requested
-      // Has no access to scope returns no data
+      "Consumer has access to all some fields requested but not all" in {
 
+        val fileName = "sg-extra-fields"
 
+        val expectedResponse = getResponse(fileName, generatedNino)
+        val desResponse = fullDesResponse(generatedNino)
+
+        stubPostServer(ok(authBody("write:real-time-income-information-sg")) ,"/auth/authorise")
+        stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
+
+        val requestDetails = getRequest(fileName, generatedNino)
+        val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
+        val result = route(fakeApplication(), request)
+
+        result.map(statusResult) mustBe Some(OK)
+        val resultValue: JsValue = result.map(x => await(jsonBodyOf(x))).get
+        resultValue mustBe expectedResponse
+      }
+
+      "Consumer has no access due to having no valid scope" in {
+
+        val fileName = "sg-extra-fields"
+
+        val desResponse = fullDesResponse(generatedNino)
+
+        stubPostServer(ok(authBody("write:this-is-not-a-valid-scope")) ,"/auth/authorise")
+        stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
+
+        val requestDetails = getRequest(fileName, generatedNino)
+        val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
+        val result = route(fakeApplication(), request)
+
+        result.map(statusResult) mustBe Some(OK)
+        val resultValue: JsValue = result.map(x => await(jsonBodyOf(x))).get
+        resultValue mustBe Json.parse(
+          """
+            |{
+            | "matchPattern": 63,
+            | "taxYears":[]
+            |}
+            |""".stripMargin)
+      }
     }
   }
 }

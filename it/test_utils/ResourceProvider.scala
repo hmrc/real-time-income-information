@@ -8,12 +8,16 @@ trait ResourceProvider {
 
   def dwpRequest(nino: String): JsValue = getRequest("dwp-request", nino)
 
-  def getDesRequest(fileName: String, nino: String): JsValue = readJson(s"./it/resources/desRequests/$fileName.json", nino)
+  def fullDesResponse(nino: String): JsValue = readJson(s"./it/resources/full-des-response.json", nino)
 
   def getRequest(fileName: String, nino: String): JsValue = readJson(s"./it/resources/requests/$fileName.json", nino)
 
   def getResponse(fileName: String, nino: String): JsValue = readJson(s"./it/resources/responses/$fileName.json", nino)
 
-  private def readJson(path: String, nino: String): JsValue =
-    Json.parse(Source.fromFile(path).mkString.replace("QQ123456C",  nino))
+  private def readJson(path: String, nino: String): JsValue = {
+    val bufferedSource = Source.fromFile(path)
+    val json = Json.parse(bufferedSource.mkString.replace("QQ123456C",  nino))
+    bufferedSource.close
+    json
+  }
 }

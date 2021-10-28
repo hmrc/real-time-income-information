@@ -36,16 +36,4 @@ trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
           willReturn
         )
     )
-
-  def stubPostServerWithBody(willReturn: ResponseDefinitionBuilder, body: JsValue, url: String): StubMapping =
-    server.stubFor(
-      post(urlEqualTo(url))
-        .withRequestBody(similarToJson(body.toString()))
-        .willReturn(
-          willReturn
-        )
-    )
-
-  private def similarToJson(value: String): StringValuePattern =
-    equalToJson(value.stripMargin, true, false)
 }

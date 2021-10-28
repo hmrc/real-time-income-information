@@ -17,7 +17,7 @@
 package services
 
 import com.google.inject.Inject
-import config.{APIConfig, ApiField}
+import config.{APIConfig, ApiScope}
 import models.{DesSingleFailureResponse, RequestDetails}
 import org.joda.time.LocalDate
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
@@ -61,10 +61,13 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig,
     }
     val enrolments: Set[String] = Await.result(enrolmentsFuture, atMost = 30 seconds)
 
-    //val accessibleFields: Set[ApiField] = enrolments.map(apiConfig.findScope).flatMap(_.map(_.fields)).flatten
-    //val usableFields = requestDetails.filterFields.filter(accessibleFields.map(_.name).contains(_))
+    val scopes: Set[ApiScope] = enrolments.flatMap(apiConfig.findScope)
+    val accessibleFields: Set[String] = scopes.flatMap(_.getFieldNames())
+    val usableFields = requestDetails.filterFields.filter(accessibleFields.contains)
 
-    Right(requestDetails)
+    val filteredRequestDetails = requestDetails.copy(filterFields = usableFields)
+
+    Right(filteredRequestDetails)
   }
 
   private def parseAsDate(string: String): Option[LocalDate] =

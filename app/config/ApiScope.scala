@@ -17,3 +17,6 @@
 package config
 
 case class ApiScope(name: String, fields: List[ApiField])
+{
+  def getFieldNames() = fields.map(_.name)
+}
