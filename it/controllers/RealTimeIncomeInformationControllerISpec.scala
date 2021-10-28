@@ -8,16 +8,16 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, status => statusResult, _}
 import test_utils.{IntegrationBaseSpec, WireMockHelper}
-import uk.gov.hmrc.domain.Generator
+import uk.gov.hmrc.domain.{Generator, Nino}
 import utils.Constants.responseServiceUnavailable
 
 import java.util.UUID
 
 class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with GuiceOneAppPerSuite with WireMockHelper {
 
-  val body= """{
+  def authBody(scope: String): String = s"""{
               | "clientId": "localBearer",
-              | "allEnrolments": [{"key": "write:real-time-income-information", "value": ""}],
+              | "allEnrolments": [{"key": "$scope", "value": ""}],
               | "ttl": 2000
               |}""".stripMargin
 
@@ -28,19 +28,15 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
     "metrics.jvm" -> false
   ).build()
 
-  override def beforeEach() = {
-    super.beforeEach()
-    stubPostServer(ok(body), "/auth/authorise")
-  }
-
-  val generatedNino = new Generator().nextNino
-  val correlationId = UUID.randomUUID().toString
+  val generatedNino: String = new Generator().nextNino.nino
+  val correlationId: String = UUID.randomUUID().toString
 
   "preSchemaValidation" should {
     "ServiceUnavailable when endpoint returns errorCode" in {
+      stubPostServer(ok(authBody("write:real-time-income-information")), "/auth/authorise")
 
       stubPostServer(serviceUnavailable(), s"/individuals/$generatedNino/income")
-      val requestDetails = exampleDwpRequest(generatedNino.nino)
+      val requestDetails = dwpRequest(generatedNino)
 
       val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
       val result = route(fakeApplication(), request)
@@ -53,25 +49,17 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
   "processFilterFields" must {
     "return requestDetails with filtered fields" when {
-      "enrolment filters fields" in {
+      "Consumer has access to all fields" in {
 
-        val body =
-          """
-            |{
-            |  "matchPattern": 63,
-            |  "taxYears":
-            |  [
-            |    {
-            |      "nationalInsuranceNumber": "AA111111A",
-            |      "surname": "Surname"
-            |    }
-            |  ]
-            |}
-            |""".stripMargin
+        stubPostServer(ok(authBody("write:real-time-income-information")) ,"/auth/authorise")
 
-        stubPostServer(ok(body), s"/individuals/$generatedNino/income")
 
-        val requestDetails = exampleDwpRequest(generatedNino.nino)
+        val desBody = getDesRequest("dwp-request", generatedNino)
+        val desResponse = getResponse("dwp-response", generatedNino)
+
+        stubPostServerWithBody(ok(desResponse.toString()), desBody, s"/individuals/$generatedNino/income")
+
+        val requestDetails = dwpRequest(generatedNino)
         val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
         val result = route(fakeApplication(), request)
 

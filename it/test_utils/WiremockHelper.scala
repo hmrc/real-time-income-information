@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.matching.StringValuePattern
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, JsValue}
 
 trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
   this: Suite =>
@@ -37,7 +37,7 @@ trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
         )
     )
 
-  def stubPostServerWithBody(willReturn: ResponseDefinitionBuilder, body: JsObject, url: String): StubMapping =
+  def stubPostServerWithBody(willReturn: ResponseDefinitionBuilder, body: JsValue, url: String): StubMapping =
     server.stubFor(
       post(urlEqualTo(url))
         .withRequestBody(similarToJson(body.toString()))
