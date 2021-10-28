@@ -1,6 +1,7 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Play.materializer
@@ -14,7 +15,7 @@ import utils.Constants.responseServiceUnavailable
 
 import java.util.UUID
 
-class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with GuiceOneAppPerSuite with WireMockHelper {
+class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with GuiceOneAppPerSuite with WireMockHelper with ScalaFutures {
 
   def authBody(scope: String): String = s"""{
               | "clientId": "localBearer",
@@ -97,17 +98,9 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
         val requestDetails = getRequest(fileName, generatedNino)
         val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
-        val result = route(fakeApplication(), request)
+        val result = intercept[IllegalArgumentException] { route(fakeApplication(), request).map(await) }
 
-        result.map(statusResult) mustBe Some(OK)
-        val resultValue: JsValue = result.map(x => await(jsonBodyOf(x))).get
-        resultValue mustBe Json.parse(
-          """
-            |{
-            | "matchPattern": 63,
-            | "taxYears":[]
-            |}
-            |""".stripMargin)
+        result.getMessage mustBe "requirement failed: Submission has not passed validation. Invalid filter-fields in payload."
       }
     }
   }
