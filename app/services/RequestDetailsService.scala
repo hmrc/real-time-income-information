@@ -54,10 +54,7 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig,
   def processFilterFields(requestDetails: RequestDetails)(implicit headerCarrier: HeaderCarrier,
                                                           executionContext: ExecutionContext): Either[DesSingleFailureResponse, RequestDetails] = {
     val enrolmentsFuture = authorised.retrieve(Retrievals.allEnrolments) {
-      scopes => {
-        println(scopes)
-        Future.successful(scopes.enrolments.map(_.key))
-      }
+      scopes => Future.successful(scopes.enrolments.map(_.key))
     }
     val enrolments: Set[String] = Await.result(enrolmentsFuture, atMost = 30 seconds)
 
