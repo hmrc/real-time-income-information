@@ -17,13 +17,12 @@
 package controllers
 
 import com.google.inject.{Inject, Singleton}
-import controllers.actions.{AuthAction, ValidateCorrelationId}
+import controllers.actions.{AuthAction, AuthenticatedRequest, ValidateCorrelationId}
 import models._
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc._
 import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.Constants._
 
@@ -38,10 +37,7 @@ class RealTimeIncomeInformationController @Inject() (
     auth: AuthAction,
     validateCorrelationId: ValidateCorrelationId,
     requestDetailsService: RequestDetailsService,
-    cc: ControllerComponents
-)(implicit
-    ec: ExecutionContext
-) extends BackendController(cc) {
+    cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
   private val logger: Logger = Logger(this.getClass)
 
@@ -64,7 +60,7 @@ class RealTimeIncomeInformationController @Inject() (
       }
     }
 
-  private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit headerCarrier: HeaderCarrier): Either[DesSingleFailureResponse, RequestDetails] = {
+  private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit ar: AuthenticatedRequest[_]): Either[DesSingleFailureResponse, RequestDetails] = {
     input.flatMap(requestDetailsService.processFilterFields(_))
   }
 
@@ -87,7 +83,7 @@ class RealTimeIncomeInformationController @Inject() (
       : Either[DesSingleFailureResponse, RequestDetails] => (RequestDetails => Future[Result]) => Future[Result] =
     either => func => either.fold(singleFailure => Future.successful(BadRequest(Json.toJson(singleFailure))), func)
 
-  private def authenticateAndValidate(id: String): ActionBuilder[Request, AnyContent] =
+  private def authenticateAndValidate(id: String): ActionBuilder[AuthenticatedRequest, AnyContent] =
     auth andThen validateCorrelationId(id)
 
   private def failureResponseToResult(response: DesSingleFailureResponse): Result =

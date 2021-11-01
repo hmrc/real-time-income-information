@@ -18,20 +18,14 @@ package services
 
 import com.google.inject.Inject
 import config.{APIConfig, ApiScope}
+import controllers.actions.AuthenticatedRequest
 import models.{DesSingleFailureResponse, RequestDetails}
 import org.joda.time.LocalDate
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
-import uk.gov.hmrc.http.HeaderCarrier
 import utils.Constants
 
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.language.postfixOps
 import scala.util.Try
 
-class RequestDetailsService @Inject()(apiConfig: APIConfig,
-                                      val authConnector: AuthConnector) extends AuthorisedFunctions {
+class RequestDetailsService @Inject()(apiConfig: APIConfig) {
 
   def validateDates(requestDetails: RequestDetails): Either[DesSingleFailureResponse, RequestDetails] = {
     val toDate   = parseAsDate(requestDetails.toDate)
@@ -51,12 +45,8 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig,
     }
   }
 
-  def processFilterFields(requestDetails: RequestDetails)(implicit headerCarrier: HeaderCarrier,
-                                                          executionContext: ExecutionContext): Either[DesSingleFailureResponse, RequestDetails] = {
-    val enrolmentsFuture = authorised.retrieve(Retrievals.allEnrolments) {
-      scopes => Future.successful(scopes.enrolments.map(_.key))
-    }
-    val enrolments: Set[String] = Await.result(enrolmentsFuture, atMost = 30 seconds)
+  def processFilterFields(requestDetails: RequestDetails)(implicit ar: AuthenticatedRequest[_]): Either[DesSingleFailureResponse, RequestDetails] = {
+    val enrolments = ar.authDetails.enrolments.enrolments.map(_.key)
 
     val scopes: Set[ApiScope] = enrolments.flatMap(apiConfig.findScope)
     val accessibleFields: Set[String] = scopes.flatMap(_.getFieldNames())
