@@ -16,6 +16,7 @@
 
 package controllers.actions
 
+import akka.stream.Materializer
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.matchers.must.Matchers._
@@ -27,7 +28,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Results}
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Injecting}
-import uk.gov.hmrc.auth.core.{AuthConnector, InternalError, UnsupportedAuthProvider}
+import uk.gov.hmrc.auth.core.{AuthConnector, Enrolments, InternalError, UnsupportedAuthProvider}
 import utils.{BaseSpec, Constants}
 
 import scala.concurrent.Future
@@ -52,9 +53,8 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
   "AuthAction" must {
     "return None" when {
       "authenticated" in {
-        when(mockAuthConnector.authorise[Unit](any(), any())(any(), any())).thenReturn(Future.successful(()))
+        when(mockAuthConnector.authorise[Enrolments](any(), any())(any(), any())).thenReturn(Future.successful(Enrolments(Set.empty)))
         val result = Harness.test()(FakeRequest())
-
         status(result) mustBe OK
       }
     }

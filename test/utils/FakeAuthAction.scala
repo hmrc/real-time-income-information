@@ -17,14 +17,15 @@
 package utils
 
 import com.google.inject.Inject
-import controllers.actions.AuthAction
+import controllers.actions.{AuthAction, AuthDetails, AuthenticatedRequest}
 import play.api.mvc.{BodyParsers, Request, Result}
+import uk.gov.hmrc.auth.core.Enrolments
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class FakeAuthAction @Inject() (val parser: BodyParsers.Default)(val executionContext: ExecutionContext)
     extends AuthAction {
 
-  override protected def filter[A](request: Request[A]): Future[Option[Result]] = Future.successful(None)
-
+  override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] =
+    block(AuthenticatedRequest(request, AuthDetails(Enrolments(Set.empty))))
 }
