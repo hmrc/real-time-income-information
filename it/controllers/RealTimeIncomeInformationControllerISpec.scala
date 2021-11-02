@@ -90,6 +90,11 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
       "Consumer has no access due to having no valid scope" in {
 
         val fileName = "sg-extra-fields"
+        val expectedResponse =
+          """{
+            |"code":"INVALID_PAYLOAD",
+            |"reason":"requirement failed: Submission has not passed validation. Invalid filter-fields in payload."
+            |}""".stripMargin
 
         val desResponse = fullDesResponse(generatedNino)
 
@@ -98,9 +103,11 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
         val requestDetails = getRequest(fileName, generatedNino)
         val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
-        val result = intercept[IllegalArgumentException] { route(fakeApplication(), request).map(await) }
 
-        result.getMessage mustBe "requirement failed: Submission has not passed validation. Invalid filter-fields in payload."
+        val result = route(fakeApplication(), request)
+
+        val resultValue: JsValue = result.map(x => await(jsonBodyOf(x))).get
+        resultValue mustBe Json.parse(expectedResponse)
       }
     }
   }

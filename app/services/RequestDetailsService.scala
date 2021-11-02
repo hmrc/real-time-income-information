@@ -22,8 +22,9 @@ import controllers.actions.AuthenticatedRequest
 import models.{DesSingleFailureResponse, RequestDetails}
 import org.joda.time.LocalDate
 import utils.Constants
+import utils.Constants.invalidPayloadWithMsg
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class RequestDetailsService @Inject()(apiConfig: APIConfig) {
 
@@ -52,9 +53,10 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig) {
     val accessibleFields: Set[String] = scopes.flatMap(_.getFieldNames())
     val usableFields = requestDetails.filterFields.filter(accessibleFields.contains)
 
-    val filteredRequestDetails = requestDetails.copy(filterFields = usableFields)
-
-    Right(filteredRequestDetails)
+    Try(requestDetails.copy(filterFields = usableFields)) match {
+      case Success(filteredRequestDetails) => Right(filteredRequestDetails)
+      case Failure(_) => Left(invalidPayloadWithMsg("requirement failed: Submission has not passed validation. Invalid filter-fields in payload."))
+    }
   }
 
   private def parseAsDate(string: String): Option[LocalDate] =
