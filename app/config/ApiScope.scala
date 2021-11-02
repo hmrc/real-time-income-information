@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package utils
+package config
 
-import com.google.inject.Inject
-import controllers.actions.{AuthAction, AuthDetails, AuthenticatedRequest}
-import play.api.mvc.{BodyParsers, Request, Result}
-import uk.gov.hmrc.auth.core.Enrolments
-
-import scala.concurrent.{ExecutionContext, Future}
-
-class FakeAuthAction @Inject() (val parser: BodyParsers.Default)(val executionContext: ExecutionContext)
-    extends AuthAction {
-
-  override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] =
-    block(AuthenticatedRequest(request, AuthDetails(Enrolments(Set.empty))))
+case class ApiScope(name: String, fields: List[ApiField])
+{
+  def getFieldNames() = fields.map(_.name)
 }

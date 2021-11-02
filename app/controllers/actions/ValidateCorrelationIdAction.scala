@@ -24,14 +24,12 @@ import utils.Constants
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ValidateCorrelationIdImpl @Inject() (_parser: BodyParsers.Default)(implicit
-    _executionContext: ExecutionContext
-) extends ValidateCorrelationId {
+class ValidateCorrelationIdImpl @Inject()()(implicit ec: ExecutionContext) extends ValidateCorrelationId {
 
   override def apply(correlationId: String): ValidateCorrelationIdAction =
     new ValidateCorrelationIdAction {
 
-      override protected def filter[A](request: Request[A]): Future[Option[Result]] = {
+      override protected def filter[A](request: AuthenticatedRequest[A]): Future[Option[Result]] = {
         val correlationIdRegex = """^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$""".r
 
         val optResult: Option[Result] = correlationId match {
@@ -42,14 +40,12 @@ class ValidateCorrelationIdImpl @Inject() (_parser: BodyParsers.Default)(implici
         Future.successful(optResult)
       }
 
-      override def parser: BodyParser[AnyContent] = _parser
-
-      override protected def executionContext: ExecutionContext = _executionContext
+      override protected def executionContext: ExecutionContext = ec
     }
 
 }
 
-trait ValidateCorrelationIdAction extends ActionFilter[Request] with ActionBuilder[Request, AnyContent]
+trait ValidateCorrelationIdAction extends ActionFilter[AuthenticatedRequest]
 
 @ImplementedBy(classOf[ValidateCorrelationIdImpl])
 trait ValidateCorrelationId {

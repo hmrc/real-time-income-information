@@ -16,13 +16,17 @@
 
 package services
 
+import com.google.inject.Inject
+import config.{APIConfig, ApiScope}
+import controllers.actions.AuthenticatedRequest
 import models.{DesSingleFailureResponse, RequestDetails}
 import org.joda.time.LocalDate
 import utils.Constants
+import utils.Constants.invalidPayloadWithMsg
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
-class RequestDetailsService {
+class RequestDetailsService @Inject()(apiConfig: APIConfig) {
 
   def validateDates(requestDetails: RequestDetails): Either[DesSingleFailureResponse, RequestDetails] = {
     val toDate   = parseAsDate(requestDetails.toDate)
@@ -42,7 +46,19 @@ class RequestDetailsService {
     }
   }
 
+  def processFilterFields(requestDetails: RequestDetails)(implicit ar: AuthenticatedRequest[_]): Either[DesSingleFailureResponse, RequestDetails] = {
+    val enrolments = ar.authDetails.enrolments.enrolments.map(_.key)
+
+    val scopes: Set[ApiScope] = enrolments.flatMap(apiConfig.findScope)
+    val accessibleFields: Set[String] = scopes.flatMap(_.getFieldNames())
+    val usableFields = requestDetails.filterFields.filter(accessibleFields.contains)
+
+    Try(requestDetails.copy(filterFields = usableFields)) match {
+      case Success(filteredRequestDetails) => Right(filteredRequestDetails)
+      case Failure(_) => Left(invalidPayloadWithMsg("requirement failed: Submission has not passed validation. Invalid filter-fields in payload."))
+    }
+  }
+
   private def parseAsDate(string: String): Option[LocalDate] =
     Try(new LocalDate(string)).toOption
-
 }

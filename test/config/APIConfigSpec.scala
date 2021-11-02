@@ -19,29 +19,60 @@ package config
 import org.scalatest.matchers.must.Matchers._
 
 import java.util.UUID
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 import utils.BaseSpec
 
-class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
+class APIConfigSpec extends BaseSpec {
 
-  def SUT(accessType: Option[String] = None, whitelist: List[String] = Nil): APIConfig =
-    accessType.fold(new APIConfig(Configuration())) { _type =>
-      new APIConfig(
-        Configuration("api.access.type" -> _type, "api.access.whitelistedApplicationIds" -> whitelist)
-      )
+  "apiScope" must {
+    def SUT = new APIConfig(Configuration(
+      "api.scopes.\"write:real-time-income-information\".fields" -> Seq(1,2,3),
+      "api.fields.1" -> "A",
+      "api.fields.2" -> "B",
+      "api.fields.3" -> "C"
+    ))
+
+    "return scope" when {
+      "findScope with valid configuration" in {
+        val scopeName = "write:real-time-income-information"
+
+        val scope = SUT.findScope(scopeName)
+
+        scope.isDefined mustBe true
+        scope.get.name mustBe scopeName
+        scope.get.fields.map(f => f.id) mustBe Seq(1,2,3)
+      }
     }
 
+    "return none" when {
+      "scopeName does not exist" in {
+        val scopeName = "Test"
+
+        val scope = SUT.findScope(scopeName)
+
+        scope.isDefined mustBe false
+      }
+    }
+  }
+
   "apiTypeAccess" must {
+
+    def SUT(accessType: Option[String] = None): APIConfig =
+      accessType.fold(new APIConfig(Configuration())) { _type =>
+        new APIConfig(
+          Configuration("api.access.type" -> _type)
+        )
+      }
+
     "return PRIVATE" when {
       "there is no configuration" in {
-        val config = SUT().apiTypeAccess
+        val config = SUT().apiAccessType
 
         config mustBe "PRIVATE"
       }
 
       "PRIVATE is configured" in {
-        val config = SUT(Some("PRIVATE")).apiTypeAccess
+        val config = SUT(Some("PRIVATE")).apiAccessType
 
         config mustBe "PRIVATE"
       }
@@ -50,7 +81,7 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
     "return the config" when {
       "something other than PRIVATE is configured" in {
         val randConfigValue = UUID.randomUUID().toString
-        val config          = SUT(Some(randConfigValue)).apiTypeAccess
+        val config          = SUT(Some(randConfigValue)).apiAccessType
 
         config mustBe randConfigValue
       }

@@ -19,10 +19,13 @@ package controllers.actions
 import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Results}
+import play.api.mvc.{AnyContentAsEmpty, Result, Results}
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, Injecting}
+import uk.gov.hmrc.auth.core.Enrolments
 import utils.{BaseSpec, Constants}
+
+import scala.concurrent.Future
 
 class ValidateCorrelationIdSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
 
@@ -31,19 +34,21 @@ class ValidateCorrelationIdSpec extends BaseSpec with Injecting with GuiceOneApp
   object Harness extends Results {
     val validateId: ValidateCorrelationId = inject[ValidateCorrelationId]
 
-    def test(id: String): Action[AnyContent] = validateId(id)(_ => Ok)
+    val authRequest = AuthenticatedRequest(FakeRequest(), AuthDetails(Enrolments(Set.empty)))
+
+    def test(id: String): Future[Result] = validateId(id).invokeBlock(authRequest, (_:AuthenticatedRequest[AnyContentAsEmpty.type]) => Future.successful(Ok))
   }
 
   "ValidateCorrelationId" must {
     "validate the id" in {
-      val result = Harness.test(correlationId)(FakeRequest())
+      val result = Harness.test(correlationId)
 
       status(result) mustBe OK
     }
 
     "return bad request" when {
       "the correlationId is invalid" in {
-        val result = Harness.test("invalidCorrelationId")(FakeRequest())
+        val result = Harness.test("invalidCorrelationId")
 
         status(result) mustBe BAD_REQUEST
         contentAsJson(result) mustBe Json.toJson(Constants.responseInvalidCorrelationId)

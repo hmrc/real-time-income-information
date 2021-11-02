@@ -17,23 +17,68 @@
 package config
 
 import com.google.inject.{Inject, Singleton}
+import com.typesafe.config.Config
 import play.api.{ConfigLoader, Configuration}
+
+import scala.collection.JavaConverters._
 
 @Singleton
 class APIConfig @Inject() (configuration: Configuration) {
-  private val apiContextConfigKey             = "api.context"
-  private val apiAccessTypeKey                = "api.access.type"
-  private val privateAccessKey                = "PRIVATE"
+  private val apiAccessTypeKey = "api.access.type"
+  private val apiContextKey = "api.context"
+  private val apiFieldsKey = "api.fields"
+  private val apiScopesKey = "api.scopes"
+  private val privateAccessKey = "PRIVATE"
 
-  lazy val apiContext: String =
-    getOptApiConf[String](apiContextConfigKey).getOrElse(throw apiConfigException(apiContextConfigKey))
+  private lazy val apiFields: List[ApiField] = getOptional[List[ApiField]](apiFieldsKey).getOrElse(throw apiConfigException(apiFieldsKey))
 
-  lazy val apiTypeAccess: String = getOptApiConf[String](apiAccessTypeKey).getOrElse(privateAccessKey)
+  private lazy val apiScopes: List[ApiScope] = getOptional[List[ApiScope]](apiScopesKey).getOrElse(throw apiConfigException(apiScopesKey))
 
   private def apiConfigException(key: String) = new IllegalStateException(s"$key is not configured")
 
-  private def getOptApiConf[A](key: String)(implicit
-      configLoader: ConfigLoader[A]
-  ): Option[A] = configuration.getOptional[A](key)
+  private def getOptional[A](key: String)(implicit configLoader: ConfigLoader[A]): Option[A] = configuration.getOptional[A](key)
 
+  private def getField(id: Int): Option[ApiField] = apiFields.find(c => c.id == id)
+
+  implicit val apiFieldsConfigLoader: ConfigLoader[List[ApiField]] = new ConfigLoader[List[ApiField]] {
+    override def load(rootConfig: Config, path: String): List[ApiField] = {
+      val fieldsConfig = rootConfig.getConfig(apiFieldsKey)
+      val fields = fieldsConfig.entrySet().asScala.map { entry => {
+        ApiField(entry.getKey.toInt, fieldsConfig.getString(entry.getKey))
+      }}.toList
+
+      fields
+    }
+  }
+
+  implicit val apiScopesConfigLoader: ConfigLoader[List[ApiScope]] = new ConfigLoader[List[ApiScope]] {
+    override def load(rootConfig: Config, path: String): List[ApiScope] = {
+
+      def generateScopeName(entryKey: String) = {
+        entryKey.replace(".fields", "").replace("\"", "")
+      }
+
+      val scopesConfig = rootConfig.getConfig(apiScopesKey)
+
+      val scopes = scopesConfig.entrySet().asScala.map { entry =>
+
+      val fields = scopesConfig.getIntList(entry.getKey).asScala.map { key =>
+        val value = getField(key).getOrElse(throw apiConfigException(apiFieldsKey))
+        val apiField = ApiField(key, value.name)
+        apiField
+      }.toList
+
+      val scopeName = generateScopeName(entry.getKey)
+      val apiScope = ApiScope(scopeName, fields)
+        apiScope
+      }.toList
+      scopes
+    }
+  }
+
+  lazy val apiAccessType: String = getOptional[String](apiAccessTypeKey).getOrElse(privateAccessKey)
+
+  lazy val apiContext: String = getOptional[String](apiContextKey).getOrElse(throw apiConfigException(apiContextKey))
+
+  def findScope(scopeName: String): Option[ApiScope] = apiScopes.find(apiScope => apiScope.name == scopeName)
 }

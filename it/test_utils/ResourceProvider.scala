@@ -6,9 +6,18 @@ import scala.io.Source
 
 trait ResourceProvider {
 
-  val exampleDwpRequest: String => JsValue = nino => readJson("./it/resources/example-dwp-request.json", nino)
+  def dwpRequest(nino: String): JsValue = getRequest("dwp-request", nino)
 
+  def fullDesResponse(nino: String): JsValue = readJson(s"./it/resources/full-des-response.json", nino)
 
-  private def readJson(path: String, nino: String): JsValue =
-    Json.parse(Source.fromFile(path).mkString.replace("QQ123456C",  nino))
+  def getRequest(fileName: String, nino: String): JsValue = readJson(s"./it/resources/requests/$fileName.json", nino)
+
+  def getResponse(fileName: String, nino: String): JsValue = readJson(s"./it/resources/responses/$fileName.json", nino)
+
+  private def readJson(path: String, nino: String): JsValue = {
+    val bufferedSource = Source.fromFile(path)
+    val json = Json.parse(bufferedSource.mkString.replace("QQ123456C",  nino))
+    bufferedSource.close
+    json
+  }
 }
