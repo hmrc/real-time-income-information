@@ -7,7 +7,12 @@
         "key": "write:real-time-income-information",
         "name": "access Real Time Income Information",
         "description": "Access Real Time Income Information"
-    }
+    },
+    {
+      "key": "assigned",
+      "name": "The scopes you have been assigned",
+      "description": "An OAuth 2.0 Bearer Token with the scopes you have been assigned"
+    },
   ],
   "api": {
     "name": "Real Time Income Information",
