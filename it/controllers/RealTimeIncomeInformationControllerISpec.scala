@@ -17,11 +17,20 @@ import java.util.UUID
 
 class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with GuiceOneAppPerSuite with WireMockHelper with ScalaFutures {
 
-  def authBody(scope: String): String = s"""{
-              | "clientId": "localBearer",
-              | "allEnrolments": [{"key": "$scope", "value": ""}],
-              | "ttl": 2000
-              |}""".stripMargin
+  case class Enrolment (key: String, value: String = "")
+  case class AuthBody (clientId: String = "localBearer", allEnrolments: Set[Enrolment], ttl: Int = 2000)
+
+  implicit val enrolmentFormat = Json.format[Enrolment]
+  implicit val authBodyFormat = Json.format[AuthBody]
+
+  val apiAccessScope = "write:real-time-income-information"
+  val filterFullAccessScope = "filter:real-time-income-information-full"
+  val filterSgAccessScope = "filter:real-time-income-information-sg"
+
+  def authBody(scope: String): String = {
+    val body = AuthBody(allEnrolments = Set(Enrolment(apiAccessScope), Enrolment(scope)))
+    Json.toJson(body).toString.stripMargin
+  }
 
   override def fakeApplication() = GuiceApplicationBuilder().configure(
     "microservice.services.auth.port" -> server.port(),
@@ -35,7 +44,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
   "preSchemaValidation" should {
     "ServiceUnavailable when endpoint returns errorCode" in {
-      stubPostServer(ok(authBody("write:real-time-income-information")), "/auth/authorise")
+      stubPostServer(ok(authBody(filterFullAccessScope)), "/auth/authorise")
 
       stubPostServer(serviceUnavailable(), s"/individuals/$generatedNino/income")
       val requestDetails = dwpRequest(generatedNino)
@@ -56,7 +65,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         val expectedResponse = getResponse("dwp-response", generatedNino)
         val desResponse = fullDesResponse(generatedNino)
 
-        stubPostServer(ok(authBody("write:real-time-income-information")) ,"/auth/authorise")
+        stubPostServer(ok(authBody(filterFullAccessScope)) ,"/auth/authorise")
         stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
 
         val requestDetails = dwpRequest(generatedNino)
@@ -75,7 +84,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         val expectedResponse = getResponse(fileName, generatedNino)
         val desResponse = fullDesResponse(generatedNino)
 
-        stubPostServer(ok(authBody("write:real-time-income-information-sg")) ,"/auth/authorise")
+        stubPostServer(ok(authBody(filterSgAccessScope)) ,"/auth/authorise")
         stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
 
         val requestDetails = getRequest(fileName, generatedNino)
@@ -98,7 +107,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
         val desResponse = fullDesResponse(generatedNino)
 
-        stubPostServer(ok(authBody("write:this-is-not-a-valid-scope")) ,"/auth/authorise")
+        stubPostServer(ok(authBody("filter:this-is-not-a-valid-scope")) ,"/auth/authorise")
         stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
 
         val requestDetails = getRequest(fileName, generatedNino)

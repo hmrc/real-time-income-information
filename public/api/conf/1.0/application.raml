@@ -36,8 +36,8 @@ types:
           is: [headers.acceptHeader, headers.contentHeader]
           displayName: Real Time Income Information
           description: !include documentation/overview.md
-          (annotations.scope): "assigned"
-          securedBy: [ sec.oauth_2_0: { scopes: [ "write:real-time-income-information", "write:real-time-income-information-sg" ] } ]
+          (annotations.scope): "write:real-time-income-information"
+          securedBy: [ sec.oauth_2_0: { scopes: [ "write:real-time-income-information" ] } ]
           body:
             application/json:
               type: !include schemas/real-time-income-information-post-schema.json

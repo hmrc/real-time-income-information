@@ -24,9 +24,11 @@ import utils.BaseSpec
 
 class APIConfigSpec extends BaseSpec {
 
+  val filterFullAccessScope = "filter:real-time-income-information-full"
+
   "apiScope" must {
     def SUT = new APIConfig(Configuration(
-      "api.scopes.\"write:real-time-income-information\".fields" -> Seq(1,2,3),
+      s"""api.scopes."$filterFullAccessScope".fields""" -> Seq(1,2,3),
       "api.fields.1" -> "A",
       "api.fields.2" -> "B",
       "api.fields.3" -> "C"
@@ -34,12 +36,11 @@ class APIConfigSpec extends BaseSpec {
 
     "return scope" when {
       "findScope with valid configuration" in {
-        val scopeName = "write:real-time-income-information"
 
-        val scope = SUT.findScope(scopeName)
+        val scope = SUT.findScope(filterFullAccessScope)
 
         scope.isDefined mustBe true
-        scope.get.name mustBe scopeName
+        scope.get.name mustBe filterFullAccessScope
         scope.get.fields.map(f => f.id) mustBe Seq(1,2,3)
       }
     }
