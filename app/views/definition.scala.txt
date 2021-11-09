@@ -7,6 +7,16 @@
         "key": "write:real-time-income-information",
         "name": "access Real Time Income Information",
         "description": "Access Real Time Income Information"
+    },
+    {
+        "key": "filter:real-time-income-information-full",
+        "name": "filter Real Time Income Information Full Access",
+        "description": "Filter Real Time Income Information Full Access"
+    },
+    {
+        "key": "filter:real-time-income-information-sg",
+        "name": "filter Real Time Income Information Scottish Government",
+        "description": "Access Real Time Income Information Scottish Government"
     }
   ],
   "api": {
