@@ -9,9 +9,14 @@
         "description": "Access Real Time Income Information"
     },
     {
-      "key": "assigned",
-      "name": "The scopes you have been assigned",
-      "description": "An OAuth 2.0 Bearer Token with the scopes you have been assigned"
+        "key": "filter:real-time-income-information-full",
+        "name": "filter Real Time Income Information Full Access",
+        "description": "Filter Real Time Income Information Full Access"
+    },
+    {
+        "key": "filter:real-time-income-information-sg",
+        "name": "filter Real Time Income Information Scottish Government",
+        "description": "Access Real Time Income Information Scottish Government"
     }
   ],
   "api": {
