@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec {
   val filterFields: List[String] = List("surname", "nationalInsuranceNumber")
 
   val requestDetails: RequestDetails =
-    RequestDetails(nino, "serviceName", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, filterFields)
+    RequestDetails(nino, "searchlight", "2016-12-31", "2017-12-31", "Smith", None, None, None, None, None, filterFields)
 
   val desResponseWithZeroTaxYears: DesSuccessResponse = DesSuccessResponse(63, None)
   val desResponseWithOneTaxYear: DesSuccessResponse   = DesSuccessResponse(63, Some(List(taxYear)))

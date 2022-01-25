@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ case class RequestDetails(
     filterFields: List[String]
 ) {
   require(nino.matches("^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D ]$"), "Submission has not passed validation. Invalid nino in payload.")
-  require(serviceName.matches("^[a-zA-Z0-9 &`\\-\\'\\.^]{1,128}$"), "Submission has not passed validation. Invalid serviceName in payload.")
+  require(RequestDetails.serviceNameValidation(serviceName), "Submission has not passed validation. Invalid serviceName in payload.")
   require(
     toDate.matches("^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$"),
     "Submission has not passed validation. Invalid toDate in payload."
@@ -91,6 +91,16 @@ object RequestDetails {
         => true
       case _ => false
     }
+  }
+
+  def serviceNameValidation(serviceName: String): Boolean = {
+    val names = List("searchlight",
+    "cmg2012",
+    "carers-digital",
+    "kickstart",
+    "scotgov-jsp")
+
+    names.contains(serviceName)
   }
 
   def filterFieldsValidation(filterFields: List[String]): Boolean = {

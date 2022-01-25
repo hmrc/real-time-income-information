@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ class RequestDetailsSpec extends BaseSpec {
     "create a DesMatchingRequest" in {
       val requestDetails = RequestDetails(
         nino = nino,
-        serviceName = "serviceName",
+        serviceName = "searchlight",
         fromDate = "2016-12-31",
         toDate = "2017-12-31",
         surname = "Smith",

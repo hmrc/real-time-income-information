@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
       val correlationId                              = "correlationId"
       val requestDetails = RequestDetails(
         nino,
-        "serviceName",
+        "searchlight",
         "2016-12-31",
         "2017-12-31",
         "Smith",

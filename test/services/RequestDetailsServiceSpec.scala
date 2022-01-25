@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,5 +53,5 @@ class RequestDetailsServiceSpec extends BaseSpec with GuiceOneAppPerSuite with I
   }
 
   def createRequestDetails(fromDate: String, toDate: String) =
-    RequestDetails(generateNino, "serviceName", fromDate, toDate, "surname", None, None, None, None, None, List("surname"))
+    RequestDetails(generateNino, "searchlight", fromDate, toDate, "surname", None, None, None, None, None, List("surname"))
 }
