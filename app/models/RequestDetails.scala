@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.Json
 
-case class RequestDetails(
+case class RequestDetails (
     nino: String,
     serviceName: String,
     fromDate: String,
