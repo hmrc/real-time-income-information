@@ -31,7 +31,6 @@ class RequestDetailsSpec extends BaseSpec {
       ("the filter fields array contains duplicate fields", exampleInvalidDwpDuplicateFields(nino), "filter-fields"),
       ("the filter fields array is empty", exampleInvalidDwpEmptyFieldsRequest(nino), "filter-fields"),
       ("the request contains an unexpected filter field", exampleInvalidFilterFieldDwpRequest(nino), "filter-fields"),
-      ("the request contains an invalid serviceName", exampleInvalidServiceName(nino), "serviceName"),
       ("the request contains an invalid todate", exampleInvalidToDateFormat(nino), "toDate"),
       ("the request contains an invalid fromdate", exampleInvalidFromDateFormat(nino), "fromDate"),
       ("the request contains an invalid surname", exampleInvalidSurname(nino), "surname"),

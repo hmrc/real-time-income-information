@@ -36,7 +36,8 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
     "microservice.services.auth.port" -> server.port(),
     "microservice.services.des-hod.host" -> "127.0.0.1",
     "microservice.services.des-hod.port" -> server.port(),
-    "metrics.jvm" -> false
+    "metrics.jvm" -> false,
+    "api.serviceName" -> Seq("serviceName")
   ).build()
 
   val generatedNino: String = new Generator().nextNino.nino
