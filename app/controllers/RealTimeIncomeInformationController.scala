@@ -43,7 +43,7 @@ class RealTimeIncomeInformationController @Inject() (
 
   def preSchemaValidation(correlationId: String): Action[JsValue] =
     authenticateAndValidate(correlationId).async(parse.json) { implicit request =>
-      (parseJson andThen filterFields andThen validateDate andThen getResult)(request) {
+      (parseJson andThen serviceName andThen filterFields andThen validateDate andThen getResult)(request) {
         requestDetails =>
           auditService.rtiiAudit(correlationId, requestDetails)
           rtiiService.retrieveCitizenIncome(requestDetails, correlationId) map {
@@ -59,6 +59,9 @@ class RealTimeIncomeInformationController @Inject() (
           }
       }
     }
+
+  private def serviceName(input: Either[DesSingleFailureResponse, RequestDetails]): Either[DesSingleFailureResponse, RequestDetails] =
+    input.flatMap((requestDetailsService.processServiceName(_)))
 
   private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit ar: AuthenticatedRequest[_]): Either[DesSingleFailureResponse, RequestDetails] = {
     input.flatMap(requestDetailsService.processFilterFields(_))

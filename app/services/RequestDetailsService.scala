@@ -59,6 +59,10 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig) {
     }
   }
 
+  def processServiceName(requestDetails: RequestDetails): Either[DesSingleFailureResponse, RequestDetails] =
+    if (apiConfig.serviceNames.contains(requestDetails.serviceName)) Right(requestDetails)
+    else Left(invalidPayloadWithMsg("requirement failed: Submission has not passed validation. Invalid serviceName in payload"))
+
   private def parseAsDate(string: String): Option[LocalDate] =
     Try(new LocalDate(string)).toOption
 }
