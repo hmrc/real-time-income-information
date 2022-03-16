@@ -17,9 +17,13 @@
 package config
 
 import com.google.inject.Inject
+
 import javax.inject.Singleton
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 @Singleton
 class ApplicationConfig @Inject() (sc: ServicesConfig, configuration: Configuration) {
@@ -28,4 +32,5 @@ class ApplicationConfig @Inject() (sc: ServicesConfig, configuration: Configurat
   val environment: String        = sc.getConfString("des-hod.env", "local")
   val authorization: String      = "Bearer " + sc.getConfString("des-hod.authorizationToken", "local")
   val authBaseUrl: String        = sc.baseUrl("auth")
+  val cacheExpireAfter: Duration = sc.getConfDuration("mongodb.cacheExpireAfter", 15.minutes)
 }
