@@ -58,7 +58,7 @@ object DesResponse {
       case r@DesFilteredSuccessResponse(_, _) => write("filtered_success", r)
       case r@DesUnexpectedResponse(_, _)      => write("unexpected", r)
       case r@DesSingleFailureResponse(_, _)   => write("single_failure", r)
-      case r@DesMultipleFailureResponse(_)    => write("single_failure", r)
+      case r@DesMultipleFailureResponse(_)    => write("multiple_failures", r)
       case r@DesNoResponse(_, _)              => write("no_response", r)
     }
   }

@@ -16,11 +16,14 @@
 
 package models
 
+import org.scalacheck.Gen
+import org.scalacheck.Gen._
 import org.scalatest.matchers.must.Matchers._
-import utils.BaseSpec
-import utils.ResourceProvider
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.libs.json.{JsBoolean, JsNull, JsString, Json}
+import utils.{BaseSpec, ResourceProvider}
 
-class DesResponseSpec extends BaseSpec with ResourceProvider {
+class DesResponseSpec extends BaseSpec with ResourceProvider with ScalaCheckPropertyChecks {
 
   "DesErrorResponse reads" must {
     "formatting DesSingleError" in {
@@ -38,6 +41,52 @@ class DesResponseSpec extends BaseSpec with ResourceProvider {
           DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")
         )
       )
+    }
+
+    implicit class GenOps[A](gen: Gen[A]) {
+      def zip[B](other: Gen[B]): Gen[(A, B)] =
+        gen.flatMap(a => other.map(b => (a, b)))
+
+      def *>[B](other: Gen[B]): Gen[(A, B)] = zip(other)
+
+      def <*[B](other: Gen[B]): Gen[(B, A)] = other.zip(gen)
+    }
+
+    val jsValueGen = Gen.oneOf(alphaStr.map(JsString), Gen.oneOf(true, false).map(JsBoolean), const(JsNull))
+
+    val desSuccessResponseGen =
+      (posNum[Int] *> some(listOf(jsValueGen))).map(DesSuccessResponse.tupled)
+
+    val desFilteredSuccessResponseGen =
+      (posNum[Int] *> listOf(jsValueGen)).map(DesFilteredSuccessResponse.tupled)
+
+    val desSingleFailureResponseGen =
+      (alphaStr *> alphaStr).map(DesSingleFailureResponse.tupled)
+
+    val desMultipleFailureResponseGen =
+      listOf(desSingleFailureResponseGen).map(DesMultipleFailureResponse)
+
+    val desUnexpectedResponseGen =
+      (alphaStr *> alphaStr).map(DesUnexpectedResponse.tupled)
+
+    val desNoResponseGen =
+      (alphaStr *> alphaStr).map(DesNoResponse.tupled)
+
+    val desResponseGen: Gen[DesResponse] =
+      Gen.oneOf(
+        desSuccessResponseGen,
+        desFilteredSuccessResponseGen,
+        desSingleFailureResponseGen,
+        desMultipleFailureResponseGen,
+        desUnexpectedResponseGen,
+        desNoResponseGen
+      )
+
+    "serialize and deserialize a DesResponse type" in {
+
+      forAll(desResponseGen) { response =>
+        Json.toJson(response).as[DesResponse] shouldBe response
+      }
     }
   }
 }
