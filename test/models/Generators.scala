@@ -1,7 +1,7 @@
 package models
 
 import org.scalacheck.Gen
-import org.scalacheck.Gen.{alphaStr, const, listOf, posNum, some}
+import org.scalacheck.Gen.{alphaStr, const, listOf, oneOf, posNum, some}
 import play.api.libs.json.{JsBoolean, JsNull, JsString}
 
 object Generators {
@@ -15,7 +15,7 @@ object Generators {
     def <*[B](other: Gen[B]): Gen[(B, A)] = other.zip(gen)
   }
 
-  val jsValueGen = Gen.oneOf(alphaStr.map(JsString), Gen.oneOf(true, false).map(JsBoolean), const(JsNull))
+  val jsValueGen = oneOf(alphaStr.map(JsString), oneOf(true, false).map(JsBoolean), const(JsNull))
 
   val desSuccessResponseGen =
     (posNum[Int] *> some(listOf(jsValueGen))).map(DesSuccessResponse.tupled)
@@ -36,7 +36,7 @@ object Generators {
     (alphaStr *> alphaStr).map(DesNoResponse.tupled)
 
   val desResponseGen: Gen[DesResponse] =
-    Gen.oneOf(
+    oneOf(
       desSuccessResponseGen,
       desFilteredSuccessResponseGen,
       desSingleFailureResponseGen,
