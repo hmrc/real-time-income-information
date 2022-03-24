@@ -35,14 +35,14 @@ final case class DesNoResponse(code: String = "BAD_GATEWAY", reason: String = "B
 object DesResponse {
 
   private def read[A](json: JsValue, get: JsValue => JsResult[A]): JsResult[A] =
-    (json \ "$data").toOption.map(get).getOrElse(JsError("unable to read object"))
+    (json \ "data").toOption.map(get).getOrElse(JsError("unable to read object"))
 
   private def write[A]($type: String, obj: A)(implicit ev: Writes[A]): JsValue =
-    JsObject(Map("$type" -> JsString($type), "$data" -> ev.writes(obj)))
+    JsObject(Map("type" -> JsString($type), "data" -> ev.writes(obj)))
 
   implicit val desResponseFormats: Format[DesResponse] = new Format[DesResponse] {
     override def reads(json: JsValue): JsResult[DesResponse] =
-      (json \ "$type").toOption match {
+      (json \ "type").toOption match {
         case Some(JsString("success"))           => read(json, desSuccessFormats.reads)
         case Some(JsString("filtered_success"))  => read(json, desFilteredSuccessFormats.reads)
         case Some(JsString("unexpected"))        => read(json, desUnexpectedFormats.reads)

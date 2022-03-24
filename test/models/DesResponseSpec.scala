@@ -16,11 +16,9 @@
 
 package models
 
-import org.scalacheck.Gen
-import org.scalacheck.Gen._
 import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.{JsBoolean, JsNull, JsString, Json}
+import play.api.libs.json.Json
 import utils.{BaseSpec, ResourceProvider}
 
 class DesResponseSpec extends BaseSpec with ResourceProvider with ScalaCheckPropertyChecks {
