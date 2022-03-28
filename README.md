@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/hmrc/real-time-income-information.svg)](https://travis-ci.org/hmrc/real-time-income-information)
 
-This is an API microservice - please refer to the developer hub for relevant documentation
+This is an API microservice - please refer to the developer hub for the relevant documentation
 
 https://developer.service.hmrc.gov.uk/api-documentation/docs/using-the-hub
 
