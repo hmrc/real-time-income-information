@@ -21,23 +21,35 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import models._
 import org.scalatest.matchers.must.Matchers._
-import org.scalatestplus.play.guice.GuiceOneAppPerTest
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
+import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import play.api.test.Injecting
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.cache.CacheItem
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import utils.{BaseSpec, WireMockHelper}
 
 import scala.util.Try
 
-class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting with WireMockHelper {
+class DesConnectorSpec extends
+  BaseSpec with
+  GuiceOneAppPerSuite with
+  Injecting with
+  WireMockHelper with
+  DefaultPlayMongoRepositorySupport[CacheItem] {
 
   val testAuthToken              = "TestAuthToken"
   val testEnv                    = "TestEnv"
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino: String               = generateNino
   val correlationId: String      = generateUUId
+
+  override protected def repository: PlayMongoRepository[CacheItem] = inject[DesCache]
 
   override def fakeApplication: Application =
     new GuiceApplicationBuilder()
@@ -50,6 +62,9 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
         "microservice.services.des-hod.env"                -> testEnv,
         "play.ws.timeout.request"                          -> "2.seconds"
       )
+      .overrides(
+        bind[MongoComponent].toInstance(mongoComponent)
+      )
       .build()
 
   def connector: DesConnector = inject[DesConnector]
@@ -57,36 +72,36 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
   def stubPostServer(willReturn: ResponseDefinitionBuilder): StubMapping =
     stubPostServer(willReturn, s"/individuals/$nino/income")
 
+  val taxYear = Json.parse("""{
+                             |      "taxYear": "16-17",
+                             |      "taxYearIndicator": "P",
+                             |      "hmrcOfficeNumber": "099",
+                             |      "employerPayeRef": "A1B2c3d4e5",
+                             |      "employerName1": "Employer",
+                             |      "nationalInsuranceNumber": "QQ123456C",
+                             |      "surname": "Surname",
+                             |      "gender": "M",
+                             |      "uniqueEmploymentSequenceNumber": 9999,
+                             |      "taxablePayInPeriod": 999999.99,
+                             |      "taxDeductedOrRefunded": -12345.67,
+                             |      "grossEarningsForNICs": 888888.66,
+                             |      "taxablePayToDate": 999999.99,
+                             |      "totalTaxToDate": 654321.08,
+                             |      "numberOfNormalHoursWorked": "E",
+                             |      "payFrequency": "M1",
+                             |      "paymentDate": "2017-02-03",
+                             |      "earningsPeriodsCovered": 11,
+                             |      "uniquePaymentId": 777777,
+                             |      "paymentConfidenceStatus": "1",
+                             |      "taxCode": "11100L",
+                             |      "hmrcReceiptTimestamp": "2018-04-16T09:23:55Z",
+                             |      "rtiReceivedDate": "2018-04-16",
+                             |      "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
+                             |}""".stripMargin)
+
   "retrieveCitizenIncome" must {
     "return a DesSuccessResponse" when {
       "successfully retrieved citizen income data" in {
-        val taxYear = Json.parse("""{
-                                   |      "taxYear": "16-17",
-                                   |      "taxYearIndicator": "P",
-                                   |      "hmrcOfficeNumber": "099",
-                                   |      "employerPayeRef": "A1B2c3d4e5",
-                                   |      "employerName1": "Employer",
-                                   |      "nationalInsuranceNumber": "QQ123456C",
-                                   |      "surname": "Surname",
-                                   |      "gender": "M",
-                                   |      "uniqueEmploymentSequenceNumber": 9999,
-                                   |      "taxablePayInPeriod": 999999.99,
-                                   |      "taxDeductedOrRefunded": -12345.67,
-                                   |      "grossEarningsForNICs": 888888.66,
-                                   |      "taxablePayToDate": 999999.99,
-                                   |      "totalTaxToDate": 654321.08,
-                                   |      "numberOfNormalHoursWorked": "E",
-                                   |      "payFrequency": "M1",
-                                   |      "paymentDate": "2017-02-03",
-                                   |      "earningsPeriodsCovered": 11,
-                                   |      "uniquePaymentId": 777777,
-                                   |      "paymentConfidenceStatus": "1",
-                                   |      "taxCode": "11100L",
-                                   |      "hmrcReceiptTimestamp": "2018-04-16T09:23:55Z",
-                                   |      "rtiReceivedDate": "2018-04-16",
-                                   |      "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
-                                   |}""".stripMargin)
-
         val expectedResponse = DesSuccessResponse(63, Some(List(taxYear)))
 
         stubPostServer(ok(successMatchOneYear.toString))
@@ -94,6 +109,20 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
         val result =
           await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe expectedResponse
+      }
+
+      "use cache data" in {
+        val expectedResponse = DesSuccessResponse(63, Some(List(taxYear)))
+
+        stubPostServer(ok(successMatchOneYear.toString))
+        await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+
+        stubPostServer(notFound())
+
+        val result =
+          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        result mustBe expectedResponse
+
       }
 
       "received a 200 No match response from DES" in {
@@ -113,6 +142,23 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
         val result =
           await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
         result mustBe expectedResponse
+      }
+
+      "send the correct headers to DES" in {
+        val url = s"/individuals/$nino/income"
+
+        stubPostServer(aResponse().withBody("{}"), url)
+
+        await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+
+        server.verify(
+          postRequestedFor(urlEqualTo(url))
+            .withHeader(HeaderNames.authorisation, equalTo(s"Bearer $testAuthToken"))
+            .withHeader("Environment", equalTo(testEnv))
+            .withHeader("CorrelationId", matching("[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}"))
+            .withHeader(HeaderNames.xRequestId, equalTo("-"))
+            .withHeader(HeaderNames.xSessionId, equalTo("-"))
+        )
       }
     }
 
@@ -224,30 +270,16 @@ class DesConnectorSpec extends BaseSpec with GuiceOneAppPerTest with Injecting w
 
       "a bad gateway exception occurs" in {
         val response = DesNoResponse()
+
         server.stop()
 
         val result =
           Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)))
-        server.start()
+
         result.get mustBe response
+
+        server.start()
       }
-    }
-
-    "send the correct headers to DES" in {
-      val url = s"/individuals/$nino/income"
-
-      stubPostServer(aResponse().withBody("{}"), url)
-
-      await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-
-      server.verify(
-        postRequestedFor(urlEqualTo(url))
-          .withHeader(HeaderNames.authorisation, equalTo(s"Bearer $testAuthToken"))
-          .withHeader("Environment", equalTo(testEnv))
-          .withHeader("CorrelationId", matching("[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}"))
-          .withHeader(HeaderNames.xRequestId, equalTo("-"))
-          .withHeader(HeaderNames.xSessionId, equalTo("-"))
-      )
     }
   }
 }

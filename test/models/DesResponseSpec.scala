@@ -17,10 +17,11 @@
 package models
 
 import org.scalatest.matchers.must.Matchers._
-import utils.BaseSpec
-import utils.ResourceProvider
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.libs.json.Json
+import utils.{BaseSpec, ResourceProvider}
 
-class DesResponseSpec extends BaseSpec with ResourceProvider {
+class DesResponseSpec extends BaseSpec with ResourceProvider with ScalaCheckPropertyChecks {
 
   "DesErrorResponse reads" must {
     "formatting DesSingleError" in {
@@ -38,6 +39,13 @@ class DesResponseSpec extends BaseSpec with ResourceProvider {
           DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")
         )
       )
+    }
+
+    "serialize and deserialize a DesResponse type" in {
+
+      forAll(Generators.desResponseGen) { response =>
+        Json.toJson(response).as[DesResponse] shouldBe response
+      }
     }
   }
 }

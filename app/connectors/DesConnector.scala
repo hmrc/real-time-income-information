@@ -17,31 +17,48 @@
 package connectors
 
 import java.util.UUID
-
 import com.google.inject.{Inject, Singleton}
 import config.ApplicationConfig
 import models._
 import play.api.Logger
 import play.api.http.Status.OK
-import play.api.libs.json.{JsPath, JsonValidationError, Reads}
+import play.api.libs.json.{Format, JsPath, JsonValidationError, Reads}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.mongo.cache.CacheIdType.SimpleCacheId
+import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
+import uk.gov.hmrc.mongo.cache.{DataKey, MongoCacheRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DesConnector @Inject() (httpClient: HttpClient, desConfig: ApplicationConfig)(implicit
-    ec: ExecutionContext
+class DesCache @Inject()(config: ApplicationConfig, mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
+  extends MongoCacheRepository(
+    mongoComponent = mongoComponent,
+    collectionName = "des-cache",
+    ttl = config.cacheExpireAfter,
+    timestampSupport = new CurrentTimestampSupport(),
+    cacheIdType = SimpleCacheId
+  )
+
+@Singleton
+class DesConnector @Inject()(
+  httpClient: HttpClient,
+  desConfig: ApplicationConfig,
+  mongoCache: DesCache
+)(implicit
+  ec: ExecutionContext
 ) {
 
   private val logger: Logger = Logger(this.getClass)
   implicit val desReponseReads: HttpReads[DesResponse] = new HttpReads[DesResponse] {
 
-    override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse =
+    override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse = {
       httpResponse.status match {
         case OK => parseDesResponse[DesSuccessResponse](httpResponse)
         case _  => parseDesResponse[DesErrorResponse](httpResponse)
       }
+    }
 
   }
 
@@ -71,32 +88,45 @@ class DesConnector @Inject() (httpClient: HttpClient, desConfig: ApplicationConf
       )
   }
 
+  def cache[A](id: String)(body: => Future[A])(implicit ev: Format[A]): Future[A] = {
+    val dataKey = DataKey[A]("desResponse")
+
+    mongoCache.get[A](id)(dataKey).flatMap {
+      case Some(v) => Future.successful(v)
+      case None    => body.flatMap { r => mongoCache.put(id)(dataKey, r).map { _ => r } }
+    }
+  }
+
   def retrieveCitizenIncome(
       nino: String,
       matchingRequest: DesMatchingRequest,
       correlationId: String
   )(implicit hc: HeaderCarrier): Future[DesResponse] = {
-    val postUrl: String            = s"${desConfig.hodUrl}/individuals/$nino/income"
-    val header: Seq[(String, String)] =
-    Seq(
-      HeaderNames.authorisation -> desConfig.authorization,
-      HeaderNames.xRequestId -> hc.requestId.fold("-")(_.value),
-      HeaderNames.xSessionId -> hc.sessionId.fold("-")(_.value),
-      "Environment" -> desConfig.environment,
-      "CorrelationId" -> UUID.randomUUID().toString
-    )
 
-    httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest, header) recover {
-      case e: GatewayTimeoutException =>
-        //$COVERAGE-OFF$
-        logger.error(s"GatewayTimeoutException occurred: ${e.message}")
-        //$COVERAGE-ON$
-        DesNoResponse()
-      case e: BadGatewayException =>
-        //$COVERAGE-OFF$
-        logger.error(s"BadGatewayException occurred: ${e.message}")
-        //$COVERAGE-ON$
-        DesNoResponse()
+    cache[DesResponse](nino + matchingRequest.hashCode()) {
+
+      val postUrl: String = s"${desConfig.hodUrl}/individuals/$nino/income"
+      val header: Seq[(String, String)] =
+        Seq(
+          HeaderNames.authorisation -> desConfig.authorization,
+          HeaderNames.xRequestId -> hc.requestId.fold("-")(_.value),
+          HeaderNames.xSessionId -> hc.sessionId.fold("-")(_.value),
+          "Environment" -> desConfig.environment,
+          "CorrelationId" -> UUID.randomUUID().toString
+        )
+
+      httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest, header) recover {
+        case e: GatewayTimeoutException =>
+          //$COVERAGE-OFF$
+          logger.error(s"GatewayTimeoutException occurred: ${e.message}")
+          //$COVERAGE-ON$
+          DesNoResponse()
+        case e: BadGatewayException =>
+          //$COVERAGE-OFF$
+          logger.error(s"BadGatewayException occurred: ${e.message}")
+          //$COVERAGE-ON$
+          DesNoResponse()
+      }
     }
   }
 
