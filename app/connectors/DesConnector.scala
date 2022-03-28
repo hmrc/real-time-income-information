@@ -103,7 +103,7 @@ class DesConnector @Inject()(
       correlationId: String
   )(implicit hc: HeaderCarrier): Future[DesResponse] = {
 
-    cache[DesResponse](nino + matchingRequest.hashCode()) {
+    cache[DesResponse](nino + matchingRequest.toString) {
 
       val postUrl: String = s"${desConfig.hodUrl}/individuals/$nino/income"
       val header: Seq[(String, String)] =
