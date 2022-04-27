@@ -91,3 +91,19 @@ types:
                     notFoundNino:
                       description: Nino cannot be found
                       value: !include examples/404-not-found-nino.json
+            500:
+              body:
+                application/json:
+                  type: !include schemas/errors.json
+                  examples:
+                    serverError:
+                      description: Des returned an Internal Server Error
+                      value: !include examples/500-server-error.json
+            503:
+              body:
+                application/json:
+                  type: !include schemas/errors.json
+                  examples:
+                    service Unavailable:
+                      description: Des has returned ServiceUnavailable
+                      value: !include examples/503-service-unavailable.json
