@@ -39,6 +39,7 @@
             "NON_PRIVILEGED_APPLICATION",
             "NOT_FOUND_NINO",
             "NOT_FOUND",
+            "SERVER_ERROR",
             "INTERNAL_SERVER_ERROR",
             "SERVICE_UNAVAILABLE"
           ],

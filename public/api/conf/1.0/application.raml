@@ -99,6 +99,9 @@ types:
                     serverError:
                       description: Des returned an Internal Server Error
                       value: !include examples/500-server-error.json
+                    internalServerError:
+                      description: Internal Server Error returned
+                      value: !include examples/500-internal-server-error.json
             503:
               body:
                 application/json:
