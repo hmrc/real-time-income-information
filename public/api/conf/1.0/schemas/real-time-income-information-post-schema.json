@@ -41,6 +41,7 @@
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
+      "description": "Some users will have limited access to specific filterFields only",
       "items": {
         "type":"string",
         "pattern": "^[a-zA-Z 1-2 &`\\-\\'\\.^]{1,38}$",
@@ -150,7 +151,7 @@
     },
     "serviceNameType": {
       "type": "string",
-      "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,128}$"
+      "description": "serviceName values are validated against an allowList of services with access to the api"
     },
     "nameType": {
       "type": "string",
