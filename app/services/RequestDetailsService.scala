@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import config.{APIConfig, ApiScope}
 import controllers.actions.AuthenticatedRequest
 import models.{DesSingleFailureResponse, RequestDetails}
-import org.joda.time.LocalDate
+import java.time.LocalDate
 import utils.Constants
 import utils.Constants.invalidPayloadWithMsg
 
@@ -64,5 +64,5 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig) {
     else Left(invalidPayloadWithMsg("requirement failed: Submission has not passed validation. Invalid serviceName in payload"))
 
   private def parseAsDate(string: String): Option[LocalDate] =
-    Try(new LocalDate(string)).toOption
+    Try(LocalDate.parse(string)).toOption
 }
