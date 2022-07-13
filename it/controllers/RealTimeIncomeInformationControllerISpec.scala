@@ -2,7 +2,6 @@ package controllers
 
 import com.codahale.metrics.SharedMetricRegistries
 import com.github.tomakehurst.wiremock.client.WireMock._
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -17,7 +16,7 @@ import utils.Constants.responseServiceUnavailable
 
 import java.util.UUID
 
-class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with GuiceOneAppPerSuite with WireMockHelper with ScalaFutures with BeforeAndAfterEach {
+class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with GuiceOneAppPerSuite with WireMockHelper with ScalaFutures {
 
   case class Enrolment (key: String, value: String = "")
   case class AuthBody (clientId: String = "localBearer", allEnrolments: Set[Enrolment], ttl: Int = 2000)
@@ -45,11 +44,6 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
   val generatedNino: String = new Generator().nextNino.nino
   val correlationId: String = UUID.randomUUID().toString
-
-  override def afterEach() = {
-    SharedMetricRegistries.clear()
-  }
-
 
   "preSchemaValidation" should {
     "ServiceUnavailable when endpoint returns errorCode" in {
