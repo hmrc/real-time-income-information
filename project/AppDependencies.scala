@@ -20,7 +20,7 @@ object AppDependencies {
     "com.typesafe.play"      %% "play-test"          % PlayVersion.current,
     "com.github.tomakehurst"  % "wiremock-jre8"      % "2.26.3",
     "com.vladsch.flexmark"    % "flexmark-all"       % "0.36.8",
-    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-28" % "0.60.0"
+    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-28" % "0.64.0"
   ).map(_ % "test,it")
 
   val all: Seq[ModuleID] = compile ++ test
