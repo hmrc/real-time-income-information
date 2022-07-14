@@ -1,6 +1,5 @@
 package controllers
 
-import com.codahale.metrics.SharedMetricRegistries
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers._
@@ -8,7 +7,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Play.materializer
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json}
-import play.api.test.FakeRequest
+import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers.{route, status => statusResult, _}
 import test_utils.{IntegrationBaseSpec, WireMockHelper}
 import uk.gov.hmrc.domain.Generator
@@ -40,7 +39,6 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
     "metrics.jvm" -> false,
     "api.serviceName" -> Seq("serviceName")
   ).build()
-  SharedMetricRegistries.clear()
 
   val generatedNino: String = new Generator().nextNino.nino
   val correlationId: String = UUID.randomUUID().toString
@@ -48,11 +46,18 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
   "preSchemaValidation" should {
     "ServiceUnavailable when endpoint returns errorCode" in {
       stubPostServer(ok(authBody(filterFullAccessScope)), "/auth/authorise")
-
       stubPostServer(serviceUnavailable(), s"/individuals/$generatedNino/income")
-      val requestDetails = dwpRequest(generatedNino)
 
-      val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
+      val requestDetails = dwpRequest(generatedNino)
+      val request = FakeRequest(
+        method = POST,
+        uri = s"/individuals/$correlationId/income",
+        headers = FakeHeaders(Seq(
+          "Authorization" -> "Bearer bearer-token"
+        )),
+        body = requestDetails
+      )
+
       val result = route(fakeApplication(), request)
       val expected = Some(Json.toJson(responseServiceUnavailable))
 
@@ -72,7 +77,15 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
 
         val requestDetails = dwpRequest(generatedNino)
-        val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
+        val request = FakeRequest(
+          method = POST,
+          uri = s"/individuals/$correlationId/income",
+          headers = FakeHeaders(Seq(
+            "Authorization" -> "Bearer bearer-token"
+          )),
+          body = requestDetails
+        )
+
         val result = route(fakeApplication(), request)
 
         result.map(statusResult) mustBe Some(OK)
@@ -91,7 +104,15 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
 
         val requestDetails = getRequest(fileName, generatedNino)
-        val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
+        val request = FakeRequest(
+          method = POST,
+          uri = s"/individuals/$correlationId/income",
+          headers = FakeHeaders(Seq(
+            "Authorization" -> "Bearer bearer-token"
+          )),
+          body = requestDetails
+        )
+
         val result = route(fakeApplication(), request)
 
         result.map(statusResult) mustBe Some(OK)
@@ -113,8 +134,15 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         stubPostServer(ok(authBody("filter:this-is-not-a-valid-scope")) ,"/auth/authorise")
         stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
 
-        val requestDetails = getRequest(fileName, generatedNino)
-        val request = FakeRequest("POST", s"/individuals/$correlationId/income").withJsonBody(requestDetails)
+        val requestDetails: JsValue = getRequest(fileName, generatedNino)
+        val request = FakeRequest(
+          method = POST,
+          uri = s"/individuals/$correlationId/income",
+          headers = FakeHeaders(Seq(
+            "Authorization" -> "Bearer bearer-token"
+          )),
+          body = requestDetails
+        )
 
         val result = route(fakeApplication(), request)
 
