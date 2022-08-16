@@ -47,9 +47,9 @@
 
     <logger name="uk.gov" level="$WARN"/>
 
-    <logger name="application" level="${logger.application:-DEBUG}"/>
+    <logger name="application" level="DEBUG"/>
 
-    <logger name="connector" level="${logger.connector:-TRACE}">
+    <logger name="connector" level="TRACE">
         <appender-ref ref="STDOUT"/>
     </logger>
 
