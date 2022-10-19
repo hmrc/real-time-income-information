@@ -1,0 +1,1153 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Real Time Income Information",
+    "contact": {},
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.service.hmrc.gov.uk/",
+      "variables": {}
+    }
+  ],
+  "paths": {
+    "/real-time-income-information/individuals/{correlationId}/income": {
+      "post": {
+        "tags": [
+          "real-time-income-information"
+        ],
+        "summary": "Real Time Income Information",
+        "description": "This API allows a third party to retrieve real time income information for an individual by specifying a required fieldset.\n\nThis version of the API is in development and is very likely to change.\n\nThe current API allows the a consuming service to retrieve an individuals income information by providing a list of required fields.\n\nTo use this API, several matching fields are required as well as a list of filter field keys. This will determine which values are returned as part of the response. The list of keys which can be requested can be found in the request schema below.\n\nIf a key is requested that is not in the list of potential keys, a 400 INVALID_PAYLOAD response will be returned.\n",
+        "operationId": "RealTimeIncomeInformation",
+        "parameters": [
+          {
+            "name": "correlationId",
+            "in": "path",
+            "description": "Identifier used to locate related transactions",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Realtimeincomeinformationrequestschemav1.0"
+                  },
+                  {
+                    "example": {
+                      "nino": "AB123456C",
+                      "serviceName": "RTI-Disputes",
+                      "fromDate": "2016-12-31",
+                      "toDate": "2017-12-31",
+                      "surname": "Smith",
+                      "firstName": "John",
+                      "gender": "M",
+                      "initials": "J B",
+                      "dateOfBirth": "2000-03-29",
+                      "filterFields": [
+                        "surname",
+                        "nationalInsuranceNumber"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "example": {
+                "nino": "AB123456C",
+                "serviceName": "RTI-Disputes",
+                "fromDate": "2016-12-31",
+                "toDate": "2017-12-31",
+                "surname": "Smith",
+                "firstName": "John",
+                "gender": "M",
+                "initials": "J B",
+                "dateOfBirth": "2000-03-29",
+                "filterFields": [
+                  "surname",
+                  "nationalInsuranceNumber"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Realtimeincomeinformationresponseschemav1.0"
+                    },
+                    {
+                      "example": {
+                        "matchPattern": 63,
+                        "taxYears": [
+                          {
+                            "taxYear": "16-17",
+                            "taxYearIndicator": "P",
+                            "hmrcOfficeNumber": "099",
+                            "employerPayeRef": "A1B2c3d4e5",
+                            "employerName1": "Employer",
+                            "nationalInsuranceNumber": "AB123456C",
+                            "surname": "Surname",
+                            "gender": "M",
+                            "uniqueEmploymentSequenceNumber": 9999,
+                            "taxablePayInPeriod": 999999.99,
+                            "taxDeductedOrRefunded": -12345.67,
+                            "grossEarningsForNICs": 888888.66,
+                            "taxablePayToDate": 999999.99,
+                            "totalTaxToDate": 654321.08,
+                            "numberOfNormalHoursWorked": "E",
+                            "payFrequency": "M1",
+                            "paymentDate": "2017-02-03",
+                            "earningsPeriodsCovered": 11,
+                            "uniquePaymentId": 777777,
+                            "paymentConfidenceStatus": "1",
+                            "taxCode": "11100L",
+                            "hmrcReceiptTimestamp": "2018-04-16T09:23:55Z",
+                            "rtiReceivedDate": "2018-04-16",
+                            "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "example-1": {
+                    "value": {
+                      "matchPattern": 63,
+                      "taxYears": [
+                        {
+                          "taxYear": "16-17",
+                          "taxYearIndicator": "P",
+                          "hmrcOfficeNumber": "099",
+                          "employerPayeRef": "A1B2c3d4e5",
+                          "employerName1": "Employer",
+                          "nationalInsuranceNumber": "AB123456C",
+                          "surname": "Surname",
+                          "gender": "M",
+                          "uniqueEmploymentSequenceNumber": 9999,
+                          "taxablePayInPeriod": 999999.99,
+                          "taxDeductedOrRefunded": -12345.67,
+                          "grossEarningsForNICs": 888888.66,
+                          "taxablePayToDate": 999999.99,
+                          "totalTaxToDate": 654321.08,
+                          "numberOfNormalHoursWorked": "E",
+                          "payFrequency": "M1",
+                          "paymentDate": "2017-02-03",
+                          "earningsPeriodsCovered": 11,
+                          "uniquePaymentId": 777777,
+                          "paymentConfidenceStatus": "1",
+                          "taxCode": "11100L",
+                          "hmrcReceiptTimestamp": "2018-04-16T09:23:55Z",
+                          "rtiReceivedDate": "2018-04-16",
+                          "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
+                        }
+                      ]
+                    }
+                  },
+                  "example-2": {
+                    "value": {
+                      "matchPattern": 63,
+                      "taxYears": [
+                        {
+                          "taxYear": "16-17",
+                          "taxYearIndicator": "P",
+                          "hmrcOfficeNumber": "099",
+                          "employerPayeRef": "A1B2c3d4e5",
+                          "employerName1": "EmployerOne",
+                          "nationalInsuranceNumber": "AA123456C",
+                          "surname": "Surnameone",
+                          "gender": "M",
+                          "uniqueEmploymentSequenceNumber": 9999,
+                          "taxablePayInPeriod": 999999.99,
+                          "taxDeductedOrRefunded": -12345.67,
+                          "grossEarningsForNICs": 888888.66,
+                          "taxablePayToDate": 999999.99,
+                          "totalTaxToDate": 654321.08,
+                          "numberOfNormalHoursWorked": "E",
+                          "payFrequency": "M1",
+                          "paymentDate": "2017-02-03",
+                          "earningsPeriodsCovered": 11,
+                          "uniquePaymentId": 777777,
+                          "paymentConfidenceStatus": "1",
+                          "taxCode": "11100L",
+                          "hmrcReceiptTimestamp": "2018-04-16T09:23:55Z",
+                          "rtiReceivedDate": "2018-04-16",
+                          "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
+                        },
+                        {
+                          "taxYear": "16-17",
+                          "taxYearIndicator": "P",
+                          "hmrcOfficeNumber": "099",
+                          "employerPayeRef": "A1B2c3d4e5",
+                          "employerName1": "EmployerTwo",
+                          "nationalInsuranceNumber": "AA123456C",
+                          "surname": "Surnametwo",
+                          "gender": "M",
+                          "uniqueEmploymentSequenceNumber": 1111,
+                          "taxablePayInPeriod": 999999.99,
+                          "taxDeductedOrRefunded": -12345.67,
+                          "grossEarningsForNICs": 888888.66,
+                          "taxablePayToDate": 999999.99,
+                          "totalTaxToDate": 654321.08,
+                          "numberOfNormalHoursWorked": "E",
+                          "payFrequency": "M1",
+                          "paymentDate": "2017-02-03",
+                          "earningsPeriodsCovered": 11,
+                          "uniquePaymentId": 777777,
+                          "paymentConfidenceStatus": "1",
+                          "taxCode": "11100L",
+                          "hmrcReceiptTimestamp": "2018-04-16T09:23:55Z",
+                          "rtiReceivedDate": "2018-04-16",
+                          "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/failureResponseElement"
+                    },
+                    {
+                      "$ref": "#/components/schemas/failureResponseArray"
+                    }
+                  ],
+                  "example": {
+                    "code": "INVALID_CORRELATIONID",
+                    "reason": "Submission has not passed validation. Invalid header CorrelationId."
+                  }
+                },
+                "examples": {
+                  "invalidCorrelationId": {
+                    "description": "Invalid Correlation ID",
+                    "value": {
+                      "code": "INVALID_CORRELATIONID",
+                      "reason": "Submission has not passed validation. Invalid header CorrelationId."
+                    }
+                  },
+                  "invalidDateRange": {
+                    "description": "Invalid Date Range",
+                    "value": {
+                      "code": "INVALID_DATE_RANGE",
+                      "reason": "The remote endpoint has indicated that the date range is invalid."
+                    }
+                  },
+                  "invalidDatesEqual": {
+                    "description": "Invalid Dates Equal",
+                    "value": {
+                      "code": "INVALID_DATES_EQUAL",
+                      "reason": "The remote endpoint has indicated that the from and to dates are the same."
+                    }
+                  },
+                  "invalidPayload": {
+                    "description": "Invalid Payload",
+                    "value": {
+                      "code": "INVALID_PAYLOAD",
+                      "reason": "Submission has not passed validation. Invalid Payload."
+                    }
+                  },
+                  "multipleErrors": {
+                    "description": "Multiple Errors",
+                    "value": {
+                      "failures": [
+                        {
+                          "code": "INVALID_DATE_RANGE",
+                          "reason": "The remote endpoint has indicated that the date range is invalid."
+                        },
+                        {
+                          "code": "INVALID_PAYLOAD",
+                          "reason": "Submission has not passed validation. Invalid Payload."
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/failureResponseElement"
+                    },
+                    {
+                      "$ref": "#/components/schemas/failureResponseArray"
+                    }
+                  ],
+                  "example": {
+                    "code": "NON_PRIVILEGED_APPLICATION",
+                    "reason": "The remote endpoint has indicated the request has not passed authentication."
+                  }
+                },
+                "examples": {
+                  "forbidden": {
+                    "description": "Non Privileged Application",
+                    "value": {
+                      "code": "NON_PRIVILEGED_APPLICATION",
+                      "reason": "The remote endpoint has indicated the request has not passed authentication."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/failureResponseElement"
+                    },
+                    {
+                      "$ref": "#/components/schemas/failureResponseArray"
+                    }
+                  ],
+                  "example": {
+                    "code": "NOT_FOUND",
+                    "reason": "The remote endpoint has indicated that there is no data for the Nino."
+                  }
+                },
+                "examples": {
+                  "notFound": {
+                    "description": "No data found for Nino",
+                    "value": {
+                      "code": "NOT_FOUND",
+                      "reason": "The remote endpoint has indicated that there is no data for the Nino."
+                    }
+                  },
+                  "notFoundNino": {
+                    "description": "Nino cannot be found",
+                    "value": {
+                      "code": "NOT_FOUND_NINO",
+                      "reason": "The remote endpoint has indicated that the Nino cannot be found."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/failureResponseElement"
+                    },
+                    {
+                      "$ref": "#/components/schemas/failureResponseArray"
+                    }
+                  ],
+                  "example": {
+                    "code": "SERVER_ERROR",
+                    "reason": "DES is currently experiencing problems that require live service intervention."
+                  }
+                },
+                "examples": {
+                  "serverError": {
+                    "description": "Des returned an Internal Server Error",
+                    "value": {
+                      "code": "SERVER_ERROR",
+                      "reason": "DES is currently experiencing problems that require live service intervention."
+                    }
+                  },
+                  "internalServerError": {
+                    "description": "Internal Server Error returned",
+                    "value": {
+                      "code": "INTERNAL_SERVER_ERROR",
+                      "reason": "Internal Server Error"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "",
+            "headers": {},
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/failureResponseElement"
+                    },
+                    {
+                      "$ref": "#/components/schemas/failureResponseArray"
+                    }
+                  ],
+                  "example": {
+                    "code": "SERVICE_UNAVAILABLE",
+                    "reason": "Dependent systems are currently not responding."
+                  }
+                },
+                "examples": {
+                  "serviceUnavailable": {
+                    "description": "Des has returned Service Unavailable",
+                    "value": {
+                      "code": "SERVICE_UNAVAILABLE",
+                      "reason": "Dependent systems are currently not responding."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Realtimeincomeinformationrequestschemav1.0": {
+        "title": "Realtimeincomeinformationrequestschemav1.0",
+        "required": [
+          "nino",
+          "serviceName",
+          "fromDate",
+          "toDate",
+          "surname",
+          "filterFields"
+        ],
+        "type": "object",
+        "properties": {
+          "nino": {
+            "pattern": "^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D ]$",
+            "type": "string"
+          },
+          "serviceName": {
+            "type": "string",
+            "description": "serviceName values are validated against an allowList of services with access to the api"
+          },
+          "fromDate": {
+            "pattern": "^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$",
+            "type": "string"
+          },
+          "toDate": {
+            "pattern": "^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$",
+            "type": "string"
+          },
+          "surname": {
+            "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$",
+            "type": "string"
+          },
+          "firstName": {
+            "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$",
+            "type": "string"
+          },
+          "middleName": {
+            "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$",
+            "type": "string"
+          },
+          "gender": {
+            "$ref": "#/components/schemas/Gender"
+          },
+          "initials": {
+            "pattern": "^[a-zA-Z &`\\-\\'\\.^]{1,35}$",
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "pattern": "^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$",
+            "type": "string"
+          },
+          "filterFields": {
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FilterField"
+            },
+            "description": "Some users will have limited access to specific filterFields only"
+          }
+        }
+      },
+      "Gender": {
+        "title": "Gender",
+        "enum": [
+          "M",
+          "F"
+        ],
+        "type": "string"
+      },
+      "FilterField": {
+        "title": "FilterField",
+        "enum": [
+          "taxYear",
+          "taxYearIndicator",
+          "hmrcOfficeNumber",
+          "employerPayeRef",
+          "employerName1",
+          "employerName2",
+          "employerTradeName1",
+          "employerTradeName2",
+          "nationalInsuranceNumber",
+          "surname",
+          "forename",
+          "secondForename",
+          "initials",
+          "dateOfBirth",
+          "gender",
+          "uniqueEmploymentSequenceNumber",
+          "payrollId",
+          "employmentStartDate",
+          "employmentEndDate",
+          "taxablePayInPeriod",
+          "paymentsNotSubjectToTaxOrNICS",
+          "valueOfDeductions",
+          "payAfterStatutoryDeductions",
+          "benefitsTaxedViaPayroll",
+          "employeePensionContributions",
+          "itemsSubjectToClass1NIC",
+          "employeePensionContributionsNotPaid",
+          "taxDeductedOrRefunded",
+          "grossEarningsForNICs",
+          "employeesContributionsInPeriod",
+          "taxablePayToDate",
+          "totalTaxToDate",
+          "employeesContributionsYearToDate",
+          "numberOfNormalHoursWorked",
+          "payFrequency",
+          "paymentDate",
+          "weeklyPeriodNumber",
+          "monthlyPeriodNumber",
+          "earningsPeriodsCovered",
+          "paymentAfterLeaving",
+          "irregularPayment",
+          "uniquePaymentId",
+          "paymentConfidenceStatus",
+          "occPenIndicator",
+          "onStrikeWithinPayPeriod",
+          "unpaidAbsencePayPeriod",
+          "benefitsTaxedYeartoDate",
+          "pensionContributionsYearToDate",
+          "pensionContributionsNotPaidYeartoDate",
+          "taxCode",
+          "multipleIPSIndicator",
+          "bacsPaymentAmount",
+          "statutoryMaternityPayYeartoDate",
+          "niLetter",
+          "directorsNIC",
+          "latePayeReportingReason",
+          "schemeExemptFromElectronicFiling",
+          "flexiblyAccessingPensionRights",
+          "pensionsDeathBenefit",
+          "flexibleDrawdownTaxablePayment",
+          "flexibleDrawdownNonTaxablePayment",
+          "taxRegime",
+          "annualAmountOfOccupationalPension",
+          "taxCodeBasisisNonCumulative",
+          "statutoryPaternityPayYearToDate",
+          "valueofStatutoryAdoptionPayYearToDate",
+          "sharedParentalPayYearToDate",
+          "partnerSurnameOrFamilyName",
+          "partnerForenameOrGivenName",
+          "partnerInitials",
+          "partnerSecondForename",
+          "partnerNINO",
+          "grossEarningsForNICsYearToDate",
+          "taxWeekNumberOfAppointmentOfDirector",
+          "totalEmployerNIContributionsInPeriod",
+          "trivialCommutationPaymentTypeA",
+          "trivialCommutationPaymentTypeB",
+          "trivialCommutationPaymentTypeC",
+          "seriousillHealthLumpSum",
+          "hmrcReceiptTimestamp",
+          "rtiReceivedDate",
+          "apiAvailableTimestamp",
+          "paymentNoLongerValid"
+        ],
+        "type": "string"
+      },
+      "Realtimeincomeinformationresponseschemav1.0": {
+        "title": "Realtimeincomeinformationresponseschemav1.0",
+        "type": "object",
+        "properties": {
+          "matchPattern": {
+            "maximum": 63.0,
+            "minimum": 0.0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "taxYears": {
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/taxYearItem"
+            },
+            "description": ""
+          }
+        }
+      },
+      "taxYearItem": {
+        "title": "taxYearItem",
+        "type": "object",
+        "properties": {
+          "taxYear": {
+            "pattern": "^[0-9]{2}\\-[0-9]{2}$",
+            "type": "string",
+            "description": "The tax year to which the earnings information in this record applies"
+          },
+          "taxYearIndicator": {
+            "pattern": "^[PC]$",
+            "type": "string",
+            "description": "Previous or Current tax year"
+          },
+          "hmrcOfficeNumber": {
+            "pattern": "^(00[1-9]|0[1-9][0-9]|[1-9][0-9][0-9])$",
+            "type": "string",
+            "description": "HMRC Office Number"
+          },
+          "employerPayeRef": {
+            "pattern": "^[^ ].{1,9}$",
+            "type": "string",
+            "description": "Unique identifier for the Scheme making the payment"
+          },
+          "employerName1": {
+            "pattern": "^.{1,28}$",
+            "type": "string",
+            "description": "Name of the Scheme employing the individual (part 1)"
+          },
+          "employerName2": {
+            "pattern": "^.{0,28}$",
+            "type": "string",
+            "description": "Name of the Scheme employing the individual (part 2)"
+          },
+          "employerTradeName1": {
+            "pattern": "^.{0,28}$",
+            "type": "string",
+            "description": "Trade Name of the Scheme employing the individual (part 1)"
+          },
+          "employerTradeName2": {
+            "pattern": "^.{0,28}$",
+            "type": "string",
+            "description": "Trade Name of the Scheme employing the individual (part 2)"
+          },
+          "nationalInsuranceNumber": {
+            "pattern": "^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D]?$",
+            "type": "string",
+            "description": "The NINO of the Individual for which the Payment Data is being issued"
+          },
+          "surname": {
+            "pattern": "^[A-Za-z][A-Za-z '-]{0,34}$",
+            "type": "string",
+            "description": "Between 0 and 34 constrained characters"
+          },
+          "forename": {
+            "pattern": "^[A-Za-z][A-Za-z '-]{0,34}$",
+            "type": "string",
+            "description": "Between 0 and 34 constrained characters"
+          },
+          "secondForename": {
+            "pattern": "^[A-Za-z][A-Za-z '-]{0,34}$",
+            "type": "string",
+            "description": "Between 0 and 34 constrained characters"
+          },
+          "initials": {
+            "pattern": "^[A-Za-z][A-Za-z ]{0,4}$",
+            "type": "string",
+            "description": "Initials of the person for whom the Payment Data has been received"
+          },
+          "dateOfBirth": {
+            "pattern": "^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "Format CCYY-MM-DD"
+          },
+          "gender": {
+            "pattern": "^[MF]$",
+            "type": "string",
+            "description": "Gender for whom the Payment Data has been received"
+          },
+          "uniqueEmploymentSequenceNumber": {
+            "maximum": 9999.0,
+            "minimum": 1.0,
+            "type": "integer",
+            "description": "The NPS Employment Sequence Number",
+            "format": "int32"
+          },
+          "payrollId": {
+            "pattern": "^[^ ].{0,34}$",
+            "type": "string",
+            "description": "Identifier assigned by the employer to the individual"
+          },
+          "employmentStartDate": {
+            "pattern": "^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "Format CCYY-MM-DD"
+          },
+          "employmentEndDate": {
+            "pattern": "^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "Format CCYY-MM-DD"
+          },
+          "taxablePayInPeriod": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "paymentsNotSubjectToTaxOrNICS": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "valueOfDeductions": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "payAfterStatutoryDeductions": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "benefitsTaxedViaPayroll": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "employeePensionContributions": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "itemsSubjectToClass1NIC": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "employeePensionContributionsNotPaid": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "taxDeductedOrRefunded": {
+            "multipleOf": 0.01,
+            "maximum": 9999999999.99,
+            "minimum": -9999999999.99,
+            "type": "number"
+          },
+          "grossEarningsForNICs": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "employeesContributionsInPeriod": {
+            "multipleOf": 0.01,
+            "maximum": 9999999999.99,
+            "minimum": -9999999999.99,
+            "type": "number"
+          },
+          "taxablePayToDate": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "totalTaxToDate": {
+            "multipleOf": 0.01,
+            "maximum": 9999999999.99,
+            "minimum": -9999999999.99,
+            "type": "number"
+          },
+          "employeesContributionsYearToDate": {
+            "multipleOf": 0.01,
+            "maximum": 9999999999.99,
+            "minimum": -9999999999.99,
+            "type": "number"
+          },
+          "numberOfNormalHoursWorked": {
+            "pattern": "^[ABCDE]$",
+            "type": "string",
+            "description": "Code for number of normal hours worked"
+          },
+          "payFrequency": {
+            "pattern": "^(W1|W2|W4|M1|M3|M6|MA|IO|IR)$",
+            "type": "string",
+            "description": "Code for pay frequency"
+          },
+          "paymentDate": {
+            "pattern": "^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "Format CCYY-MM-DD"
+          },
+          "weeklyPeriodNumber": {
+            "maximum": 56.0,
+            "minimum": 1.0,
+            "type": "integer",
+            "description": "Tax Week Number between 1 and 56 excluding 55",
+            "format": "int32"
+          },
+          "monthlyPeriodNumber": {
+            "maximum": 12.0,
+            "minimum": 1.0,
+            "type": "integer",
+            "description": "Tax Month Number",
+            "format": "int32"
+          },
+          "earningsPeriodsCovered": {
+            "maximum": 99.0,
+            "minimum": 1.0,
+            "type": "integer",
+            "description": "Number of earnings period(s) covered by payment",
+            "format": "int32"
+          },
+          "paymentAfterLeaving": {
+            "pattern": "^Y$",
+            "type": "string",
+            "description": "Indicator that the payment is a payment after date of notification of contract ending"
+          },
+          "irregularPayment": {
+            "pattern": "^Y$",
+            "type": "string",
+            "description": "Irregular Employment Payment Pattern Indicator"
+          },
+          "uniquePaymentId": {
+            "multipleOf": 1.0,
+            "minimum": 1.0,
+            "type": "number",
+            "description": "Unique Id sent with a payment"
+          },
+          "paymentConfidenceStatus": {
+            "pattern": "^[12345]$",
+            "type": "string",
+            "description": "Indicates the Payment Confidence Status at the time of sending the Payment to DWP"
+          },
+          "occPenIndicator": {
+            "pattern": "^Y$",
+            "type": "string",
+            "description": "Occupational Pension Indicator"
+          },
+          "onStrikeWithinPayPeriod": {
+            "pattern": "^Y$",
+            "type": "string",
+            "description": "On Strike Within Pay Period"
+          },
+          "unpaidAbsencePayPeriod": {
+            "pattern": "^Y$",
+            "type": "string",
+            "description": "Identification that an Individual has been on unpaid absence within the RTI Payment Period"
+          },
+          "benefitsTaxedYeartoDate": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "pensionContributionsYearToDate": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "pensionContributionsNotPaidYeartoDate": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "taxCode": {
+            "pattern": "^([1-9][0-9]{0,5}[LMNPTY])|(BR)|(0T)|(NT)|(FT)|(D[0-8])|([K][1-9][0-9]{0,5})$",
+            "type": "string",
+            "description": "Tax Code Operated on the Payment"
+          },
+          "multipleIPSIndicator": {
+            "pattern": "^[YN]$",
+            "type": "string",
+            "description": "Multiple IPS records used to determine payment confidence status of Payment Confirmed Amount Differs"
+          },
+          "bacsPaymentAmount": {
+            "multipleOf": 1.0,
+            "maximum": 99999999999.0,
+            "minimum": 0.0,
+            "type": "number",
+            "description": "The BACS payment amount (in pence) used in determining the payment confidence status"
+          },
+          "statutoryMaternityPayYeartoDate": {
+            "multipleOf": 0.01,
+            "maximum": 999999.99,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "niLetter": {
+            "pattern": "^[ABCDEGHIJKLMNOPQRTVWXYZ]$",
+            "type": "string",
+            "description": "NI Letter"
+          },
+          "directorsNIC": {
+            "pattern": "^(AN|AL)$",
+            "type": "string",
+            "description": "Director's NIC - Annual or Alternative"
+          },
+          "latePayeReportingReason": {
+            "pattern": "^[ABCDEFGH]$",
+            "type": "string",
+            "description": "Code for Late PAYE Reporting Reason"
+          },
+          "schemeExemptFromElectronicFiling": {
+            "pattern": "^[YN]$",
+            "type": "string",
+            "description": "Scheme Exempt from Electronic Filing"
+          },
+          "flexiblyAccessingPensionRights": {
+            "pattern": "^Y$",
+            "type": "string",
+            "description": "Flexibly Accessing Pension Rights"
+          },
+          "pensionsDeathBenefit": {
+            "pattern": "^Y$",
+            "type": "string",
+            "description": "Pensions Death Benefit"
+          },
+          "flexibleDrawdownTaxablePayment": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "flexibleDrawdownNonTaxablePayment": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "taxRegime": {
+            "pattern": "^S$",
+            "type": "string",
+            "description": "Tax Regime"
+          },
+          "annualAmountOfOccupationalPension": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "taxCodeBasisisNonCumulative": {
+            "pattern": "^Y$",
+            "type": "string",
+            "description": "Tax Code Basis is Non Cumulative"
+          },
+          "statutoryPaternityPayYearToDate": {
+            "multipleOf": 0.01,
+            "maximum": 999999.99,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "valueofStatutoryAdoptionPayYearToDate": {
+            "multipleOf": 0.01,
+            "maximum": 999999.99,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "sharedParentalPayYearToDate": {
+            "multipleOf": 0.01,
+            "maximum": 999999.99,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "partnerSurnameOrFamilyName": {
+            "pattern": "^[A-Za-z][A-Za-z '-]{0,34}$",
+            "type": "string",
+            "description": "Between 0 and 34 constrained characters"
+          },
+          "partnerForenameOrGivenName": {
+            "pattern": "^[A-Za-z][A-Za-z '-]{0,34}$",
+            "type": "string",
+            "description": "Between 0 and 34 constrained characters"
+          },
+          "partnerInitials": {
+            "pattern": "^[A-Za-z][A-Za-z ]{0,4}$",
+            "type": "string",
+            "description": "Partner's initials for Additional Statutory Paternity Pay / Shared Parental Pay claim"
+          },
+          "partnerSecondForename": {
+            "pattern": "^[A-Za-z][A-Za-z '-]{0,34}$",
+            "type": "string",
+            "description": "Between 0 and 34 constrained characters"
+          },
+          "partnerNINO": {
+            "pattern": "^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D ]?$",
+            "type": "string",
+            "description": "The NINO of the employee's social partner"
+          },
+          "grossEarningsForNICsYearToDate": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "taxWeekNumberOfAppointmentOfDirector": {
+            "maximum": 56.0,
+            "minimum": 1.0,
+            "type": "integer",
+            "description": "Tax Week Number of Appointment of Director",
+            "format": "int32"
+          },
+          "totalEmployerNIContributionsInPeriod": {
+            "multipleOf": 0.01,
+            "maximum": 999999999.99,
+            "minimum": -999999999.99,
+            "type": "number"
+          },
+          "trivialCommutationPaymentTypeA": {
+            "multipleOf": 1.0,
+            "maximum": 99999.0,
+            "minimum": -99999.0,
+            "type": "number",
+            "description": "Values between -99999.00 and 99999.00 in whole numbers only"
+          },
+          "trivialCommutationPaymentTypeB": {
+            "multipleOf": 1.0,
+            "maximum": 99999.0,
+            "minimum": -99999.0,
+            "type": "number",
+            "description": "Values between -99999.00 and 99999.00 in whole numbers only"
+          },
+          "trivialCommutationPaymentTypeC": {
+            "multipleOf": 1.0,
+            "maximum": 99999.0,
+            "minimum": -99999.0,
+            "type": "number",
+            "description": "Values between -99999.00 and 99999.00 in whole numbers only"
+          },
+          "seriousillHealthLumpSum": {
+            "pattern": "^[Y]$",
+            "type": "string",
+            "description": "Indicate yes if any part of the payment is a serious ill health lump sum"
+          },
+          "hmrcReceiptTimestamp": {
+            "type": "string",
+            "description": "The date and time that the submission was received from the employer at the government gateway",
+            "format": "date-time"
+          },
+          "rtiReceivedDate": {
+            "pattern": "^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "Format CCYY-MM-DD"
+          },
+          "apiAvailableTimestamp": {
+            "type": "string",
+            "description": "The date and time this information was available to the API",
+            "format": "date-time"
+          },
+          "paymentNoLongerValid": {
+            "pattern": "^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$",
+            "type": "string",
+            "description": "Format CCYY-MM-DD"
+          }
+        }
+      },
+      "failureResponseElement": {
+        "title": "failureResponseElement",
+        "required": [
+          "code",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Code"
+              },
+              {
+                "description": "Keys for all the errors returned"
+              }
+            ]
+          },
+          "reason": {
+            "maxLength": 160,
+            "minLength": 1,
+            "type": "string",
+            "description": "A simple description for the failure"
+          }
+        }
+      },
+      "Code": {
+        "title": "Code",
+        "enum": [
+          "INVALID_CORRELATIONID",
+          "INVALID_PAYLOAD",
+          "INVALID_DATE_RANGE",
+          "INVALID_DATES_EQUAL",
+          "NON_PRIVILEGED_APPLICATION",
+          "NOT_FOUND_NINO",
+          "NOT_FOUND",
+          "SERVER_ERROR",
+          "INTERNAL_SERVER_ERROR",
+          "SERVICE_UNAVAILABLE"
+        ],
+        "type": "string",
+        "description": "Keys for all the errors returned"
+      },
+      "failureResponseArray": {
+        "title": "failureResponseArray",
+        "required": [
+          "failures"
+        ],
+        "type": "object",
+        "properties": {
+          "failures": {
+            "minItems": 2,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/failureResponseElement"
+            },
+            "description": ""
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "real-time-income-information",
+      "description": ""
+    }
+  ]
+}
