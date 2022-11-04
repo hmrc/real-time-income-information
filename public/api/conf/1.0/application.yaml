@@ -4,8 +4,10 @@ info:
   contact: {}
   version: '1.0'
 servers:
-  - url: https://api.service.hmrc.gov.uk/
-    variables: {}
+  - url: https://test-api.service.hmrc.gov.uk
+    description: Sandbox
+  - url: https://api.service.hmrc.gov.uk
+    description: Production
 paths:
   /real-time-income-information/individuals/{correlationId}/income:
     post:
@@ -312,6 +314,17 @@ paths:
                     reason: Dependent systems are currently not responding.
       deprecated: false
 components:
+  securitySchemes:
+    User-Restricted:
+      type: oauth2
+      description: HMRC supports OAuth 2.0 for authenticating User-restricted API requests
+      flows:
+        authorizationCode:
+          authorizationUrl: https://api.service.hmrc.gov.uk/oauth/authorize
+          tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
+          refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
+          scopes:
+            write:import-control-system: Access Import Control System
   schemas:
     Realtimeincomeinformationrequestschemav1.0:
       title: Realtimeincomeinformationrequestschemav1.0
