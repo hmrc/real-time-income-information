@@ -4,10 +4,8 @@ info:
   contact: {}
   version: '1.0'
 servers:
-  - url: https://test-api.service.hmrc.gov.uk
-    description: Sandbox
-  - url: https://api.service.hmrc.gov.uk
-    description: Production
+  - url: https://api.service.hmrc.gov.uk/
+    variables: {}
 paths:
   /real-time-income-information/individuals/{correlationId}/income:
     post:
@@ -39,7 +37,7 @@ paths:
             pattern: ^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$
             type: string
       requestBody:
-        description: ''
+        description: 'Request Body'
         content:
           application/json:
             schema:
@@ -74,7 +72,7 @@ paths:
         required: true
       responses:
         '200':
-          description: ''
+          description: 'OK'
           headers: {}
           content:
             application/json:
@@ -190,7 +188,7 @@ paths:
                         rtiReceivedDate: 2018-04-16
                         apiAvailableTimestamp: 2018-04-16T09:23:55Z
         '400':
-          description: ''
+          description: 'Bad Request'
           headers: {}
           content:
             application/json:
@@ -231,7 +229,7 @@ paths:
                       - code: INVALID_PAYLOAD
                         reason: Submission has not passed validation. Invalid Payload.
         '403':
-          description: ''
+          description: 'Forbidden'
           headers: {}
           content:
             application/json:
@@ -249,7 +247,7 @@ paths:
                     code: NON_PRIVILEGED_APPLICATION
                     reason: The remote endpoint has indicated the request has not passed authentication.
         '404':
-          description: ''
+          description: 'Not Found'
           headers: {}
           content:
             application/json:
@@ -272,7 +270,7 @@ paths:
                     code: NOT_FOUND_NINO
                     reason: The remote endpoint has indicated that the Nino cannot be found.
         '500':
-          description: ''
+          description: 'Server Error'
           headers: {}
           content:
             application/json:
@@ -295,7 +293,7 @@ paths:
                     code: INTERNAL_SERVER_ERROR
                     reason: Internal Server Error
         '503':
-          description: ''
+          description: 'Service Unavailable'
           headers: {}
           content:
             application/json:
@@ -313,6 +311,9 @@ paths:
                     code: SERVICE_UNAVAILABLE
                     reason: Dependent systems are currently not responding.
       deprecated: false
+      security:
+        - User-Restricted:
+            - write:real-time-income-information
 components:
   securitySchemes:
     User-Restricted:
@@ -324,7 +325,7 @@ components:
           tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
           refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
           scopes:
-            write:import-control-system: Access Import Control System
+            write:real-time-income-information: Access Real Time Income Information
   schemas:
     Realtimeincomeinformationrequestschemav1.0:
       title: Realtimeincomeinformationrequestschemav1.0
@@ -481,7 +482,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/taxYearItem'
-          description: ''
+          description: 'The tax year to which the earnings information in this record applies'
     taxYearItem:
       title: taxYearItem
       type: object
@@ -906,7 +907,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/failureResponseElement'
-          description: ''
+          description: 'An array containing errors'
 tags:
   - name: real-time-income-information
     description: ''
