@@ -29,6 +29,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
   def authBody(scope: String): String = {
     val body = AuthBody(allEnrolments = Set(Enrolment(apiAccessScope), Enrolment(scope)))
+    println(Console.YELLOW + Json.toJson(body).toString.stripMargin + Console.RESET)
     Json.toJson(body).toString.stripMargin
   }
 
