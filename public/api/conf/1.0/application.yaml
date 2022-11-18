@@ -326,6 +326,15 @@ components:
           refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
           scopes:
             write:real-time-income-information: Access Real Time Income Information
+    applicationRestricted:
+      type: oauth2
+      description: |
+        HMRC supports OAuth 2.0 for authenticating application restricted API requests using an OAuth 2.0 Bearer Token in the AUTHORIZATION header.
+        See https://developer.service.hmrc.gov.uk/api-documentation/docs/authorisation/application-restricted-endpoints for details.
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
+          scopes: {}
   schemas:
     Realtimeincomeinformationrequestschemav1.0:
       title: Realtimeincomeinformationrequestschemav1.0
