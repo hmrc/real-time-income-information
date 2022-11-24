@@ -17,39 +17,36 @@
 package config
 
 import org.scalatest.matchers.must.Matchers._
-
 import java.util.UUID
+
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 import utils.BaseSpec
 
-class APIConfigSpec extends BaseSpec {
+import scala.reflect.ClassTag
+
+class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
+
+  def injected[T](implicit evidence: ClassTag[T]): T = app.injector.instanceOf[T]
+  lazy val apiConfig: APIConfig = injected[APIConfig]
 
   val filterFullAccessScope = "filter:real-time-income-information-full"
+  val filterSgAccessScope = "filter:real-time-income-information-sg"
 
   "apiScope" must {
-    def SUT = new APIConfig(Configuration(
-      s"""api.scopes."$filterFullAccessScope".fields""" -> Seq(1,2,3),
-      "api.fields.1" -> "A",
-      "api.fields.2" -> "B",
-      "api.fields.3" -> "C"
-    ))
-
     "return scope" when {
-      "findScope with valid configuration" in {
-
-        val scope = SUT.findScope(filterFullAccessScope)
-
-        scope.isDefined mustBe true
-        scope.get.name mustBe filterFullAccessScope
-        scope.get.fields.map(f => f.id) mustBe Seq(1,2,3)
+      "findScope with full filters" in {
+        apiConfig.findScope(filterFullAccessScope) shouldBe APIConfigFixture.fullScope
+      }
+      "findScope with sg filters" in {
+        apiConfig.findScope(filterSgAccessScope) shouldBe APIConfigFixture.sgScope
       }
     }
 
     "return none" when {
       "scopeName does not exist" in {
         val scopeName = "Test"
-
-        val scope = SUT.findScope(scopeName)
+        val scope = apiConfig.findScope(scopeName)
 
         scope.isDefined mustBe false
       }
