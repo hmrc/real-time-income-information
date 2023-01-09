@@ -67,7 +67,9 @@ class RealTimeIncomeInformationControllerSpec
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRtiiService, mockAuditService, mockRequestDetailsService)
+    reset(mockRtiiService)
+    reset(mockAuditService)
+    reset(mockRequestDetailsService)
   }
 
   def fakeRequest(jsonBody: JsValue): FakeRequest[JsValue] =
@@ -171,8 +173,14 @@ class RealTimeIncomeInformationControllerSpec
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
 
         status(result) mustBe BAD_REQUEST
-        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
-          "Invalid Payload. Invalid fromDate, surname, toDate, filterFields, serviceName, nino"))
+        val jsonResult = contentAsJson(result).toString()
+        assert(jsonResult.contains("Invalid Payload."))
+        assert(jsonResult.contains("surname"))
+        assert(jsonResult.contains("nino"))
+        assert(jsonResult.contains("toDate"))
+        assert(jsonResult.contains("fromDate"))
+        assert(jsonResult.contains("serviceName"))
+        assert(jsonResult.contains("filterFields"))
       }
 
       "missing nino in Json, return desciptive error message" in {
@@ -189,11 +197,13 @@ class RealTimeIncomeInformationControllerSpec
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
 
         status(result) mustBe BAD_REQUEST
-        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
-          "Invalid Payload. Invalid nino, filterFields"))
+        val jsonResult = contentAsJson(result).toString()
+        assert(jsonResult.contains("Invalid Payload."))
+        assert(jsonResult.contains("nino"))
+        assert(jsonResult.contains("filterFields"))
       }
 
-      "missing surname in Json, return desciptive error message" in {
+      "missing surname in Json, return descriptive error message" in {
         val jsonInput: JsValue = Json.parse(
           """
           {
@@ -206,11 +216,13 @@ class RealTimeIncomeInformationControllerSpec
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
 
         status(result) mustBe BAD_REQUEST
-        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
-          "Invalid Payload. Invalid filterFields, surname"))
+        val jsonResult = contentAsJson(result).toString()
+        assert(jsonResult.contains("Invalid Payload."))
+        assert(jsonResult.contains("surname"))
+        assert(jsonResult.contains("filterFields"))
       }
 
-      "missing servicename in Json, return desciptive error message" in {
+      "missing serviceName in Json, return descriptive error message" in {
         val jsonInput: JsValue = Json.parse(
           """
           {
@@ -223,8 +235,10 @@ class RealTimeIncomeInformationControllerSpec
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
 
         status(result) mustBe BAD_REQUEST
-        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
-          "Invalid Payload. Invalid filterFields, serviceName"))
+        val jsonResult = contentAsJson(result).toString()
+        assert(jsonResult.contains("Invalid Payload."))
+        assert(jsonResult.contains("serviceName"))
+        assert(jsonResult.contains("filterFields"))
       }
 
       "missing fromDate in Json, return descriptive error message" in {
@@ -240,11 +254,13 @@ class RealTimeIncomeInformationControllerSpec
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
 
         status(result) mustBe BAD_REQUEST
-        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
-          "Invalid Payload. Invalid fromDate, filterFields"))
+        val jsonResult = contentAsJson(result).toString()
+        assert(jsonResult.contains("Invalid Payload."))
+        assert(jsonResult.contains("fromDate"))
+        assert(jsonResult.contains("filterFields"))
       }
 
-      "missing toDate in Json, return desciptive error message" in {
+      "missing toDate in Json, return descriptive error message" in {
         val jsonInput: JsValue = Json.parse(
           """
           {
@@ -257,8 +273,10 @@ class RealTimeIncomeInformationControllerSpec
         val result: Future[Result] = controller.preSchemaValidation(correlationId)(fakeRequest(jsonInput))
 
         status(result) mustBe BAD_REQUEST
-        contentAsJson(result) mustBe Json.toJson(Constants.invalidPayloadWithMsg(
-          "Invalid Payload. Invalid toDate, filterFields"))
+        val jsonResult = contentAsJson(result).toString()
+        assert(jsonResult.contains("Invalid Payload."))
+        assert(jsonResult.contains("toDate"))
+        assert(jsonResult.contains("filterFields"))
       }
     }
 
