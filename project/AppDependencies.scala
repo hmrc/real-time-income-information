@@ -4,11 +4,14 @@ import sbt._
 
 object AppDependencies {
 
+  private val hmrcMongoVersion = "0.74.0"
+
+
   val compile: Seq[ModuleID] = Seq(
     ws,
     "uk.gov.hmrc"       %% "bootstrap-backend-play-28" % "7.12.0",
     "uk.gov.hmrc"       %% "domain"                    % "8.1.0-play-28",
-    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"        % "0.74.0"
+    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"        % hmrcMongoVersion
   )
 
   val test: Seq[ModuleID] = Seq(
@@ -20,7 +23,7 @@ object AppDependencies {
     "com.typesafe.play"      %% "play-test"          % PlayVersion.current,
     "com.github.tomakehurst"  % "wiremock-jre8"      % "2.29.1",
     "com.vladsch.flexmark"    % "flexmark-all"       % "0.62.2",
-    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-28" % "0.68.0"
+    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-28" % hmrcMongoVersion
   ).map(_ % "test,it")
 
   val all: Seq[ModuleID] = compile ++ test
