@@ -16,19 +16,18 @@
 
 package connectors
 
-import java.util.UUID
 import com.google.inject.{Inject, Singleton}
 import config.ApplicationConfig
 import models._
 import play.api.Logger
 import play.api.http.Status.OK
 import play.api.libs.json.{Format, JsPath, JsonValidationError, Reads}
-import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.{HttpClient, _}
 import uk.gov.hmrc.mongo.cache.CacheIdType.SimpleCacheId
-import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
 import uk.gov.hmrc.mongo.cache.{DataKey, MongoCacheRepository}
+import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
 
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -65,12 +64,15 @@ class DesConnector @Inject()(
   private def parseDesResponse[A <: DesResponse](httpResponse: HttpResponse)(implicit
       reads: Reads[A]
   ): DesResponse = {
-    val handleError: Seq[(JsPath, scala.Seq[JsonValidationError])] => DesUnexpectedResponse = errors => {
-      val extractValidationErrors: Seq[(JsPath, scala.Seq[JsonValidationError])] => String = errors => {
+    val handleError: scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])] => DesUnexpectedResponse = errors => {
+      val extractValidationErrors: scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])] => String = errors => {
         //$COVERAGE-OFF$
         errors
           .map {
-            case (path, List(validationError: JsonValidationError, _*)) => s"$path: ${validationError.message}"
+            error =>
+              error._2.map(
+                jsonValError => s"${error._1}: ${jsonValError.message}"
+              )
           }
           .mkString(", ")
           .trim

@@ -19,8 +19,7 @@ package config
 import com.google.inject.{Inject, Singleton}
 import com.typesafe.config.Config
 import play.api.{ConfigLoader, Configuration}
-
-import scala.collection.JavaConverters._
+import play.twirl.api.TwirlHelperImports.twirlJavaCollectionToScala
 
 @Singleton
 class APIConfig @Inject() (configuration: Configuration) {
@@ -45,7 +44,7 @@ class APIConfig @Inject() (configuration: Configuration) {
   implicit val apiFieldsConfigLoader: ConfigLoader[List[ApiField]] = new ConfigLoader[List[ApiField]] {
     override def load(rootConfig: Config, path: String): List[ApiField] = {
       val fieldsConfig = rootConfig.getConfig(apiFieldsKey)
-      val fields = fieldsConfig.entrySet().asScala.map { entry => {
+      val fields = fieldsConfig.entrySet.map { entry => {
         ApiField(entry.getKey.toInt, fieldsConfig.getString(entry.getKey))
       }}.toList
 
@@ -62,9 +61,9 @@ class APIConfig @Inject() (configuration: Configuration) {
 
       val scopesConfig = rootConfig.getConfig(apiScopesKey)
 
-      val scopes = scopesConfig.entrySet().asScala.map { entry =>
+      val scopes = scopesConfig.entrySet.map { entry =>
 
-      val fields = scopesConfig.getIntList(entry.getKey).asScala.map { key =>
+      val fields = scopesConfig.getIntList(entry.getKey).map { key =>
         val value = getField(key).getOrElse(throw apiConfigException(apiFieldsKey))
         val apiField = ApiField(key, value.name)
         apiField

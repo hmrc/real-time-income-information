@@ -51,7 +51,7 @@ class DesConnectorSpec extends
 
   override protected def repository: PlayMongoRepository[CacheItem] = inject[DesCache]
 
-  override def fakeApplication: Application =
+  override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
       .configure(
         "microservice.services.des-hod.port"               -> server.port().toString,
