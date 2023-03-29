@@ -32,6 +32,7 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
 
   val filterFullAccessScope = "filter:real-time-income-information-full"
   val filterSgAccessScope = "filter:real-time-income-information-sg"
+  val filterCspAccessScope = "filter:real-time-income-information-csp"
 
   "apiScope" must {
     "return scope" when {
@@ -40,6 +41,9 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
       }
       "findScope with sg filters" in {
         apiConfig.findScope(filterSgAccessScope) shouldBe APIConfigFixture.sgScope
+      }
+      "findScope with csp filters" in {
+        apiConfig.findScope(filterCspAccessScope) shouldBe APIConfigFixture.cspScope
       }
     }
 

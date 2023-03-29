@@ -17,6 +17,11 @@
         "key": "filter:real-time-income-information-sg",
         "name": "filter Real Time Income Information Scottish Government",
         "description": "Access Real Time Income Information Scottish Government"
+    },
+    {
+        "key": "filter:real-time-income-information-csp",
+        "name": "filter Real Time Income Information Carer Support Payment",
+        "description": "Access Real Time Income Information Carer Support Payment"
     }
   ],
   "api": {
