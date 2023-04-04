@@ -107,4 +107,10 @@ object APIConfigFixture {
     ApiField(46,"payFrequency"),
     ApiField(49,"paymentDate"),
     ApiField(71,"taxablePayInPeriod"))))
+
+  val cspScope: Option[ApiScope] = Some(ApiScope("filter:real-time-income-information-csp",List(
+    ApiField(18,"employmentEndDate"),
+    ApiField(46,"payFrequency"),
+    ApiField(49,"paymentDate"),
+    ApiField(71,"taxablePayInPeriod"))))
 }

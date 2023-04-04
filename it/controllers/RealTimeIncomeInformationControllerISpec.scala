@@ -26,6 +26,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
   val apiAccessScope = "write:real-time-income-information"
   val filterFullAccessScope = "filter:real-time-income-information-full"
   val filterSgAccessScope = "filter:real-time-income-information-sg"
+  val filterCspAccessScope = "filter:real-time-income-information-csp"
 
   def authBody(scope: String): String = {
     val body = AuthBody(allEnrolments = Set(Enrolment(apiAccessScope), Enrolment(scope)))
@@ -93,9 +94,9 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         resultValue mustBe expectedResponse
       }
 
-      "Consumer has access to all some fields requested but not all" in {
+      "Consumer has access to all some fields requested but not all - sg" in {
 
-        val fileName = "sg-extra-fields"
+        val fileName = "filtered-extra-fields"
 
         val expectedResponse = getResponse(fileName, generatedNino)
         val desResponse = fullDesResponse(generatedNino)
@@ -120,9 +121,36 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         resultValue mustBe expectedResponse
       }
 
+      "Consumer has access to all some fields requested but not all - csp" in {
+
+        val fileName = "filtered-extra-fields"
+
+        val expectedResponse = getResponse(fileName, generatedNino)
+        val desResponse = fullDesResponse(generatedNino)
+
+        stubPostServer(ok(authBody(filterCspAccessScope)) ,"/auth/authorise")
+        stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
+
+        val requestDetails = getRequest(fileName, generatedNino)
+        val request = FakeRequest(
+          method = POST,
+          uri = s"/individuals/$correlationId/income",
+          headers = FakeHeaders(Seq(
+            "Authorization" -> "Bearer bearer-token"
+          )),
+          body = requestDetails
+        )
+
+        val result = route(fakeApplication(), request)
+
+        result.map(statusResult) mustBe Some(OK)
+        val resultValue: JsValue = result.map(x => await(jsonBodyOf(x))).get
+        resultValue mustBe expectedResponse
+      }
+
       "Consumer has no access due to having no valid scope" in {
 
-        val fileName = "sg-extra-fields"
+        val fileName = "filtered-extra-fields"
         val expectedResponse =
           """{
             |"code":"INVALID_PAYLOAD",
