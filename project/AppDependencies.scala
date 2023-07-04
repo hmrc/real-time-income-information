@@ -5,7 +5,7 @@ import sbt._
 object AppDependencies {
 
   private val hmrcMongoVersion = "0.74.0"
-  private val boostrapVersion = "7.12.0"
+  private val boostrapVersion = "7.19.0"
 
 
   val compile: Seq[ModuleID] = Seq(
