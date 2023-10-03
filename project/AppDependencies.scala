@@ -4,7 +4,7 @@ import sbt._
 
 object AppDependencies {
 
-  private val hmrcMongoVersion = "0.74.0"
+  private val hmrcMongoVersion = "1.3.0"
   private val boostrapVersion = "7.19.0"
 
 

@@ -19,6 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import config.ApplicationConfig
 import models._
 import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -30,10 +31,10 @@ import play.api.test.Injecting
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.cache.CacheItem
-import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import utils.{BaseSpec, WireMockHelper}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 
 class DesConnectorSpec extends
@@ -49,7 +50,6 @@ class DesConnectorSpec extends
   val nino: String               = generateNino
   val correlationId: String      = generateUUId
 
-  override protected def repository: PlayMongoRepository[CacheItem] = inject[DesCache]
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
@@ -66,6 +66,9 @@ class DesConnectorSpec extends
         bind[MongoComponent].toInstance(mongoComponent)
       )
       .build()
+
+  override lazy val repository =
+    new DesCache(inject[ApplicationConfig], mongoComponent)
 
   def connector: DesConnector = inject[DesConnector]
 
