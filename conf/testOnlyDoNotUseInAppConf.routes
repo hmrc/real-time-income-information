@@ -13,4 +13,4 @@
 
 -> / prod.Routes
 
-POST /real-time-income-information/test-only/individuals/:correlationId/income   @controllers.RealTimeIncomeInformationController.preSchemaValidation(correlationId: String)
+POST /real-time-income-information/individuals/:correlationId/income   @controllers.RealTimeIncomeInformationController.preSchemaValidation(correlationId: String)
