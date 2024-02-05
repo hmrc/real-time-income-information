@@ -16,7 +16,7 @@
 
 package models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class DesMatchingRequest(
     fromDate: String,
@@ -30,5 +30,5 @@ case class DesMatchingRequest(
 )
 
 object DesMatchingRequest {
-  implicit val formats = Json.format[DesMatchingRequest]
+  implicit val formats: OFormat[DesMatchingRequest] = Json.format[DesMatchingRequest]
 }

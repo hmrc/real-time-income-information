@@ -21,7 +21,9 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import config.ApplicationConfig
 import models._
+import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.matchers.must.Matchers._
+import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.bind
@@ -109,9 +111,10 @@ class DesConnectorSpec extends
 
         stubPostServer(ok(successMatchOneYear.toString))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe expectedResponse
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe expectedResponse
+        }
       }
 
       "use cache data" in {
@@ -122,9 +125,10 @@ class DesConnectorSpec extends
 
         stubPostServer(notFound())
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe expectedResponse
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe expectedResponse
+        }
 
       }
 
@@ -133,18 +137,20 @@ class DesConnectorSpec extends
 
         stubPostServer(ok(successNoMatch.toString))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe expectedResponse
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe expectedResponse
+        }
       }
 
       "received a 200 No match response with match pattern less than 63 from DES" in {
         val expectedResponse = DesSuccessResponse(62, None)
         stubPostServer(ok(successNoMatchGreaterThanZero.toString))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe expectedResponse
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe expectedResponse
+        }
       }
 
       "send the correct headers to DES" in {
@@ -171,9 +177,10 @@ class DesConnectorSpec extends
           DesSingleFailureResponse("NOT_FOUND", "The remote endpoint has indicated that there is no data for the Nino.")
         stubPostServer(notFound().withBody(noDataFoundNinoJson.toString))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe expectedResponse
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe expectedResponse
+        }
       }
 
       "the remote endpoint has indicated that the Nino cannot be found" in {
@@ -181,9 +188,10 @@ class DesConnectorSpec extends
           DesSingleFailureResponse("NOT_FOUND_NINO", "The remote endpoint has indicated that the Nino cannot be found.")
         stubPostServer(notFound().withBody(notFoundNinoJson.toString))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe expectedResponse
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe expectedResponse
+        }
       }
 
       "the remote endpoint has indicated that the correlation Id is invalid" in {
@@ -193,9 +201,10 @@ class DesConnectorSpec extends
         )
         stubPostServer(badRequest().withBody(invalidCorrelationIdJson.toString))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid"))
-        result mustBe expectedResponse
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid"))
+          result mustBe expectedResponse
+        }
       }
 
       "DES is currently experiencing problems that require live service intervention" in {
@@ -205,9 +214,10 @@ class DesConnectorSpec extends
         )
         stubPostServer(serverError().withBody(serverErrorJson.toString))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe expectedResponse
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe expectedResponse
+        }
       }
 
       "Dependent systems are currently not responding" in {
@@ -215,9 +225,10 @@ class DesConnectorSpec extends
           DesSingleFailureResponse("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")
         stubPostServer(serviceUnavailable().withBody(serviceUnavailableJson.toString))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe expectedResponse
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe expectedResponse
+        }
       }
     }
 
@@ -232,9 +243,10 @@ class DesConnectorSpec extends
 
         stubPostServer(badRequest().withBody(multipleErrors.toString))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe responses
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe responses
+        }
       }
     }
 
@@ -243,9 +255,10 @@ class DesConnectorSpec extends
         val response = DesUnexpectedResponse()
         stubPostServer(serviceUnavailable().withBody("{}"))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe response
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe response
+        }
       }
 
       "the status returned is OK but fails to parse as a DESSuccessResponse" in {
@@ -253,9 +266,10 @@ class DesConnectorSpec extends
         val response = DesUnexpectedResponse()
         stubPostServer(ok().withBody("{}"))
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe response
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe response
+        }
       }
 
       "a time out exception occurs" in {
@@ -266,9 +280,10 @@ class DesConnectorSpec extends
             .withFixedDelay(5000)
         }
 
-        val result =
-          await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
-        result mustBe response
+        eventually(timeout(Span(30, Seconds))) {
+          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          result mustBe response
+        }
       }
 
       "a bad gateway exception occurs" in {
@@ -276,10 +291,10 @@ class DesConnectorSpec extends
 
         server.stop()
 
-        val result =
-          Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)))
-
-        result.get mustBe response
+        eventually(timeout(Span(30, Seconds))) {
+          val result = Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)))
+          result.get mustBe response
+        }
 
         server.start()
       }

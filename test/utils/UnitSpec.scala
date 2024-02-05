@@ -25,13 +25,12 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
-import scala.language.postfixOps
-import scala.language.implicitConversions
 
 import java.nio.charset.Charset
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.language.{implicitConversions, postfixOps}
 import scala.reflect.ClassTag
 
 trait UnitSpec extends AnyWordSpec with Matchers with OptionValues {

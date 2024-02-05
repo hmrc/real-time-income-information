@@ -1,12 +1,15 @@
 import play.sbt.routes.RoutesKeys
 import scoverage.ScoverageKeys
 import uk.gov.hmrc.DefaultBuildSettings.addTestReportOption
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
 val appName = "real-time-income-information"
 
-lazy val scoverageSettings = {
-  val sCoverageExcludesPattens = List(
+ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / majorVersion := 2
+ThisBuild / scalacOptions ++= Seq("-Xfatal-warnings", "-feature")
+
+val scoverageSettings: Seq[Def.Setting[?]] = {
+  val sCoverageExcludesPattens: List[String] = List(
     "<empty>",
     "Reverse.*",
     "view.*",
@@ -24,21 +27,16 @@ lazy val scoverageSettings = {
   )
 }
 
-lazy val microservice = Project(appName, file("."))
+val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(
-    scalaVersion := "2.13.8",
     libraryDependencies ++= AppDependencies.all,
     retrieveManaged := true,
-    update / evictionWarningOptions := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
-    publishingSettings,
     PlayKeys.playDefaultPort := 9358,
     scoverageSettings,
     RoutesKeys.routesImport := Nil,
     TwirlKeys.templateImports := Nil,
-    scalacOptions ++= Seq("-Xfatal-warnings", "-feature"),
-    majorVersion := 2,
     resolvers += Resolver.jcenterRepo
   )
   .configs(IntegrationTest)

@@ -17,12 +17,11 @@
 package config
 
 import org.scalatest.matchers.must.Matchers._
-import java.util.UUID
-
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Configuration
 import utils.BaseSpec
 
+import java.util.UUID
 import scala.reflect.ClassTag
 
 class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {

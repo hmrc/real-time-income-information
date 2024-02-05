@@ -17,13 +17,11 @@
 package config
 
 import com.google.inject.Inject
-
-import javax.inject.Singleton
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration._
+import javax.inject.Singleton
+import scala.concurrent.duration.{Duration, DurationInt}
 
 @Singleton
 class ApplicationConfig @Inject() (sc: ServicesConfig, configuration: Configuration) {

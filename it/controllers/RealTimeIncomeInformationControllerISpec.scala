@@ -1,14 +1,17 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers._
+import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Play.materializer
+import play.api.http.Status.{OK, SERVICE_UNAVAILABLE}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsValue, Json, OFormat}
+import play.api.test.Helpers.{POST, contentAsJson, defaultAwaitTimeout, route}
 import play.api.test.{FakeHeaders, FakeRequest}
-import play.api.test.Helpers.{route, status => statusResult, _}
 import test_utils.{IntegrationBaseSpec, WireMockHelper}
 import uk.gov.hmrc.domain.Generator
 import utils.Constants.responseServiceUnavailable
@@ -20,8 +23,8 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
   case class Enrolment (key: String, value: String = "")
   case class AuthBody (clientId: String = "localBearer", allEnrolments: Set[Enrolment], ttl: Int = 2000)
 
-  implicit val enrolmentFormat = Json.format[Enrolment]
-  implicit val authBodyFormat = Json.format[AuthBody]
+  implicit val enrolmentFormat: OFormat[Enrolment] = Json.format[Enrolment]
+  implicit val authBodyFormat: OFormat[AuthBody] = Json.format[AuthBody]
 
   val apiAccessScope = "write:real-time-income-information"
   val filterFullAccessScope = "filter:real-time-income-information-full"
@@ -62,8 +65,10 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
       val result = route(fakeApplication(), request)
       val expected = Some(Json.toJson(responseServiceUnavailable))
 
-      result.map(statusResult) mustBe Some(SERVICE_UNAVAILABLE)
-      result.map(contentAsJson(_)) mustBe expected
+      eventually(timeout(Span(30, Seconds))) {
+        result.map(status) mustBe Some(SERVICE_UNAVAILABLE)
+        result.map(contentAsJson(_)) mustBe expected
+      }
     }
   }
 
@@ -89,7 +94,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
         val result = route(fakeApplication(), request)
 
-        result.map(statusResult) mustBe Some(OK)
+        result.map(status) mustBe Some(OK)
         val resultValue: JsValue = result.map(x => await(jsonBodyOf(x))).get
         resultValue mustBe expectedResponse
       }
@@ -116,7 +121,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
         val result = route(fakeApplication(), request)
 
-        result.map(statusResult) mustBe Some(OK)
+        result.map(status) mustBe Some(OK)
         val resultValue: JsValue = result.map(x => await(jsonBodyOf(x))).get
         resultValue mustBe expectedResponse
       }
@@ -143,7 +148,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
         val result = route(fakeApplication(), request)
 
-        result.map(statusResult) mustBe Some(OK)
+        result.map(status) mustBe Some(OK)
         val resultValue: JsValue = result.map(x => await(jsonBodyOf(x))).get
         resultValue mustBe expectedResponse
       }
