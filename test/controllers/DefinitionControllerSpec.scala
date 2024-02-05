@@ -16,7 +16,7 @@
 
 package controllers
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import models.api.APIAccess
 import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite

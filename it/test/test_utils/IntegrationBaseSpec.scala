@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package models
+package test_utils
 
-import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.domain.Generator
 
-case class DesMatchingRequest(
-    fromDate: String,
-    toDate: String,
-    surname: String,
-    firstName: Option[String],
-    middleName: Option[String],
-    gender: Option[String],
-    initials: Option[String],
-    dateOfBirth: Option[String]
-)
+import java.util.UUID
+import scala.util.Random
 
-object DesMatchingRequest {
-  implicit val formats: OFormat[DesMatchingRequest] = Json.format[DesMatchingRequest]
+trait IntegrationBaseSpec extends UnitSpec with ResourceProvider {
+  def generateUUId: String           = UUID.randomUUID().toString
+  def generateNino: String           = new Generator(new Random).nextNino.toString()
 }
