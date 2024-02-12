@@ -20,10 +20,10 @@ import com.google.inject.Inject
 import config.{APIConfig, ApiScope}
 import controllers.actions.AuthenticatedRequest
 import models.{DesSingleFailureResponse, RequestDetails}
-import java.time.LocalDate
 import utils.Constants
 import utils.Constants.invalidPayloadWithMsg
 
+import java.time.LocalDate
 import scala.util.{Failure, Success, Try}
 
 class RequestDetailsService @Inject()(apiConfig: APIConfig) {

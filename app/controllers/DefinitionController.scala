@@ -17,11 +17,12 @@
 package controllers
 
 import config.APIConfig
-import javax.inject.{Inject, Singleton}
 import models.api.APIAccess
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import views.txt
+
+import javax.inject.{Inject, Singleton}
 
 @Singleton
 class DefinitionController @Inject() (apiContext: APIConfig, cc: ControllerComponents) extends BackendController(cc) {

@@ -16,7 +16,7 @@
 
 package controllers
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import controllers.actions.{AuthAction, ValidateCorrelationId}
 import models._
 import org.mockito.ArgumentMatchers.{any, eq => meq}

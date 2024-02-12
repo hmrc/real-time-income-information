@@ -16,7 +16,7 @@
 
 package models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class RequestDetails(
     nino: String,
@@ -53,7 +53,7 @@ case class RequestDetails(
 }
 
 object RequestDetails {
-  implicit val formats = Json.format[RequestDetails]
+  implicit val formats: OFormat[RequestDetails] = Json.format[RequestDetails]
 
   def toMatchingRequest(r: RequestDetails): DesMatchingRequest =
     DesMatchingRequest(r.fromDate, r.toDate, r.surname, r.firstName, r.middleName, r.gender, r.initials, r.dateOfBirth)
