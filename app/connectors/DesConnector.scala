@@ -21,8 +21,9 @@ import config.ApplicationConfig
 import models._
 import play.api.Logger
 import play.api.http.Status.OK
-import play.api.libs.json.{Format, JsPath, JsonValidationError, Reads}
-import uk.gov.hmrc.http.{HttpClient, _}
+import play.api.libs.json.{Format, JsPath, Json, JsonValidationError, Reads}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.mongo.cache.CacheIdType.SimpleCacheId
 import uk.gov.hmrc.mongo.cache.{DataKey, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
@@ -42,9 +43,9 @@ class DesCache @Inject()(config: ApplicationConfig, mongoComponent: MongoCompone
 
 @Singleton
 class DesConnector @Inject()(
-  httpClient: HttpClient,
-  desConfig: ApplicationConfig,
-  mongoCache: DesCache
+                              httpClient: HttpClientV2,
+                              desConfig: ApplicationConfig,
+                              mongoCache: DesCache
 )(implicit
   ec: ExecutionContext
 ) {
@@ -108,16 +109,14 @@ class DesConnector @Inject()(
     cache[DesResponse](nino + matchingRequest.hashCode()) {
 
       val postUrl: String = s"${desConfig.hodUrl}/individuals/$nino/income"
-      val header: Seq[(String, String)] =
-        Seq(
-          HeaderNames.authorisation -> desConfig.authorization,
-          HeaderNames.xRequestId -> hc.requestId.fold("-")(_.value),
-          HeaderNames.xSessionId -> hc.sessionId.fold("-")(_.value),
-          "Environment" -> desConfig.environment,
-          "CorrelationId" -> UUID.randomUUID().toString
-        )
 
-      httpClient.POST[DesMatchingRequest, DesResponse](postUrl, matchingRequest, header) recover {
+      httpClient.post(url"$postUrl").withBody(Json.toJson(matchingRequest))
+        .setHeader(HeaderNames.authorisation -> desConfig.authorization)
+        .setHeader(HeaderNames.xRequestId -> hc.requestId.fold("-")(_.value))
+        .setHeader(HeaderNames.xSessionId -> hc.sessionId.fold("-")(_.value))
+        .setHeader("Environment" -> desConfig.environment)
+        .setHeader("CorrelationId" -> UUID.randomUUID().toString)
+        .execute[DesResponse] recover {
         case e: GatewayTimeoutException =>
           //$COVERAGE-OFF$
           logger.error(s"GatewayTimeoutException occurred: ${e.message}")

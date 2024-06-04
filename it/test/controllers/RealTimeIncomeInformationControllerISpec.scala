@@ -28,13 +28,13 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.test.Helpers.{POST, contentAsJson, defaultAwaitTimeout, route}
 import play.api.test.{FakeHeaders, FakeRequest}
-import test_utils.{IntegrationBaseSpec, WireMockHelper}
+import test_utils.{IntegrationBaseSpec, WiremockHelper}
 import uk.gov.hmrc.domain.Generator
 import utils.Constants.responseServiceUnavailable
 
 import java.util.UUID
 
-class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with GuiceOneAppPerSuite with WireMockHelper with ScalaFutures {
+class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with GuiceOneAppPerSuite with WiremockHelper with ScalaFutures {
 
   case class Enrolment (key: String, value: String = "")
   case class AuthBody (clientId: String = "localBearer", allEnrolments: Set[Enrolment], ttl: Int = 2000)
