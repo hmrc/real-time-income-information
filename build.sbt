@@ -4,7 +4,7 @@ import uk.gov.hmrc.DefaultBuildSettings.{defaultSettings, scalaSettings, itSetti
 
 val appName = "real-time-income-information"
 
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.14"
 ThisBuild / majorVersion := 2
 ThisBuild / scalacOptions ++= Seq("-Xfatal-warnings", "-feature")
 

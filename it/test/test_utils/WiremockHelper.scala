@@ -23,7 +23,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
 
-trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
+trait WiremockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
   this: Suite =>
 
   protected val server: WireMockServer = new WireMockServer(wireMockConfig().dynamicPort())

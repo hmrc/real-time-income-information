@@ -61,7 +61,7 @@ class RealTimeIncomeInformationController @Inject() (
     }
 
   private def serviceName(input: Either[DesSingleFailureResponse, RequestDetails]): Either[DesSingleFailureResponse, RequestDetails] =
-    input.flatMap((requestDetailsService.processServiceName(_)))
+    input.flatMap(requestDetailsService.processServiceName(_))
 
   private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit ar: AuthenticatedRequest[_]): Either[DesSingleFailureResponse, RequestDetails] = {
     input.flatMap(requestDetailsService.processFilterFields(_))
@@ -70,10 +70,9 @@ class RealTimeIncomeInformationController @Inject() (
   private val parseJson: Request[JsValue] => Either[DesSingleFailureResponse, RequestDetails] = { request =>
     Try(request.body.validate[RequestDetails]) match {
       case Success(JsSuccess(value, _)) => Right(value)
-      case Success(JsError(fieldErrors)) => {
+      case Success(JsError(fieldErrors)) =>
         val error = fieldErrors.map(_._1)
         Left(invalidPayloadWithMsg("Invalid Payload. Invalid " + error.mkString(", ").replace("/", "")))
-      }
       case Failure(exception) => Left(invalidPayloadWithMsg(exception.getMessage))
     }
   }
