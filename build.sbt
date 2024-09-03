@@ -27,7 +27,7 @@ val scoverageSettings: Seq[Def.Setting[?]] = {
 }
 
 val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
+  .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(
     PlayKeys.playDefaultPort := 9358,
