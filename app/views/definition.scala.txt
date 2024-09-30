@@ -2,28 +2,6 @@
 
 @(access: APIAccess, apiContext: String)
 {
-  "scopes":[
-    {
-        "key": "write:real-time-income-information",
-        "name": "access Real Time Income Information",
-        "description": "Access Real Time Income Information"
-    },
-    {
-        "key": "filter:real-time-income-information-full",
-        "name": "filter Real Time Income Information Full Access",
-        "description": "Filter Real Time Income Information Full Access"
-    },
-    {
-        "key": "filter:real-time-income-information-sg",
-        "name": "filter Real Time Income Information Scottish Government",
-        "description": "Access Real Time Income Information Scottish Government"
-    },
-    {
-        "key": "filter:real-time-income-information-csp",
-        "name": "filter Real Time Income Information Carer Support Payment",
-        "description": "Access Real Time Income Information Carer Support Payment"
-    }
-  ],
   "api": {
     "name": "Real Time Income Information",
     "description": "Provides real time income information for an individual",
