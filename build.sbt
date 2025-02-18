@@ -4,7 +4,7 @@ import uk.gov.hmrc.DefaultBuildSettings.{defaultSettings, scalaSettings, itSetti
 
 val appName = "real-time-income-information"
 
-ThisBuild / scalaVersion := "2.13.14"
+ThisBuild / scalaVersion := "3.6.2"
 ThisBuild / majorVersion := 2
 ThisBuild / scalacOptions ++= Seq("-Xfatal-warnings", "-feature")
 
@@ -33,6 +33,20 @@ val microservice = Project(appName, file("."))
     PlayKeys.playDefaultPort := 9358,
     defaultSettings(),
     scalaSettings,
+    scalacOptions ++= Seq(
+      "-Werror",
+      "-Wconf:msg=.*-Wunused:s",
+      "-Wconf:msg=Flag.*repeatedly:s"
+      //"-Wconf:msg=\\.*match may not be exhaustive\\.*&src=.*Routes\\.scala:s",
+      //"-Wconf:msg=\\.*match may not be exhaustive\\.*&src=.*ReverseRoutes\\.scala:s",
+      //"-Wconf:msg=unused import.*&src=views/html/.*:s",
+      //"-Wconf:msg=unused import.*&src=<empty>:s",
+      //"-Wconf:msg=unused&src=.*RoutesPrefix\\.scala:s",
+      //"-Wconf:msg=unused&src=.*Routes\\.scala:s",
+      //"-Wconf:msg=unused&src=.*ReverseRoutes\\.scala:s",
+      //"-Wconf:msg=unused&src=.*JavaScriptReverseRoutes\\.scala:s",
+      //"-Wconf:msg=deprecation&msg=\\.*target is deprecated\\.*:s"
+      ),
     scoverageSettings,
     retrieveManaged := true,
     libraryDependencies ++= AppDependencies.all,

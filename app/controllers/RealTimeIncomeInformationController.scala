@@ -61,9 +61,9 @@ class RealTimeIncomeInformationController @Inject() (
     }
 
   private def serviceName(input: Either[DesSingleFailureResponse, RequestDetails]): Either[DesSingleFailureResponse, RequestDetails] =
-    input.flatMap(requestDetailsService.processServiceName(_))
+    input.flatMap(requestDetailsService.processServiceName)
 
-  private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit ar: AuthenticatedRequest[_]): Either[DesSingleFailureResponse, RequestDetails] = {
+  private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit ar: AuthenticatedRequest[?]): Either[DesSingleFailureResponse, RequestDetails] = {
     input.flatMap(requestDetailsService.processFilterFields(_))
   }
 

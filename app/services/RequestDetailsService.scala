@@ -46,7 +46,7 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig) {
     }
   }
 
-  def processFilterFields(requestDetails: RequestDetails)(implicit ar: AuthenticatedRequest[_]): Either[DesSingleFailureResponse, RequestDetails] = {
+  def processFilterFields(requestDetails: RequestDetails)(implicit ar: AuthenticatedRequest[?]): Either[DesSingleFailureResponse, RequestDetails] = {
     val enrolments = ar.authDetails.enrolments.enrolments.map(_.key)
 
     val scopes: Set[ApiScope] = enrolments.flatMap(apiConfig.findScope)

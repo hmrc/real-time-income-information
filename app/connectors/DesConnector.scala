@@ -21,9 +21,10 @@ import config.ApplicationConfig
 import models._
 import play.api.Logger
 import play.api.http.Status.OK
-import play.api.libs.json.{Format, JsPath, Json, JsonValidationError, Reads}
-import uk.gov.hmrc.http.client.HttpClientV2
+import play.api.libs.json._
+import play.api.libs.ws.writeableOf_JsValue
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.mongo.cache.CacheIdType.SimpleCacheId
 import uk.gov.hmrc.mongo.cache.{DataKey, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
