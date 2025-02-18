@@ -1,30 +1,16 @@
 import play.sbt.routes.RoutesKeys
-import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings.{defaultSettings, scalaSettings, itSettings}
+import uk.gov.hmrc.DefaultBuildSettings.{defaultSettings, itSettings, scalaSettings}
 
 val appName = "real-time-income-information"
 
 ThisBuild / scalaVersion := "3.6.2"
 ThisBuild / majorVersion := 2
-ThisBuild / scalacOptions ++= Seq("-Xfatal-warnings", "-feature")
-
-val scoverageSettings: Seq[Def.Setting[?]] = {
-  val sCoverageExcludesPattens: List[String] = List(
-    "<empty>",
-    "Reverse.*",
-    "view.*",
-    "config.*",
-    ".*(BuildInfo|Routes).*",
-    "controllers.javascript",
-    ".*Reverse.*Controller"
-  )
-  Seq(
-    ScoverageKeys.coverageExcludedPackages := sCoverageExcludesPattens.mkString(";"),
-    ScoverageKeys.coverageMinimumStmtTotal := 90,
-    ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true
-  )
-}
+ThisBuild / scalacOptions ++= Seq(
+  "-feature",
+  "-Werror",
+  "-Wconf:msg=.*-Wunused:s",
+  "-Wconf:msg=Flag.*repeatedly:s"
+)
 
 val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
@@ -33,21 +19,7 @@ val microservice = Project(appName, file("."))
     PlayKeys.playDefaultPort := 9358,
     defaultSettings(),
     scalaSettings,
-    scalacOptions ++= Seq(
-      "-Werror",
-      "-Wconf:msg=.*-Wunused:s",
-      "-Wconf:msg=Flag.*repeatedly:s"
-      //"-Wconf:msg=\\.*match may not be exhaustive\\.*&src=.*Routes\\.scala:s",
-      //"-Wconf:msg=\\.*match may not be exhaustive\\.*&src=.*ReverseRoutes\\.scala:s",
-      //"-Wconf:msg=unused import.*&src=views/html/.*:s",
-      //"-Wconf:msg=unused import.*&src=<empty>:s",
-      //"-Wconf:msg=unused&src=.*RoutesPrefix\\.scala:s",
-      //"-Wconf:msg=unused&src=.*Routes\\.scala:s",
-      //"-Wconf:msg=unused&src=.*ReverseRoutes\\.scala:s",
-      //"-Wconf:msg=unused&src=.*JavaScriptReverseRoutes\\.scala:s",
-      //"-Wconf:msg=deprecation&msg=\\.*target is deprecated\\.*:s"
-      ),
-    scoverageSettings,
+    CodeCoverageSettings.settings,
     retrieveManaged := true,
     libraryDependencies ++= AppDependencies.all,
     RoutesKeys.routesImport := Nil,
