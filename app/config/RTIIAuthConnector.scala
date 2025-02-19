@@ -22,5 +22,5 @@ import uk.gov.hmrc.http.client.HttpClientV2
 
 class RTIIAuthConnector @Inject() (appConfig: ApplicationConfig, override val httpClientV2: HttpClientV2)
     extends PlayAuthConnector {
-  lazy val serviceUrl: String = appConfig.authBaseUrl
+  val serviceUrl: String = appConfig.authBaseUrl
 }
