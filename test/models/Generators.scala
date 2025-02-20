@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package models
 
 import org.scalacheck.Gen
 import org.scalacheck.Gen.{alphaStr, const, listOf, oneOf, posNum, some}
-import play.api.libs.json.{JsBoolean, JsNull, JsString}
+import play.api.libs.json.{JsBoolean, JsNull, JsString, JsValue}
 
 object Generators {
 
@@ -31,24 +31,24 @@ object Generators {
     def <*[B](other: Gen[B]): Gen[(B, A)] = other.zip(gen)
   }
 
-  val jsValueGen = oneOf(alphaStr.map(JsString), oneOf(true, false).map(JsBoolean), const(JsNull))
+  val jsValueGen: Gen[JsValue] = oneOf(alphaStr.map(play.api.libs.json.JsString.apply), oneOf(true, false).map(JsBoolean), const(JsNull))
 
-  val desSuccessResponseGen =
+  val desSuccessResponseGen: Gen[DesSuccessResponse] =
     (posNum[Int] *> some(listOf(jsValueGen))).map(DesSuccessResponse.tupled)
 
-  val desFilteredSuccessResponseGen =
+  val desFilteredSuccessResponseGen: Gen[DesFilteredSuccessResponse] =
     (posNum[Int] *> listOf(jsValueGen)).map(DesFilteredSuccessResponse.tupled)
 
-  val desSingleFailureResponseGen =
+  val desSingleFailureResponseGen: Gen[Nothing] =
     (alphaStr *> alphaStr).map(DesSingleFailureResponse.tupled)
 
-  val desMultipleFailureResponseGen =
-    listOf(desSingleFailureResponseGen).map(DesMultipleFailureResponse)
+  val desMultipleFailureResponseGen: Gen[DesMultipleFailureResponse] =
+    listOf(desSingleFailureResponseGen).map(DesMultipleFailureResponse.apply)
 
-  val desUnexpectedResponseGen =
+  val desUnexpectedResponseGen: Gen[DesUnexpectedResponse] =
     (alphaStr *> alphaStr).map(DesUnexpectedResponse.tupled)
 
-  val desNoResponseGen =
+  val desNoResponseGen: Gen[DesNoResponse] =
     (alphaStr *> alphaStr).map(DesNoResponse.tupled)
 
   val desResponseGen: Gen[DesResponse] =
