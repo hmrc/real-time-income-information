@@ -18,7 +18,7 @@ package models
 
 import org.scalacheck.Gen
 import org.scalacheck.Gen.{alphaStr, const, listOf, oneOf, posNum, some}
-import play.api.libs.json.{JsBoolean, JsNull, JsString, JsValue}
+import play.api.libs.json.{JsBoolean, JsNull, JsValue}
 
 object Generators {
 
@@ -34,22 +34,22 @@ object Generators {
   val jsValueGen: Gen[JsValue] = oneOf(alphaStr.map(play.api.libs.json.JsString.apply), oneOf(true, false).map(JsBoolean), const(JsNull))
 
   val desSuccessResponseGen: Gen[DesSuccessResponse] =
-    (posNum[Int] *> some(listOf(jsValueGen))).map(DesSuccessResponse.tupled)
+    (posNum[Int] *> some(listOf(jsValueGen))).map(DesSuccessResponse.apply)
 
   val desFilteredSuccessResponseGen: Gen[DesFilteredSuccessResponse] =
-    (posNum[Int] *> listOf(jsValueGen)).map(DesFilteredSuccessResponse.tupled)
+    (posNum[Int] *> listOf(jsValueGen)).map(DesFilteredSuccessResponse.apply)
 
-  val desSingleFailureResponseGen: Gen[Nothing] =
-    (alphaStr *> alphaStr).map(DesSingleFailureResponse.tupled)
+  val desSingleFailureResponseGen: Gen[DesSingleFailureResponse] =
+    (alphaStr *> alphaStr).map(DesSingleFailureResponse.apply)
 
   val desMultipleFailureResponseGen: Gen[DesMultipleFailureResponse] =
     listOf(desSingleFailureResponseGen).map(DesMultipleFailureResponse.apply)
 
   val desUnexpectedResponseGen: Gen[DesUnexpectedResponse] =
-    (alphaStr *> alphaStr).map(DesUnexpectedResponse.tupled)
+    (alphaStr *> alphaStr).map(DesUnexpectedResponse.apply)
 
   val desNoResponseGen: Gen[DesNoResponse] =
-    (alphaStr *> alphaStr).map(DesNoResponse.tupled)
+    (alphaStr *> alphaStr).map(DesNoResponse.apply)
 
   val desResponseGen: Gen[DesResponse] =
     oneOf(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,15 +68,14 @@ class DesConnectorSpec
       )
       .build()
 
-  override lazy val repository =
-    new DesCache(inject[ApplicationConfig], mongoComponent)
+  override protected val repository = new DesCache(inject[ApplicationConfig], mongoComponent)
 
   def connector: DesConnector = inject[DesConnector]
 
   def stubPostServer(willReturn: ResponseDefinitionBuilder): StubMapping =
     stubPostServer(willReturn, s"/individuals/$nino/income")
 
-  val taxYear = Json.parse("""{
+  val taxYear: JsValue = Json.parse("""{
                              |      "taxYear": "16-17",
                              |      "taxYearIndicator": "P",
                              |      "hmrcOfficeNumber": "099",
