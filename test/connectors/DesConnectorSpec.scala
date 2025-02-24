@@ -16,19 +16,19 @@
 
 package connectors
 
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
-import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.client.{ResponseDefinitionBuilder, WireMock}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import config.ApplicationConfig
-import models._
+import models.*
 import org.scalatest.concurrent.Eventually.eventually
-import org.scalatest.matchers.must.Matchers._
+import org.scalatest.matchers.must.Matchers.*
 import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.test.Injecting
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -68,7 +68,7 @@ class DesConnectorSpec
       )
       .build()
 
-  override protected val repository = new DesCache(inject[ApplicationConfig], mongoComponent)
+  override protected val repository = new DesCache(app.injector.instanceOf[ApplicationConfig], mongoComponent)
 
   def connector: DesConnector = inject[DesConnector]
 

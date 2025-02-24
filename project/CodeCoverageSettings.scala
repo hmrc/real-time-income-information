@@ -16,6 +16,9 @@ object CodeCoverageSettings {
   // case classes with no added functionality so no requirement to test
   // other than default Reads, Writes or Format
   private val implicitOFormatObjects: Seq[String] = Seq(
+    ".*DesMatchingRequest.*",
+    ".*DesSingleFailureResponse.*",
+    ".*DesMultipleFailureResponse.*"
   )
 
   val settings: Seq[Setting[?]] = Seq(
