@@ -18,7 +18,8 @@ object CodeCoverageSettings {
   private val implicitOFormatObjects: Seq[String] = Seq(
     ".*DesMatchingRequest.*",
     ".*DesSingleFailureResponse.*",
-    ".*DesMultipleFailureResponse.*"
+    ".*DesMultipleFailureResponse.*",
+    ".*RequestDetails.*"
   )
 
   val settings: Seq[Setting[?]] = Seq(

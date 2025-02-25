@@ -68,6 +68,8 @@ class DesConnectorSpec
       )
       .build()
 
+  server.start()
+
   override protected val repository = new DesCache(app.injector.instanceOf[ApplicationConfig], mongoComponent)
 
   def connector: DesConnector = inject[DesConnector]
