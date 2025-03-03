@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 package connectors
 
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
-import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.client.{ResponseDefinitionBuilder, WireMock}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import config.ApplicationConfig
-import models._
+import models.*
 import org.scalatest.concurrent.Eventually.eventually
-import org.scalatest.matchers.must.Matchers._
+import org.scalatest.matchers.must.Matchers.*
 import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.test.Injecting
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -39,19 +39,18 @@ import utils.{BaseSpec, WireMockHelper}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 
-class DesConnectorSpec extends
-  BaseSpec with
-  GuiceOneAppPerSuite with
-  Injecting with
-  WireMockHelper with
-  DefaultPlayMongoRepositorySupport[CacheItem] {
+class DesConnectorSpec
+    extends BaseSpec
+    with GuiceOneAppPerSuite
+    with Injecting
+    with WireMockHelper
+    with DefaultPlayMongoRepositorySupport[CacheItem] {
 
   val testAuthToken              = "TestAuthToken"
   val testEnv                    = "TestEnv"
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino: String               = generateNino
   val correlationId: String      = generateUUId
-
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
@@ -69,15 +68,16 @@ class DesConnectorSpec extends
       )
       .build()
 
-  override lazy val repository =
-    new DesCache(inject[ApplicationConfig], mongoComponent)
+  server.start()
+
+  override protected val repository = new DesCache(app.injector.instanceOf[ApplicationConfig], mongoComponent)
 
   def connector: DesConnector = inject[DesConnector]
 
   def stubPostServer(willReturn: ResponseDefinitionBuilder): StubMapping =
     stubPostServer(willReturn, s"/individuals/$nino/income")
 
-  val taxYear = Json.parse("""{
+  val taxYear: JsValue = Json.parse("""{
                              |      "taxYear": "16-17",
                              |      "taxYearIndicator": "P",
                              |      "hmrcOfficeNumber": "099",
@@ -112,7 +112,8 @@ class DesConnectorSpec extends
         stubPostServer(ok(successMatchOneYear.toString))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe expectedResponse
         }
       }
@@ -126,7 +127,8 @@ class DesConnectorSpec extends
         stubPostServer(notFound())
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe expectedResponse
         }
 
@@ -138,7 +140,8 @@ class DesConnectorSpec extends
         stubPostServer(ok(successNoMatch.toString))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe expectedResponse
         }
       }
@@ -148,7 +151,8 @@ class DesConnectorSpec extends
         stubPostServer(ok(successNoMatchGreaterThanZero.toString))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe expectedResponse
         }
       }
@@ -164,7 +168,10 @@ class DesConnectorSpec extends
           postRequestedFor(urlEqualTo(url))
             .withHeader(HeaderNames.authorisation, equalTo(s"Bearer $testAuthToken"))
             .withHeader("Environment", equalTo(testEnv))
-            .withHeader("CorrelationId", matching("[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}"))
+            .withHeader(
+              "CorrelationId",
+              matching("[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}")
+            )
             .withHeader(HeaderNames.xRequestId, equalTo("-"))
             .withHeader(HeaderNames.xSessionId, equalTo("-"))
         )
@@ -178,7 +185,8 @@ class DesConnectorSpec extends
         stubPostServer(notFound().withBody(noDataFoundNinoJson.toString))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe expectedResponse
         }
       }
@@ -189,7 +197,8 @@ class DesConnectorSpec extends
         stubPostServer(notFound().withBody(notFoundNinoJson.toString))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe expectedResponse
         }
       }
@@ -202,7 +211,9 @@ class DesConnectorSpec extends
         stubPostServer(badRequest().withBody(invalidCorrelationIdJson.toString))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid"))
+          val result = await(
+            connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid")
+          )
           result mustBe expectedResponse
         }
       }
@@ -215,7 +226,8 @@ class DesConnectorSpec extends
         stubPostServer(serverError().withBody(serverErrorJson.toString))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe expectedResponse
         }
       }
@@ -226,7 +238,8 @@ class DesConnectorSpec extends
         stubPostServer(serviceUnavailable().withBody(serviceUnavailableJson.toString))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe expectedResponse
         }
       }
@@ -244,7 +257,8 @@ class DesConnectorSpec extends
         stubPostServer(badRequest().withBody(multipleErrors.toString))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe responses
         }
       }
@@ -256,7 +270,8 @@ class DesConnectorSpec extends
         stubPostServer(serviceUnavailable().withBody("{}"))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe response
         }
       }
@@ -267,7 +282,8 @@ class DesConnectorSpec extends
         stubPostServer(ok().withBody("{}"))
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe response
         }
       }
@@ -281,7 +297,8 @@ class DesConnectorSpec extends
         }
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+          val result =
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
           result mustBe response
         }
       }
@@ -292,7 +309,8 @@ class DesConnectorSpec extends
         server.stop()
 
         eventually(timeout(Span(30, Seconds))) {
-          val result = Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)))
+          val result =
+            Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)))
           result.get mustBe response
         }
 

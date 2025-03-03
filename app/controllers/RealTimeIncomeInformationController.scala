@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,9 +61,9 @@ class RealTimeIncomeInformationController @Inject() (
     }
 
   private def serviceName(input: Either[DesSingleFailureResponse, RequestDetails]): Either[DesSingleFailureResponse, RequestDetails] =
-    input.flatMap(requestDetailsService.processServiceName(_))
+    input.flatMap(requestDetailsService.processServiceName)
 
-  private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit ar: AuthenticatedRequest[_]): Either[DesSingleFailureResponse, RequestDetails] = {
+  private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit ar: AuthenticatedRequest[?]): Either[DesSingleFailureResponse, RequestDetails] = {
     input.flatMap(requestDetailsService.processFilterFields(_))
   }
 

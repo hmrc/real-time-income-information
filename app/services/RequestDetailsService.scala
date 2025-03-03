@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ class RequestDetailsService @Inject()(apiConfig: APIConfig) {
     }
   }
 
-  def processFilterFields(requestDetails: RequestDetails)(implicit ar: AuthenticatedRequest[_]): Either[DesSingleFailureResponse, RequestDetails] = {
+  def processFilterFields(requestDetails: RequestDetails)(implicit ar: AuthenticatedRequest[?]): Either[DesSingleFailureResponse, RequestDetails] = {
     val enrolments = ar.authDetails.enrolments.enrolments.map(_.key)
 
     val scopes: Set[ApiScope] = enrolments.flatMap(apiConfig.findScope)

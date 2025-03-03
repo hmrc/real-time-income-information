@@ -1,30 +1,16 @@
 import play.sbt.routes.RoutesKeys
-import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings.{defaultSettings, scalaSettings, itSettings}
+import uk.gov.hmrc.DefaultBuildSettings.{defaultSettings, itSettings, scalaSettings}
 
 val appName = "real-time-income-information"
 
-ThisBuild / scalaVersion := "2.13.14"
+ThisBuild / scalaVersion := "3.6.2"
 ThisBuild / majorVersion := 2
-ThisBuild / scalacOptions ++= Seq("-Xfatal-warnings", "-feature")
-
-val scoverageSettings: Seq[Def.Setting[?]] = {
-  val sCoverageExcludesPattens: List[String] = List(
-    "<empty>",
-    "Reverse.*",
-    "view.*",
-    "config.*",
-    ".*(BuildInfo|Routes).*",
-    "controllers.javascript",
-    ".*Reverse.*Controller"
-  )
-  Seq(
-    ScoverageKeys.coverageExcludedPackages := sCoverageExcludesPattens.mkString(";"),
-    ScoverageKeys.coverageMinimumStmtTotal := 90,
-    ScoverageKeys.coverageFailOnMinimum := true,
-    ScoverageKeys.coverageHighlighting := true
-  )
-}
+ThisBuild / scalacOptions ++= Seq(
+  "-feature",
+  "-Werror",
+  "-Wconf:msg=.*-Wunused:s",
+  "-Wconf:msg=Flag.*repeatedly:s"
+)
 
 val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
@@ -33,7 +19,7 @@ val microservice = Project(appName, file("."))
     PlayKeys.playDefaultPort := 9358,
     defaultSettings(),
     scalaSettings,
-    scoverageSettings,
+    CodeCoverageSettings.settings,
     retrieveManaged := true,
     libraryDependencies ++= AppDependencies.all,
     RoutesKeys.routesImport := Nil,

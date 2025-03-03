@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,16 @@ sealed trait DesErrorResponse extends DesResponse
 
 final case class DesSuccessResponse(matchPattern: Int, taxYears: Option[List[JsValue]]) extends DesResponse
 final case class DesFilteredSuccessResponse(matchPattern: Int, taxYears: List[JsValue]) extends DesResponse
+
 final case class DesSingleFailureResponse(code: String, reason: String) extends DesErrorResponse
+object DesSingleFailureResponse {
+  implicit val desSingleFailureFormats: OFormat[DesSingleFailureResponse] = Json.format[DesSingleFailureResponse]
+}
+
 final case class DesMultipleFailureResponse(failures: List[DesSingleFailureResponse]) extends DesErrorResponse
+object DesMultipleFailureResponse {
+  implicit val desMultipleFailureFormats: OFormat[DesMultipleFailureResponse] = Json.format[DesMultipleFailureResponse]
+}
 
 final case class DesUnexpectedResponse(code: String = "INTERNAL_SERVER_ERROR", reason: String = "Internal Server Error")
     extends DesErrorResponse
@@ -34,6 +42,8 @@ final case class DesNoResponse(code: String = "BAD_GATEWAY", reason: String = "B
 
 object DesResponse {
 
+  import DesMultipleFailureResponse.desMultipleFailureFormats
+  import DesSingleFailureResponse.desSingleFailureFormats
   private def read[A](json: JsValue, get: JsValue => JsResult[A]): JsResult[A] =
     (json \ "data").toOption.map(get).getOrElse(JsError("unable to read object"))
 
@@ -66,18 +76,13 @@ object DesResponse {
   implicit val desSuccessFormats: Format[DesSuccessResponse]                 = Json.format[DesSuccessResponse]
   implicit val desFilteredSuccessFormats: Format[DesFilteredSuccessResponse] = Json.format[DesFilteredSuccessResponse]
   implicit val desUnexpectedFormats: Format[DesUnexpectedResponse]           = Json.format[DesUnexpectedResponse]
-  implicit val desSingleFailureFormats: Format[DesSingleFailureResponse]     = Json.format[DesSingleFailureResponse]
-  implicit val desMultipleFailureFormats: Format[DesMultipleFailureResponse] = Json.format[DesMultipleFailureResponse]
   implicit val desNoResponseFormats: Format[DesNoResponse]                   = Json.format[DesNoResponse]
 
   implicit val desErrorResponseRead: Reads[DesErrorResponse] = new Reads[DesErrorResponse] {
-
     override def reads(json: JsValue): JsResult[DesErrorResponse] =
       if ((json \ "failures").asOpt[JsArray].isDefined)
         desMultipleFailureFormats.reads(json)
       else
         desSingleFailureFormats.reads(json)
-
   }
-
 }

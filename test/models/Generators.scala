@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package models
 
 import org.scalacheck.Gen
 import org.scalacheck.Gen.{alphaStr, const, listOf, oneOf, posNum, some}
-import play.api.libs.json.{JsBoolean, JsNull, JsString}
+import play.api.libs.json.{JsBoolean, JsNull, JsValue}
 
 object Generators {
 
@@ -31,25 +31,25 @@ object Generators {
     def <*[B](other: Gen[B]): Gen[(B, A)] = other.zip(gen)
   }
 
-  val jsValueGen = oneOf(alphaStr.map(JsString), oneOf(true, false).map(JsBoolean), const(JsNull))
+  val jsValueGen: Gen[JsValue] = oneOf(alphaStr.map(play.api.libs.json.JsString.apply), oneOf(true, false).map(JsBoolean), const(JsNull))
 
-  val desSuccessResponseGen =
-    (posNum[Int] *> some(listOf(jsValueGen))).map(DesSuccessResponse.tupled)
+  val desSuccessResponseGen: Gen[DesSuccessResponse] =
+    (posNum[Int] *> some(listOf(jsValueGen))).map(DesSuccessResponse.apply)
 
-  val desFilteredSuccessResponseGen =
-    (posNum[Int] *> listOf(jsValueGen)).map(DesFilteredSuccessResponse.tupled)
+  val desFilteredSuccessResponseGen: Gen[DesFilteredSuccessResponse] =
+    (posNum[Int] *> listOf(jsValueGen)).map(DesFilteredSuccessResponse.apply)
 
-  val desSingleFailureResponseGen =
-    (alphaStr *> alphaStr).map(DesSingleFailureResponse.tupled)
+  val desSingleFailureResponseGen: Gen[DesSingleFailureResponse] =
+    (alphaStr *> alphaStr).map(DesSingleFailureResponse.apply)
 
-  val desMultipleFailureResponseGen =
-    listOf(desSingleFailureResponseGen).map(DesMultipleFailureResponse)
+  val desMultipleFailureResponseGen: Gen[DesMultipleFailureResponse] =
+    listOf(desSingleFailureResponseGen).map(DesMultipleFailureResponse.apply)
 
-  val desUnexpectedResponseGen =
-    (alphaStr *> alphaStr).map(DesUnexpectedResponse.tupled)
+  val desUnexpectedResponseGen: Gen[DesUnexpectedResponse] =
+    (alphaStr *> alphaStr).map(DesUnexpectedResponse.apply)
 
-  val desNoResponseGen =
-    (alphaStr *> alphaStr).map(DesNoResponse.tupled)
+  val desNoResponseGen: Gen[DesNoResponse] =
+    (alphaStr *> alphaStr).map(DesNoResponse.apply)
 
   val desResponseGen: Gen[DesResponse] =
     oneOf(
