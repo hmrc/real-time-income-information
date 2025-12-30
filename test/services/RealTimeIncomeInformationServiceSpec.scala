@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,12 +125,12 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec {
       "retrieve and filter data to return as a DesFilteredSuccessResponse" in {
         val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
 
-        when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any()))
+        when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(using any()))
           .thenReturn(Future.successful(DesSuccessResponse(63, Some(List(taxYear)))))
 
         val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails, correlationId))
         result mustBe DesFilteredSuccessResponse(63, List(filteredTaxYearJson))
-        verify(mockDesConnector, times(1)).retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())
+        verify(mockDesConnector, times(1)).retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(using any())
       }
     }
 
@@ -138,7 +138,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec {
       "return an unfiltered DesSuccessResponse" in {
         val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
 
-        when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any()))
+        when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(using any()))
           .thenReturn(Future.successful(DesSuccessResponse(0, None)))
 
         val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails, correlationId))
@@ -149,7 +149,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec {
     "given a DES failure response return an appropriate error message" in {
       val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
 
-      when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(any())).thenReturn(
+      when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(using any())).thenReturn(
         Future.successful(
           DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")
         )

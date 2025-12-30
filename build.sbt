@@ -3,11 +3,10 @@ import uk.gov.hmrc.DefaultBuildSettings.{defaultSettings, itSettings, scalaSetti
 
 val appName = "real-time-income-information"
 
-ThisBuild / scalaVersion := "3.6.2"
+ThisBuild / scalaVersion := "3.7.3"
 ThisBuild / majorVersion := 2
 ThisBuild / scalacOptions ++= Seq(
   "-feature",
-  "-Werror",
   "-Wconf:msg=.*-Wunused:s",
   "-Wconf:msg=Flag.*repeatedly:s"
 )

@@ -16,8 +16,8 @@
 
 package connectors
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import com.github.tomakehurst.wiremock.client.{ResponseDefinitionBuilder, WireMock}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import config.ApplicationConfig
 import models.*

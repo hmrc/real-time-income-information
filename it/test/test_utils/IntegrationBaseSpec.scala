@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package test_utils
 
-import uk.gov.hmrc.domain.Generator
+import uk.gov.hmrc.domain.NinoGenerator
 
 import java.util.UUID
 import scala.util.Random
 
 trait IntegrationBaseSpec extends UnitSpec with ResourceProvider {
   def generateUUId: String           = UUID.randomUUID().toString
-  def generateNino: String           = new Generator(new Random).nextNino.toString()
+  def generateNino: String           = new NinoGenerator().nextNino.toString()
 }

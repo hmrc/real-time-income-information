@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
   "AuthAction" must {
     "return None" when {
       "authenticated" in {
-        when(mockAuthConnector.authorise[Enrolments](any(), any())(any(), any())).thenReturn(Future.successful(Enrolments(Set.empty)))
+        when(mockAuthConnector.authorise[Enrolments](any(), any())(using any(), any())).thenReturn(Future.successful(Enrolments(Set.empty)))
         val result = Harness.test()(FakeRequest())
         status(result) mustBe OK
       }
@@ -60,7 +60,7 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
 
     "return forbidden" when {
       "Non Privileged Application" in {
-        when(mockAuthConnector.authorise[Unit](any(), any())(any(), any()))
+        when(mockAuthConnector.authorise[Unit](any(), any())(using any(), any()))
           .thenReturn(Future.failed(UnsupportedAuthProvider()))
         val result = Harness.test()(FakeRequest())
 
@@ -69,7 +69,7 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
       }
 
       "unexpected unauthenticated" in {
-        when(mockAuthConnector.authorise[Unit](any(), any())(any(), any()))
+        when(mockAuthConnector.authorise[Unit](any(), any())(using any(), any()))
           .thenReturn(Future.failed(InternalError("some error message")))
         val result = Harness.test()(FakeRequest())
 
@@ -80,7 +80,7 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
 
     "return internal server error" when {
       "Unexpected exception when authorising" in {
-        when(mockAuthConnector.authorise[Unit](any(), any())(any(), any()))
+        when(mockAuthConnector.authorise[Unit](any(), any())(using any(), any()))
           .thenReturn(Future.failed(new Exception()))
         val result = Harness.test()(FakeRequest())
 

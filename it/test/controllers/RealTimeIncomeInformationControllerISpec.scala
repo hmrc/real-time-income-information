@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package controllers
 
-import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.must.Matchers._
+import org.scalatest.matchers.must.Matchers.*
 import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
 import play.api.Play.materializer
 import play.api.http.Status.{OK, SERVICE_UNAVAILABLE}
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -29,7 +30,7 @@ import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.test.Helpers.{POST, contentAsJson, defaultAwaitTimeout, route}
 import play.api.test.{FakeHeaders, FakeRequest}
 import test_utils.{IntegrationBaseSpec, WiremockHelper}
-import uk.gov.hmrc.domain.Generator
+import uk.gov.hmrc.domain.NinoGenerator
 import utils.Constants.responseServiceUnavailable
 
 import java.util.UUID
@@ -52,7 +53,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
     Json.toJson(body).toString.stripMargin
   }
 
-  override def fakeApplication() = GuiceApplicationBuilder().configure(
+  override def fakeApplication(): Application = GuiceApplicationBuilder().configure(
     "microservice.services.auth.port" -> server.port(),
     "microservice.services.des-hod.host" -> "127.0.0.1",
     "microservice.services.des-hod.port" -> server.port(),
@@ -60,7 +61,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
     "api.serviceName" -> Seq("serviceName")
   ).build()
 
-  val generatedNino: String = new Generator().nextNino.nino
+  val generatedNino: String = new NinoGenerator().nextNino.nino
   val correlationId: String = UUID.randomUUID().toString
 
   "preSchemaValidation" should {
