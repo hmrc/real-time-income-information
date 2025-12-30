@@ -3,7 +3,7 @@ import sbt.*
 
 object AppDependencies {
 
-  private val hmrcBoostrapVersion       = "10.4.0"
+  private val hmrcBoostrapVersion       = "10.5.0"
   private val hmrcMongoVersion          = "2.11.0"
   private val hmrcDomainVersion         = "13.0.0"
 
