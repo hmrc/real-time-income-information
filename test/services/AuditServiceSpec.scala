@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
         detail = hc.toAuditDetails() ++ auditData,
         generatedAt = date
       )
-      when(mockAuditConnector.sendEvent(dataEventCaptor.capture())(any(), any()))
+      when(mockAuditConnector.sendEvent(dataEventCaptor.capture())(using any(), any()))
         .thenReturn(Future.successful(AuditResult.Success))
 
       val result = auditService.audit(auditType, auditPath, auditData)
@@ -109,7 +109,7 @@ class AuditServiceSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting 
         generatedAt = date
       )
 
-      when(mockAuditConnector.sendEvent(dataEventCaptor.capture())(any(), any()))
+      when(mockAuditConnector.sendEvent(dataEventCaptor.capture())(using any(), any()))
         .thenReturn(Future.successful(AuditResult.Success))
 
       val result = auditService.rtiiAudit(correlationId, requestDetails)
