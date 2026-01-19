@@ -26,7 +26,7 @@ import play.api.Application
 import play.api.Play.materializer
 import play.api.http.Status.{OK, SERVICE_UNAVAILABLE}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsValue, Json, OFormat}
+import play.api.libs.json.{JsValue, Json, OFormat, JsObject}
 import play.api.test.Helpers.{POST, contentAsJson, defaultAwaitTimeout, route}
 import play.api.test.{FakeHeaders, FakeRequest}
 import test_utils.{IntegrationBaseSpec, WiremockHelper}
@@ -198,6 +198,50 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
 
         val resultValue: JsValue = result.map(x => await(jsonBodyOf(x))).get
         resultValue mustBe Json.parse(expectedResponse)
+      }
+    }
+
+    "NI Letter Validation" must {
+      "accept single character NI Letter from DES" in {
+
+        val desResponse = fullDesResponse(generatedNino)
+
+        stubPostServer(ok(authBody(filterFullAccessScope)) ,"/auth/authorise")
+        stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
+
+        val requestDetails = dwpRequest(generatedNino)
+        val request = FakeRequest(
+          method = POST,
+          uri = s"/individuals/$correlationId/income",
+          headers = FakeHeaders(Seq(
+            "Authorization" -> "Bearer bearer-token"
+          )),
+          body = requestDetails
+        )
+
+        val result = route(fakeApplication(), request)
+        result.map(status) mustBe Some(OK)
+      }
+
+      "accept two character NI Letter from DES" in {
+
+        val desResponse = fullDesResponse2CharNi(generatedNino)
+
+        stubPostServer(ok(authBody(filterFullAccessScope)) ,"/auth/authorise")
+        stubPostServer(ok(desResponse.toString()), s"/individuals/$generatedNino/income")
+
+        val requestDetails = dwpRequest(generatedNino)
+        val request = FakeRequest(
+          method = POST,
+          uri = s"/individuals/$correlationId/income",
+          headers = FakeHeaders(Seq(
+            "Authorization" -> "Bearer bearer-token"
+          )),
+          body = requestDetails
+        )
+
+        val result = route(fakeApplication(), request)
+        result.map(status) mustBe Some(OK)
       }
     }
   }

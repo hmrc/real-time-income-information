@@ -27,6 +27,8 @@ trait ResourceProvider {
 
   def fullDesResponse(nino: String): JsValue = readJson(s"full-des-response.json", nino)
 
+  def fullDesResponse2CharNi(nino: String): JsValue = readJson(s"full-des-response-2char-niletter-ab.json", nino)
+
   def getRequest(fileName: String, nino: String): JsValue = readJson(s"./requests/$fileName.json", nino)
 
   def getResponse(fileName: String, nino: String): JsValue = readJson(s"./responses/$fileName.json", nino)

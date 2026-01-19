@@ -12,6 +12,9 @@ object CodeCoverageSettings {
     "controllers.javascript",
     ".*Reverse.*Controller"
   )
+  private val excludedFiles: Seq[String] = Seq(
+    ".*DesResponse.scala.*",
+  )
 
   // case classes with no added functionality so no requirement to test
   // other than default Reads, Writes or Format
@@ -24,6 +27,7 @@ object CodeCoverageSettings {
 
   val settings: Seq[Setting[?]] = Seq(
     ScoverageKeys.coverageExcludedPackages := (excludedPackages ++ implicitOFormatObjects).mkString(";"),
+    ScoverageKeys.coverageExcludedFiles :=(excludedFiles.mkString(";")),
     ScoverageKeys.coverageMinimumStmtTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
