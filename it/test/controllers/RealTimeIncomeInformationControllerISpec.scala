@@ -220,8 +220,6 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         )
 
         val result = route(fakeApplication(), request)
-
-        // Verify the service returns OK status, proving single-char niLetter passes through schema validation
         result.map(status) mustBe Some(OK)
       }
 
@@ -243,8 +241,6 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         )
 
         val result = route(fakeApplication(), request)
-
-        // Verify the service returns OK status, proving two-char niLetter passes through schema validation
         result.map(status) mustBe Some(OK)
       }
     }
