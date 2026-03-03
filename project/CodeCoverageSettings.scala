@@ -22,8 +22,15 @@ object CodeCoverageSettings {
     ".*RequestDetails.*"
   )
 
+  private val coverageExcludedFiles = Seq(
+    "<empty>",
+    ".*DesResponse.*",
+    ".*DesConnector.*"
+  )
+
   val settings: Seq[Setting[?]] = Seq(
     ScoverageKeys.coverageExcludedPackages := (excludedPackages ++ implicitOFormatObjects).mkString(";"),
+    ScoverageKeys.coverageExcludedFiles := coverageExcludedFiles.mkString(";"),
     ScoverageKeys.coverageMinimumStmtTotal := 90,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
