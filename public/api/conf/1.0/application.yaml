@@ -12,25 +12,17 @@ paths:
       tags:
         - real-time-income-information
       summary: Real Time Income Information
-      description: >
+      description: |
         This API allows a third party to retrieve real time income information for an individual by specifying a required fieldset.
 
-
-        This version of the API is in development and is very likely to change.
-
-
-        The current API allows the a consuming service to retrieve an individuals income information by providing a list of required fields.
-
-
         To use this API, several matching fields are required as well as a list of filter field keys. This will determine which values are returned as part of the response. The list of keys which can be requested can be found in the request schema below.
-
 
         If a key is requested that is not in the list of potential keys, a 400 INVALID_PAYLOAD response will be returned.
       operationId: RealTimeIncomeInformation
       parameters:
         - name: correlationId
           in: path
-          description: Identifier used to locate related transactions
+          description: Identifier used to locate related transactions.
           required: true
           style: simple
           schema:
@@ -352,7 +344,7 @@ components:
           type: string
         serviceName:
           type: string
-          description: serviceName values are validated against an allowList of services with access to the api
+          description: serviceName values are validated against an allowList of services with access to the API.
         fromDate:
           pattern: ^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$
           type: string
@@ -382,7 +374,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FilterField'
-          description: Some users will have limited access to specific filterFields only
+          description: Some users will have limited access to specific filterFields only.
     Gender:
       title: Gender
       enum:
@@ -499,7 +491,7 @@ components:
         taxYear:
           pattern: ^[0-9]{2}\-[0-9]{2}$
           type: string
-          description: The tax year to which the earnings information in this record applies
+          description: The tax year to which the earnings information in this record applies.
         taxYearIndicator:
           pattern: ^[PC]$
           type: string

@@ -1,5 +1,6 @@
 digital-service: RTII
 repoVisibility: public_0C3F0CE3E6E6448FAD341E7BFA50FCD333E06A20CFF05FCACE61154DDBBADF71
+description: This API allows a third party to retrieve real time income information for an individual by specifying a required fieldset.
 test-repositories:
   - rtii-performance-tests
   - rtii-acceptance-tests
