@@ -74,7 +74,7 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
         val result = Harness.test()(FakeRequest())
 
         status(result) mustBe FORBIDDEN
-        contentAsJson(result) mustBe Json.toJson(Constants.forbiddenWithMsg("some error message"))
+        contentAsJson(result) mustBe Json.toJson(Constants.forbiddenWithMsg("[AuthAction][invokeBlock] Authorisation failed: some error message"))
       }
     }
 
