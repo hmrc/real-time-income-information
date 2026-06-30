@@ -131,11 +131,8 @@ class DesConnector @Inject()(
           DesNoResponse()
         case e: BadGatewayException =>
           //$COVERAGE-OFF$
-          logger.error(s"DesConnector][retrieveCitizenIncome] Bad gateway response from DES:",e)
+          logger.error(s"[DesConnector][retrieveCitizenIncome] Bad gateway response from DES:",e)
           //$COVERAGE-ON$
-          DesNoResponse()
-        case NonFatal(e) =>
-          logger.error("[DesConnector][retrieveCitizenIncome] Unexpected error calling DES", e)
           DesNoResponse()
       }
     }
