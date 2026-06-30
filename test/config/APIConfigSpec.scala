@@ -61,7 +61,7 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
     def SUT(accessType: Option[String] = None): APIConfig =
       accessType.fold(new APIConfig(Configuration())) { _type =>
         new APIConfig(
-          Configuration("api.access.type" -> _type)
+          Configuration("api.access" -> _type)
         )
       }
 
@@ -69,13 +69,13 @@ class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
       "there is no configuration" in {
         val config = SUT().apiAccessType
 
-        config mustBe "PRIVATE"
+        config mustBe "INTERNAL"
       }
 
-      "PRIVATE is configured" in {
-        val config = SUT(Some("PRIVATE")).apiAccessType
+      "INTERNAL is configured" in {
+        val config = SUT(Some("INTERNAL")).apiAccessType
 
-        config mustBe "PRIVATE"
+        config mustBe "INTERNAL"
       }
     }
 

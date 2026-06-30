@@ -23,17 +23,17 @@ import play.twirl.api.TwirlHelperImports.twirlJavaCollectionToScala
 
 @Singleton
 class APIConfig @Inject() (configuration: Configuration) {
-  private val apiAccessTypeKey = "api.access.type"
+  private val apiAccessTypeKey = "api.access"
   private val apiContextKey = "api.context"
   private val apiFieldsKey = "api.fields"
   private val apiScopesKey = "api.scopes"
-  private val privateAccessKey = "PRIVATE"
+  private val internalAccessKey = "INTERNAL"
 
   private lazy val apiFields: List[ApiField] = getOptional[List[ApiField]](apiFieldsKey).getOrElse(throw apiConfigException(apiFieldsKey))
 
   private lazy val apiScopes: List[ApiScope] = getOptional[List[ApiScope]](apiScopesKey).getOrElse(throw apiConfigException(apiScopesKey))
 
-  val serviceNames = getOptional[Seq[String]]("api.serviceName").getOrElse(Seq())
+  val serviceNames: Seq[String] = getOptional[Seq[String]]("api.serviceName").getOrElse(Seq())
 
   private def apiConfigException(key: String) = new IllegalStateException(s"$key is not configured")
 
@@ -77,7 +77,7 @@ class APIConfig @Inject() (configuration: Configuration) {
     }
   }
 
-  lazy val apiAccessType: String = getOptional[String](apiAccessTypeKey).getOrElse(privateAccessKey)
+  lazy val apiAccessType: String = getOptional[String](apiAccessTypeKey).getOrElse(internalAccessKey)
 
   lazy val apiContext: String = getOptional[String](apiContextKey).getOrElse(throw apiConfigException(apiContextKey))
 
