@@ -17,7 +17,6 @@
 package controllers
 
 import org.apache.pekko.stream.Materializer
-import models.api.APIAccess
 import org.scalatest.matchers.must.Matchers._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
@@ -34,16 +33,16 @@ class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with In
 
   private val apiScope                            = "scope"
   private val apiContext                          = "context"
-  private val apiAccess                           = APIAccess("PRIVATE")
+  private val apiAccess                           = "INTERNAL"
   private lazy val controller                     = inject[DefinitionController]
   implicit private val materializer: Materializer = app.materializer
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
       .configure(
-        "api.definition.scope"                 -> apiScope,
-        "api.context"                          -> apiContext,
-        "api.access.type"                      -> "PRIVATE"
+        "api.definition.scope" -> apiScope,
+        "api.context"          -> apiContext,
+        "api.access"           -> "INTERNAL"
       )
       .build()
 

@@ -1,6 +1,5 @@
-@import models.api.APIAccess
 
-@(access: APIAccess, apiContext: String)
+@(access: String, apiContext: String)
 {
   "api": {
     "name": "Real Time Income Information",
@@ -11,7 +10,7 @@
         "version": "1.0",
         "status": "BETA",
         "endpointsEnabled": true,
-        "access": @access.toJson
+        "access": "@access"
       }
     ]
   }
