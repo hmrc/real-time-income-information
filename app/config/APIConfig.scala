@@ -33,7 +33,7 @@ class APIConfig @Inject() (configuration: Configuration) {
 
   private lazy val apiScopes: List[ApiScope] = getOptional[List[ApiScope]](apiScopesKey).getOrElse(throw apiConfigException(apiScopesKey))
 
-  val serviceNames: Seq[String] = getOptional[Seq[String]]("api.serviceName").getOrElse(Seq())
+  val serviceNames: Seq[String] = getOptional[Seq[String]]("api.serviceName").getOrElse(Nil)
 
   private def apiConfigException(key: String) = new IllegalStateException(s"$key is not configured")
 
