@@ -274,7 +274,7 @@
         "niLetter": {
           "type": "string",
           "description": "NI Letter",
-          "pattern": "^[ABCDEGHIJKLMNOPQRTVWXYZ]$"
+          "pattern": "^[A-Z]{1,2}$"
         },
         "directorsNIC": {
           "type": "string",
