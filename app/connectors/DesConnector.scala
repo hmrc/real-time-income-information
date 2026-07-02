@@ -84,7 +84,7 @@ class DesConnector @Inject()(
           .mkString(", ")
           .trim
       }
-      logger.debug(s"[DesConnector][parseResponse] Validation errors=${extractValidationErrors(errors)}")
+      logger.error(s"[DesConnector][parseResponse] Not able to parse the response received from DES, validation errors=${extractValidationErrors(errors)}")
 
       //$COVERAGE-ON$
       DesUnexpectedResponse()
