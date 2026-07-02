@@ -6,7 +6,7 @@
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>logs/real-time-income-information.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%date{ISO8601} level=[%level] logger=[%logger] thread=[%thread] message=[%message] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
+            <pattern>%date{ISO8601} level=[%level] logger=[%logger] thread=[%thread] rid=[%X{X-Request-ID}] message=[%message] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
         </encoder>
     </appender>
 
@@ -19,7 +19,9 @@
     <appender name="CONNECTOR_LOG_FILE" class="ch.qos.logback.core.FileAppender">
         <file>logs/connector.log</file>
         <encoder>
-            <pattern>%message%n</pattern>
+            <pattern>
+                %date{ISO8601} level=[%level] rid=[%X{X-Request-ID}] message=[%message]%n
+            </pattern>
         </encoder>
     </appender>
 
@@ -33,7 +35,7 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
-    <root level="INFO}">
+    <root level="INFO">
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>
     </root>

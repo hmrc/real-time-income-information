@@ -52,12 +52,12 @@ class AuthActionImpl @Inject()(override val authConnector: AuthConnector, val pa
       case _: UnsupportedAuthProvider => Forbidden(toJson(responseNonPrivilegedApplication))
       case e: AuthorisationException  =>
         //$COVERAGE-OFF$
-        logger.warn(e.reason)
+        logger.warn(s"[AuthAction][invokeBlock] Authorisation failed: ${e.reason}")
         //$COVERAGE-ON$
-        Forbidden(toJson(forbiddenWithMsg(e.reason)))
+        Forbidden(toJson(forbiddenWithMsg(s"[AuthAction][invokeBlock] Authorisation failed: ${e.reason}")))
       case NonFatal(e) =>
         //$COVERAGE-OFF$
-        logger.error("Unexpected exception when authorising", e)
+        logger.error("[AuthAction][invokeBlock] Unexpected exception when authorising", e)
         //$COVERAGE-ON$
         InternalServerError(toJson(responseServiceUnavailable))
     }

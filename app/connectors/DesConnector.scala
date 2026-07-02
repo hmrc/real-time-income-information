@@ -32,6 +32,7 @@ import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 @Singleton
 class DesCache @Inject()(config: ApplicationConfig, mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
@@ -58,7 +59,10 @@ class DesConnector @Inject()(
     override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse = {
       httpResponse.status match {
         case OK => parseDesResponse[DesSuccessResponse](httpResponse)
-        case _  => parseDesResponse[DesErrorResponse](httpResponse)
+        case status  => {
+          logger.warn(s"[DesConnector][read] Non-OK response from DES. status=$status")
+          parseDesResponse[DesErrorResponse](httpResponse)
+        }
       }
     }
 
@@ -80,7 +84,8 @@ class DesConnector @Inject()(
           .mkString(", ")
           .trim
       }
-      logger.error(s"Not able to parse the response received from DES with error ${extractValidationErrors(errors)}")
+      logger.error(s"[DesConnector][parseResponse] Not able to parse the response received from DES, validation errors=${extractValidationErrors(errors)}")
+
       //$COVERAGE-ON$
       DesUnexpectedResponse()
     }
@@ -121,12 +126,12 @@ class DesConnector @Inject()(
         .execute[DesResponse] recover {
         case e: GatewayTimeoutException =>
           //$COVERAGE-OFF$
-          logger.error(s"GatewayTimeoutException occurred: ${e.message}")
+          logger.error(s"[DesConnector][retrieveCitizenIncome] Gateway timeout from DES:",e)
           //$COVERAGE-ON$
           DesNoResponse()
         case e: BadGatewayException =>
           //$COVERAGE-OFF$
-          logger.error(s"BadGatewayException occurred: ${e.message}")
+          logger.error(s"[DesConnector][retrieveCitizenIncome] Bad gateway response from DES:",e)
           //$COVERAGE-ON$
           DesNoResponse()
       }
