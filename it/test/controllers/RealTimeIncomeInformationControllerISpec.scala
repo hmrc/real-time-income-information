@@ -72,7 +72,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
       val requestDetails = dwpRequest(generatedNino)
       val request = FakeRequest(
         method = POST,
-        uri = s"/individuals/$correlationId/income",
+        uri = s"/real-time-income-information/individuals/$correlationId/income",
         headers = FakeHeaders(Seq(
           "Authorization" -> "Bearer bearer-token"
         )),
@@ -102,7 +102,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         val requestDetails = dwpRequest(generatedNino)
         val request = FakeRequest(
           method = POST,
-          uri = s"/individuals/$correlationId/income",
+          uri = s"/real-time-income-information/individuals/$correlationId/income",
           headers = FakeHeaders(Seq(
             "Authorization" -> "Bearer bearer-token"
           )),
@@ -129,7 +129,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         val requestDetails = getRequest(fileName, generatedNino)
         val request = FakeRequest(
           method = POST,
-          uri = s"/individuals/$correlationId/income",
+          uri = s"/real-time-income-information/individuals/$correlationId/income",
           headers = FakeHeaders(Seq(
             "Authorization" -> "Bearer bearer-token"
           )),
@@ -156,7 +156,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         val requestDetails = getRequest(fileName, generatedNino)
         val request = FakeRequest(
           method = POST,
-          uri = s"/individuals/$correlationId/income",
+          uri = s"/real-time-income-information/individuals/$correlationId/income",
           headers = FakeHeaders(Seq(
             "Authorization" -> "Bearer bearer-token"
           )),
@@ -187,7 +187,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
         val requestDetails: JsValue = getRequest(fileName, generatedNino)
         val request = FakeRequest(
           method = POST,
-          uri = s"/individuals/$correlationId/income",
+          uri = s"/real-time-income-information/individuals/$correlationId/income",
           headers = FakeHeaders(Seq(
             "Authorization" -> "Bearer bearer-token"
           )),
