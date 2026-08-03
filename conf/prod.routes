@@ -1,4 +1,4 @@
 ->         /                                    definition.Routes
 ->         /                                    health.Routes
 
-POST       /real-time-income-information/individuals/:correlationId/income   @controllers.RealTimeIncomeInformationController.preSchemaValidation(correlationId: String)
+POST       /individuals/:correlationId/income   @controllers.RealTimeIncomeInformationController.preSchemaValidation(correlationId: String)
