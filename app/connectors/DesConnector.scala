@@ -32,7 +32,6 @@ import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.control.NonFatal
 
 @Singleton
 class DesCache @Inject()(config: ApplicationConfig, mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
