@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,8 +75,12 @@ trait ResourceProvider {
 
 
   def getResourceFileContent(resourceFile: String): String = {
-    val is = getClass.getResourceAsStream(resourceFile)
-    Source.fromInputStream(is).mkString
+    val source = Source.fromInputStream(getClass.getResourceAsStream(resourceFile))
+    try {
+      source.mkString
+    } finally {
+      source.close()
+    }
   }
 
   private def readJson(path: String): JsValue =
