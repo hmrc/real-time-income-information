@@ -113,7 +113,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe expectedResponse
         }
       }
@@ -122,13 +122,13 @@ class DesConnectorSpec
         val expectedResponse = DesSuccessResponse(63, Some(List(taxYear)))
 
         stubPostServer(ok(successMatchOneYear.toString))
-        await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
 
         stubPostServer(notFound())
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe expectedResponse
         }
 
@@ -141,7 +141,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe expectedResponse
         }
       }
@@ -152,7 +152,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe expectedResponse
         }
       }
@@ -162,7 +162,7 @@ class DesConnectorSpec
 
         stubPostServer(aResponse().withBody("{}"), url)
 
-        await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+        await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
 
         server.verify(
           postRequestedFor(urlEqualTo(url))
@@ -186,7 +186,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe expectedResponse
         }
       }
@@ -198,7 +198,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe expectedResponse
         }
       }
@@ -212,7 +212,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result = await(
-            connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], "invalidcorrelationid")
+            connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])
           )
           result mustBe expectedResponse
         }
@@ -227,7 +227,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe expectedResponse
         }
       }
@@ -239,7 +239,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe expectedResponse
         }
       }
@@ -258,7 +258,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe responses
         }
       }
@@ -271,7 +271,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe response
         }
       }
@@ -283,7 +283,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe response
         }
       }
@@ -298,7 +298,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId))
+            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
           result mustBe response
         }
       }
@@ -310,7 +310,7 @@ class DesConnectorSpec
 
         eventually(timeout(Span(30, Seconds))) {
           val result =
-            Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest], correlationId)))
+            Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])))
           result.get mustBe response
         }
 

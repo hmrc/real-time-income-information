@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.main
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import org.scalatest.concurrent.Eventually.eventually

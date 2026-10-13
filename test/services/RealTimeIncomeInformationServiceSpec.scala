@@ -125,12 +125,12 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec {
       "retrieve and filter data to return as a DesFilteredSuccessResponse" in {
         val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
 
-        when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(using any()))
+        when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any()))
           .thenReturn(Future.successful(DesSuccessResponse(63, Some(List(taxYear)))))
 
-        val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails, correlationId))
+        val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails))
         result mustBe DesFilteredSuccessResponse(63, List(filteredTaxYearJson))
-        verify(mockDesConnector, times(1)).retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(using any())
+        verify(mockDesConnector, times(1)).retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any())
       }
     }
 
@@ -138,10 +138,10 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec {
       "return an unfiltered DesSuccessResponse" in {
         val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
 
-        when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(using any()))
+        when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any()))
           .thenReturn(Future.successful(DesSuccessResponse(0, None)))
 
-        val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails, correlationId))
+        val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails))
         result mustBe DesSuccessResponse(0, None)
       }
     }
@@ -149,13 +149,13 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec {
     "given a DES failure response return an appropriate error message" in {
       val desMatchingRequest = RequestDetails.toMatchingRequest(requestDetails)
 
-      when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest), meq(correlationId))(using any())).thenReturn(
+      when(mockDesConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any())).thenReturn(
         Future.successful(
           DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino.")
         )
       )
 
-      val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails, correlationId))
+      val result: DesResponse = await(service.retrieveCitizenIncome(requestDetails))
       result mustBe DesSingleFailureResponse(
         "INVALID_NINO",
         "Submission has not passed validation. Invalid parameter nino."

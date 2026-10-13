@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.documentation
 
+import controllers.documentation.DefinitionController
 import org.apache.pekko.stream.Materializer
-import org.scalatest.matchers.must.Matchers._
+import org.scalatest.matchers.must.Matchers.*
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.http.HeaderNames.CONTENT_TYPE
-import play.api.http.Status._
+import play.api.http.Status.*
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, headers}
 import play.api.test.{FakeRequest, Injecting}
 import utils.BaseSpec
-import views._
+import views.*
 
 class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 

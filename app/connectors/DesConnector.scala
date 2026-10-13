@@ -22,72 +22,73 @@ import models.*
 import play.api.Logger
 import play.api.http.Status.OK
 import play.api.libs.json.*
+import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.http.*
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.mongo.cache.CacheIdType.SimpleCacheId
 import uk.gov.hmrc.mongo.cache.{DataKey, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
-import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
-
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DesCache @Inject()(config: ApplicationConfig, mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
-  extends MongoCacheRepository(
-    mongoComponent = mongoComponent,
-    collectionName = "des-cache",
-    ttl = config.cacheExpireAfter,
-    timestampSupport = new CurrentTimestampSupport(),
-    cacheIdType = SimpleCacheId
-  )
+class DesCache @Inject() (config: ApplicationConfig, mongoComponent: MongoComponent)(implicit
+    ec: ExecutionContext
+) extends MongoCacheRepository(
+      mongoComponent = mongoComponent,
+      collectionName = "des-cache",
+      ttl = config.cacheExpireAfter,
+      timestampSupport = new CurrentTimestampSupport(),
+      cacheIdType = SimpleCacheId
+    )
 
 @Singleton
-class DesConnector @Inject()(
-                              httpClient: HttpClientV2,
-                              desConfig: ApplicationConfig,
-                              mongoCache: DesCache
+class DesConnector @Inject() (
+    httpClient: HttpClientV2,
+    desConfig: ApplicationConfig,
+    mongoCache: DesCache
 )(implicit
-  ec: ExecutionContext
+    ec: ExecutionContext
 ) {
 
   private val logger: Logger = Logger(this.getClass)
+
   implicit val desReponseReads: HttpReads[DesResponse] = new HttpReads[DesResponse] {
 
-    override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse = {
+    override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse =
       httpResponse.status match {
         case OK => parseDesResponse[DesSuccessResponse](httpResponse)
-        case status  => {
+        case status =>
           logger.warn(s"[DesConnector][read] Non-OK response from DES. status=$status")
           parseDesResponse[DesErrorResponse](httpResponse)
-        }
       }
-    }
 
   }
 
   private def parseDesResponse[A <: DesResponse](httpResponse: HttpResponse)(implicit
       reads: Reads[A]
   ): DesResponse = {
-    val handleError: scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])] => DesUnexpectedResponse = errors => {
-      val extractValidationErrors: scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])] => String = errors => {
-        //$COVERAGE-OFF$
-        errors
-          .map {
-            error =>
-              error._2.map(
-                jsonValError => s"${error._1}: ${jsonValError.message}"
-              )
-          }
-          .mkString(", ")
-          .trim
-      }
-      logger.error(s"[DesConnector][parseResponse] Not able to parse the response received from DES, validation errors=${extractValidationErrors(errors)}")
+    val handleError
+        : scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])] => DesUnexpectedResponse = errors =>
+      {
+        val extractValidationErrors
+            : scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])] => String = errors => {
+          //$COVERAGE-OFF$
+          errors
+            .map { error =>
+              error._2.map(jsonValError => s"${error._1}: ${jsonValError.message}")
+            }
+            .mkString(", ")
+            .trim
+        }
+        logger.error(
+          s"[DesConnector][parseResponse] Not able to parse the response received from DES, validation errors=${extractValidationErrors(errors)}"
+        )
 
-      //$COVERAGE-ON$
-      DesUnexpectedResponse()
-    }
+        //$COVERAGE-ON$
+        DesUnexpectedResponse()
+      }
 
     httpResponse.json
       .validate[A]
@@ -97,26 +98,30 @@ class DesConnector @Inject()(
       )
   }
 
-  def cache[A](id: String)(body: => Future[A])(implicit ev: Format[A]): Future[A] = {
+  def cache[A](id: String)(body: => Future[A])(implicit
+      ev: Format[A]
+  ): Future[A] = {
     val dataKey = DataKey[A]("desResponse")
 
     mongoCache.get[A](id)(dataKey).flatMap {
       case Some(v) => Future.successful(v)
-      case None    => body.flatMap { r => mongoCache.put(id)(dataKey, r).map { _ => r } }
+      case None    => body.flatMap(r => mongoCache.put(id)(dataKey, r).map(_ => r))
     }
   }
 
   def retrieveCitizenIncome(
       nino: String,
-      matchingRequest: DesMatchingRequest,
-      correlationId: String
-  )(implicit hc: HeaderCarrier): Future[DesResponse] = {
-
+      matchingRequest: DesMatchingRequest
+  )(implicit
+      hc: HeaderCarrier
+  ): Future[DesResponse] =
     cache[DesResponse](nino + matchingRequest.hashCode()) {
 
       val postUrl: String = s"${desConfig.hodUrl}/individuals/$nino/income"
 
-      httpClient.post(url"$postUrl").withBody(Json.toJson(matchingRequest))
+      httpClient
+        .post(url"$postUrl")
+        .withBody(Json.toJson(matchingRequest))
         .setHeader(HeaderNames.authorisation -> desConfig.authorization)
         .setHeader(HeaderNames.xRequestId -> hc.requestId.fold("-")(_.value))
         .setHeader(HeaderNames.xSessionId -> hc.sessionId.fold("-")(_.value))
@@ -125,16 +130,15 @@ class DesConnector @Inject()(
         .execute[DesResponse] recover {
         case e: GatewayTimeoutException =>
           //$COVERAGE-OFF$
-          logger.error(s"[DesConnector][retrieveCitizenIncome] Gateway timeout from DES:",e)
+          logger.error(s"[DesConnector][retrieveCitizenIncome] Gateway timeout from DES:", e)
           //$COVERAGE-ON$
           DesNoResponse()
         case e: BadGatewayException =>
           //$COVERAGE-OFF$
-          logger.error(s"[DesConnector][retrieveCitizenIncome] Bad gateway response from DES:",e)
+          logger.error(s"[DesConnector][retrieveCitizenIncome] Bad gateway response from DES:", e)
           //$COVERAGE-ON$
           DesNoResponse()
       }
     }
-  }
 
 }

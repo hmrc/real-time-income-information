@@ -8,7 +8,9 @@ ThisBuild / majorVersion := 2
 ThisBuild / scalacOptions ++= Seq(
   "-feature",
   "-Wconf:msg=.*-Wunused:s",
-  "-Wconf:msg=Flag.*repeatedly:s"
+  "-Wconf:msg=Flag.*repeatedly:s",
+  "-Wconf:msg=unused pattern variable&src=routes/.*:s",
+  "-Werror"
 )
 
 val microservice = Project(appName, file("."))

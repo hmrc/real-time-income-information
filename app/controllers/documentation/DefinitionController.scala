@@ -14,17 +14,25 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.documentation
 
+import config.APIConfig
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import views.txt
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class DocumentationController @Inject() (cc: ControllerComponents, assets: Assets) extends BackendController(cc) {
+class DefinitionController @Inject() (apiConfig: APIConfig, cc: ControllerComponents) extends BackendController(cc) {
 
-  def conf(version: String, file: String): Action[AnyContent] =
-    assets.at(s"/public/api/conf/$version", file)
+  private val apiAccess: String = apiConfig.apiAccessType
+
+  def get(): Action[AnyContent] =
+    Action {
+      Ok(txt.definition(apiAccess, apiConfig.apiContext))
+        .as(contentType = "application/json")
+        .withHeaders(CONTENT_TYPE -> JSON)
+    }
 
 }
