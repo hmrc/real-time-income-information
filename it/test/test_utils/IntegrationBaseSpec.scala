@@ -19,7 +19,6 @@ package test_utils
 import uk.gov.hmrc.domain.NinoGenerator
 
 import java.util.UUID
-import scala.util.Random
 
 trait IntegrationBaseSpec extends UnitSpec with ResourceProvider {
   def generateUUId: String           = UUID.randomUUID().toString
