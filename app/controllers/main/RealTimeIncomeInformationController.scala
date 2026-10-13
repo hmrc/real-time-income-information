@@ -37,7 +37,10 @@ class RealTimeIncomeInformationController @Inject() (
     auth: AuthAction,
     validateCorrelationId: ValidateCorrelationId,
     requestDetailsService: RequestDetailsService,
-    cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
+    cc: ControllerComponents
+)(implicit
+    ec: ExecutionContext
+) extends BackendController(cc) {
 
   private val logger: Logger = Logger(this.getClass)
 
@@ -46,7 +49,7 @@ class RealTimeIncomeInformationController @Inject() (
       (parseJson andThen serviceName andThen filterFields andThen validateDate andThen getResult)(request) {
         requestDetails =>
           auditService.rtiiAudit(correlationId, requestDetails)
-          rtiiService.retrieveCitizenIncome(requestDetails, correlationId) map {
+          rtiiService.retrieveCitizenIncome(requestDetails) map {
             case filteredResponse: DesFilteredSuccessResponse        => Ok(Json.toJson(filteredResponse))
             case noMatchResponse: DesSuccessResponse                 => Ok(Json.toJson(noMatchResponse))
             case singleFailureResponse: DesSingleFailureResponse     => failureResponseToResult(singleFailureResponse)
@@ -60,12 +63,15 @@ class RealTimeIncomeInformationController @Inject() (
       }
     }
 
-  private def serviceName(input: Either[DesSingleFailureResponse, RequestDetails]): Either[DesSingleFailureResponse, RequestDetails] =
+  private def serviceName(
+      input: Either[DesSingleFailureResponse, RequestDetails]
+  ): Either[DesSingleFailureResponse, RequestDetails] =
     input.flatMap(requestDetailsService.processServiceName)
 
-  private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit ar: AuthenticatedRequest[?]): Either[DesSingleFailureResponse, RequestDetails] = {
+  private def filterFields(input: Either[DesSingleFailureResponse, RequestDetails])(implicit
+      ar: AuthenticatedRequest[?]
+  ): Either[DesSingleFailureResponse, RequestDetails] =
     input.flatMap(requestDetailsService.processFilterFields(_))
-  }
 
   private val parseJson: Request[JsValue] => Either[DesSingleFailureResponse, RequestDetails] = { request =>
     Try(request.body.validate[RequestDetails]) match {
