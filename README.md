@@ -1,11 +1,17 @@
-# real-time-income-information
+# Real-time income information
 
 This API will return the earnings information (income details) which has been matched to a citizen by Real Time Information. The information returned will be identified by a National Insurance number and income details within a specified period (date range).
 
 This is a private API microservice - you will need to register your application to get access to this API.
 https://developer.service.hmrc.gov.uk/api-documentation/docs/using-the-hub
 
-This API will return the earnings information (income details) which has been matched to a citizen by Real Time Information. The information returned will be identified by a National Insurance number and income details within a specified period (date range).
+API
+---
+
+| *Endpoint* | *Supported Methods* | *Description* |
+|--------|----------------------|---------------|
+|[/individuals/:correlationId/income](./docs/income-details.md) | POST | Returns the earnings information (income details) which has been matched to a citizen by Real Time Information.|
+
 
 ## Running the Application
 
