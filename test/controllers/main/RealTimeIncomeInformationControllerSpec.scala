@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.main
 
-import org.apache.pekko.stream.Materializer
 import controllers.actions.{AuthAction, ValidateCorrelationId}
-import models._
-import org.mockito.ArgumentMatchers.{any, eq => meq}
+import controllers.main.RealTimeIncomeInformationController
+import models.*
+import org.apache.pekko.stream.Materializer
+import org.mockito.ArgumentMatchers.{any, eq as meq}
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.matchers.must.Matchers._
+import org.scalatest.matchers.must.Matchers.*
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Result
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import play.api.test.{FakeHeaders, FakeRequest, Injecting}
 import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import utils.*
 import utils.Constants.errorCodeInvalidPayload
-import utils._
 
 import scala.concurrent.Future
 

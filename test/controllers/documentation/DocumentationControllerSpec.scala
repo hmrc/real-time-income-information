@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.documentation
 
+import controllers.documentation.DocumentationController
 import org.apache.pekko.stream.Materializer
-import org.scalatest.matchers.must.Matchers._
+import org.scalatest.matchers.must.Matchers.*
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.http.Status._
+import play.api.http.Status.*
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout}
 import play.api.test.{FakeRequest, Injecting}

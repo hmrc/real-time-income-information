@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.main
 
 import com.google.inject.{Inject, Singleton}
 import controllers.actions.{AuthAction, AuthenticatedRequest, ValidateCorrelationId}
-import models._
+import models.*
 import play.api.Logger
-import play.api.libs.json._
-import play.api.mvc._
+import play.api.libs.json.*
+import play.api.mvc.*
 import services.{AuditService, RealTimeIncomeInformationService, RequestDetailsService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import utils.Constants._
+import utils.Constants.*
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
