@@ -4,3 +4,4 @@ description: This API allows a third party to retrieve real time income informat
 test-repositories:
   - rtii-performance-tests
   - rtii-acceptance-tests
+serviceNowMapping: SNSVC0021087
