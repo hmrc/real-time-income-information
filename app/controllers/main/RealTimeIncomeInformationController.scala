@@ -108,10 +108,9 @@ class RealTimeIncomeInformationController @Inject() (
       //$COVERAGE-OFF$
       logger.error(s"Error from DES does not match schema: $response")
       logger.error(
-        s"[RealTimeIncomeInformationController][preSchemaValidation] DES response schema mismatch status=$response.status"
+        s"DES response schema mismatch status=$response.status"
       )
       //$COVERAGE-ON$
       InternalServerError(Json.toJson(response))
     }(response.code)
-
 }

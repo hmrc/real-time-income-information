@@ -60,7 +60,7 @@ class DesConnector @Inject() (
       httpResponse.status match {
         case OK => parseDesResponse[DesSuccessResponse](httpResponse)
         case status =>
-          logger.warn(s"[DesConnector][read] Non-OK response from DES. status=$status")
+          logger.warn(s"Non-OK response from DES. status=$status")
           parseDesResponse[DesErrorResponse](httpResponse)
       }
 
@@ -83,7 +83,7 @@ class DesConnector @Inject() (
             .trim
         }
         logger.error(
-          s"[DesConnector][parseResponse] Not able to parse the response received from DES, validation errors=${extractValidationErrors(errors)}"
+          s"Not able to parse the response received from DES, validation errors=${extractValidationErrors(errors)}"
         )
 
         //$COVERAGE-ON$
@@ -130,15 +130,14 @@ class DesConnector @Inject() (
         .execute[DesResponse] recover {
         case e: GatewayTimeoutException =>
           //$COVERAGE-OFF$
-          logger.error(s"[DesConnector][retrieveCitizenIncome] Gateway timeout from DES:", e)
+          logger.error(s"Gateway timeout from DES:", e)
           //$COVERAGE-ON$
           DesNoResponse()
         case e: BadGatewayException =>
           //$COVERAGE-OFF$
-          logger.error(s"[DesConnector][retrieveCitizenIncome] Bad gateway response from DES:", e)
+          logger.error(s"Bad gateway response from DES:", e)
           //$COVERAGE-ON$
           DesNoResponse()
       }
     }
-
 }
