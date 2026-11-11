@@ -1,0 +1,107 @@
+/*
+ * Copyright 2025 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package controllers.main
+
+import com.github.tomakehurst.wiremock.client.WireMock.*
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.must.Matchers.*
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
+import play.api.Play.materializer
+import play.api.http.Status.SERVICE_UNAVAILABLE
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.{JsValue, Json, OFormat}
+import play.api.test.Helpers.{POST, route}
+import play.api.test.{FakeHeaders, FakeRequest}
+import test_utils.{IntegrationBaseSpec, WiremockHelper}
+import uk.gov.hmrc.domain.NinoGenerator
+
+import java.util.UUID
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
+class TimeoutsISpec extends IntegrationBaseSpec with GuiceOneAppPerSuite with WiremockHelper with ScalaFutures {
+
+  case class Enrolment(key: String, value: String = "")
+  case class AuthBody(clientId: String = "localBearer", allEnrolments: Set[Enrolment], ttl: Int = 2000)
+
+  implicit
+  val enrolmentFormat: OFormat[Enrolment] = Json.format[Enrolment]
+
+  implicit val authBodyFormat: OFormat[AuthBody] = Json.format[AuthBody]
+
+  val apiAccessScope        = "write:real-time-income-information"
+  val filterFullAccessScope = "filter:real-time-income-information-full"
+  val filterSgAccessScope   = "filter:real-time-income-information-sg"
+  val filterCspAccessScope  = "filter:real-time-income-information-csp"
+
+  def authBody(scope: String): String = {
+    val body = AuthBody(allEnrolments = Set(Enrolment(apiAccessScope), Enrolment(scope)))
+    Json.toJson(body).toString.stripMargin
+  }
+
+  private val timeoutThresholdInSeconds = 1
+  private val delayInMilliseconds       = 1500
+
+  override def fakeApplication(): Application =
+    GuiceApplicationBuilder()
+      .configure(
+        "microservice.services.auth.port"                -> server.port(),
+        "microservice.services.des-hod.host"             -> "127.0.0.1",
+        "microservice.services.des-hod.port"             -> server.port(),
+        "microservice.services.des-hod.timeoutInSeconds" -> timeoutThresholdInSeconds,
+        "metrics.jvm"                                    -> false,
+        "api.serviceName"                                -> Seq("serviceName")
+      )
+      .build()
+
+  val generatedNino: String = new NinoGenerator().nextNino.nino
+  val correlationId: String = UUID.randomUUID().toString
+
+  override def beforeEach(): Unit = {
+    server.resetAll()
+    super.beforeEach()
+  }
+
+  "retrieveCitizenIncome" must {
+    "503 and correct json body when gateway timeout" in {
+      stubPostServer(ok(authBody(filterFullAccessScope)), "/auth/authorise")
+      server.stubFor(
+        post(urlEqualTo(s"/individuals/$generatedNino/income"))
+          .willReturn(aResponse().withFixedDelay(delayInMilliseconds))
+      )
+
+      val requestDetails = dwpRequest(generatedNino)
+      val request = FakeRequest(
+        method = POST,
+        uri = s"/individuals/$correlationId/income",
+        headers = FakeHeaders(
+          Seq(
+            "Authorization" -> "Bearer bearer-token"
+          )
+        ),
+        body = requestDetails
+      )
+
+      val res = route(fakeApplication(), request).get
+      status(res) mustBe SERVICE_UNAVAILABLE
+      Await.result(jsonBodyOf(res), Duration.Inf) mustBe Json.parse(
+        """{"code":"BAD_GATEWAY","reason":"Bad gateway calling des"}"""
+      )
+    }
+  }
+}

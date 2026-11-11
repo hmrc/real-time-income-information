@@ -30,6 +30,7 @@ import uk.gov.hmrc.mongo.cache.{DataKey, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
 
 import java.util.UUID
+import scala.concurrent.duration.*
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -127,6 +128,7 @@ class DesConnector @Inject() (
         .setHeader(HeaderNames.xSessionId -> hc.sessionId.fold("-")(_.value))
         .setHeader("Environment" -> desConfig.environment)
         .setHeader("CorrelationId" -> UUID.randomUUID().toString)
+        .transform(_.withRequestTimeout(desConfig.timeoutInSeconds.seconds))
         .execute[DesResponse] recover {
         case e: GatewayTimeoutException =>
           logger.warn(s"Gateway timeout from DES:", e)
