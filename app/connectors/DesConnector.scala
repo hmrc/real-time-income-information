@@ -129,15 +129,12 @@ class DesConnector @Inject() (
         .setHeader("CorrelationId" -> UUID.randomUUID().toString)
         .execute[DesResponse] recover {
         case e: GatewayTimeoutException =>
-          //$COVERAGE-OFF$
-          logger.error(s"Gateway timeout from DES:", e)
-          //$COVERAGE-ON$
+          logger.warn(s"Gateway timeout from DES:", e)
           DesNoResponse()
         case e: BadGatewayException =>
-          //$COVERAGE-OFF$
-          logger.error(s"Bad gateway response from DES:", e)
-          //$COVERAGE-ON$
+          logger.warn(s"Bad gateway response from DES:", e)
           DesNoResponse()
       }
     }
+
 }
