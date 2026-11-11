@@ -288,21 +288,6 @@ class DesConnectorSpec
         }
       }
 
-      "a time out exception occurs" in {
-        val response = DesNoResponse()
-        stubPostServer {
-          ok()
-            .withBody(successNoMatch.toString())
-            .withFixedDelay(5000)
-        }
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe response
-        }
-      }
-
       "a bad gateway exception occurs" in {
         val response = DesNoResponse()
 

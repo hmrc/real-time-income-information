@@ -28,6 +28,7 @@ class ApplicationConfig @Inject() (sc: ServicesConfig, configuration: Configurat
   val schemaResourcePath: String = configuration.get[String]("schemaResourcePath")
   val hodUrl: String             = sc.baseUrl("des-hod")
   val environment: String        = sc.getConfString("des-hod.env", "local")
+  val timeoutInSeconds: Int        = sc.getConfInt("des-hod.timeoutInSeconds", 20)
   val authorization: String      = "Bearer " + sc.getConfString("des-hod.authorizationToken", "local")
   val authBaseUrl: String        = sc.baseUrl("auth")
   val cacheExpireAfter: Duration = sc.getConfDuration("mongodb.cacheExpireAfter", 15.minutes)
