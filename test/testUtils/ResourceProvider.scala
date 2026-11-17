@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package utils
+package testUtils
 
 import play.api.libs.json.{JsValue, Json}
-
+import uk.gov.hmrc.domain.NinoGenerator
+import java.util.UUID
 import scala.io.Source
 
 trait ResourceProvider {
-
-  private val fakeTestNino = "QQ123456C"
-
+  def generateUUId: String = UUID.randomUUID().toString
+  def generateNino: String = NinoGenerator().nextNino.toString()
+  
   val invalidCorrelationIdJson: JsValue        = readJson("/400-invalid-correlation-id.json")
   val invalidPayload: JsValue                  = readJson("/400-invalid-payload.json")
   val invalidDateRange: JsValue                = readJson("/400-invalid-date-range.json")
@@ -51,27 +52,13 @@ trait ResourceProvider {
   def exampleInvalidInitials(nino: String): JsValue          = readJson("/example-invalid-dwp-initials.json", nino)
   def exampleInvalidDob(nino: String): JsValue               = readJson("/example-invalid-dwp-date-of-birth.json", nino)
   def exampleInvalidServiceName(nino: String): JsValue       = readJson("/example-invalid-dwp-serviceName.json", nino)
-
-  def modifiedExampleDwpRequest(nino: String): JsValue =
-    Json.parse(getResourceFileContent("/example-dwp-request.json").replace("QQ123456C", nino))
-
-  def exampleDwpRequestInvalidNino(nino: String): JsValue =
-    readJson("/example-dwp-request-invalid-nino.json", nino)
-
-  def exampleInvalidMatchingFieldDwpRequest(nino: String): JsValue =
-    readJson("/example-invalid-matching-field-dwp-request.json", nino)
-
-  def exampleInvalidFilterFieldDwpRequest(nino: String): JsValue =
-    readJson("/example-invalid-filter-field-dwp-request.json", nino)
-
-  def exampleInvalidDwpEmptyFieldsRequest(nino: String): JsValue =
-    readJson("/example-invalid-dwp-empty-fields-request.json", nino)
-
-  def exampleInvalidDwpDuplicateFields(nino: String): JsValue =
-    readJson("/example-invalid-dwp-duplicate-fields.json", nino)
-
-  def exampleInvalidDwpEmptyStringField(nino: String): JsValue =
-    readJson("/example-invalid-dwp-empty-string-fields-request.json", nino)
+  def exampleDwpRequest(nino: String): JsValue = readJson("/example-dwp-request.json", nino)
+  def exampleDwpRequestInvalidNino(nino: String): JsValue = readJson("/example-dwp-request-invalid-nino.json", nino)
+  def exampleInvalidMatchingFieldDwpRequest(nino: String): JsValue = readJson("/example-invalid-matching-field-dwp-request.json", nino)
+  def exampleInvalidFilterFieldDwpRequest(nino: String): JsValue = readJson("/example-invalid-filter-field-dwp-request.json", nino)
+  def exampleInvalidDwpEmptyFieldsRequest(nino: String): JsValue = readJson("/example-invalid-dwp-empty-fields-request.json", nino)
+  def exampleInvalidDwpDuplicateFields(nino: String): JsValue = readJson("/example-invalid-dwp-duplicate-fields.json", nino)
+  def exampleInvalidDwpEmptyStringField(nino: String): JsValue = readJson("/example-invalid-dwp-empty-string-fields-request.json", nino)
 
 
   def getResourceFileContent(resourceFile: String): String = {
@@ -82,12 +69,9 @@ trait ResourceProvider {
       source.close()
     }
   }
-
-  private def readJson(path: String): JsValue =
-    Json.parse(getResourceFileContent(path))
-
-  private def readJson(path: String, nino: String): JsValue = {
-    Json.parse(getResourceFileContent(path).replace(fakeTestNino, nino))
+  
+  private def readJson(path: String, nino: String = ""): JsValue = {
+    Json.parse(getResourceFileContent(path).replace("*********", nino))
   }
 
 }

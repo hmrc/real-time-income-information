@@ -18,7 +18,6 @@ package controllers.documentation
 
 import controllers.documentation.DefinitionController
 import org.apache.pekko.stream.Materializer
-import org.scalatest.matchers.must.Matchers.*
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.http.HeaderNames.CONTENT_TYPE
@@ -27,7 +26,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, headers}
 import play.api.test.{FakeRequest, Injecting}
-import utils.BaseSpec
+import testUtils.BaseSpec
 import views.*
 
 class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
@@ -49,9 +48,9 @@ class DefinitionControllerSpec extends BaseSpec with GuiceOneAppPerSuite with In
 
   "get" must {
     "return a Json definition" in {
-      val result = controller.get()(FakeRequest("GET", "/api/definition"))
+      val result = await(controller.get()(FakeRequest("GET", "/api/definition")))
 
-      status(result) mustBe OK
+      result.header.status mustBe OK
       headers(result) must contain(CONTENT_TYPE -> "application/json;charset=utf-8")
       contentAsJson(result) mustBe Json.parse(txt.definition(apiAccess, apiContext).toString())
     }

@@ -16,55 +16,10 @@
 
 package utils
 
-import models.DesSingleFailureResponse
-
 object Constants {
-
-  val errorCodeNotFoundNino             = "NOT_FOUND_NINO"
-  val errorCodeNotFound                 = "NOT_FOUND"
-  val errorCodeInvalidCorrelation       = "INVALID_CORRELATION_ID"
-  val errorCodeInvalidDateRange         = "INVALID_DATE_RANGE"
-  val errorCodeInvalidDatesEqual        = "INVALID_DATES_EQUAL"
-  val errorCodeInvalidPayload           = "INVALID_PAYLOAD"
-  val errorCodeServerError              = "SERVER_ERROR"
-  val errorCodeServiceUnavailable       = "SERVICE_UNAVAILABLE"
-  val errorCodeForbidden                = "FORBIDDEN"
-  val errorCodeNonPrivilegedApplication = "NON_PRIVILEGED_APPLICATION"
-
-  def forbiddenWithMsg(msg: String) = DesSingleFailureResponse(errorCodeForbidden, msg)
-  def invalidPayloadWithMsg(msg: String) = DesSingleFailureResponse(errorCodeInvalidPayload, msg)
-  
-  val responseNonPrivilegedApplication: DesSingleFailureResponse =
-    DesSingleFailureResponse(
-      errorCodeNonPrivilegedApplication,
-      "The remote endpoint has indicated the request has not passed authentication."
-    )
-
-  val responseInvalidDateRange: DesSingleFailureResponse =
-    DesSingleFailureResponse(
-      errorCodeInvalidDateRange,
-      "The remote endpoint has indicated that the date range is invalid."
-    )
-
-  val responseInvalidDatesEqual: DesSingleFailureResponse =
-    DesSingleFailureResponse(
-      errorCodeInvalidDatesEqual,
-      "The remote endpoint has indicated that the from and to dates are the same."
-    )
-
-  val responseInvalidCorrelationId: DesSingleFailureResponse =
-    DesSingleFailureResponse(
-      errorCodeInvalidCorrelation,
-      "Submission has not passed validation. Invalid header CorrelationId."
-    )
-
-  val responseInvalidPayload: DesSingleFailureResponse =
-    DesSingleFailureResponse(errorCodeInvalidPayload, "Submission has not passed validation. Invalid Payload.")
-
-  val responseNotFound: DesSingleFailureResponse =
-    DesSingleFailureResponse(errorCodeNotFound, "The remote endpoint has indicated that there is no data for the Nino.")
-
-  val responseServiceUnavailable: DesSingleFailureResponse =
-    DesSingleFailureResponse(errorCodeServiceUnavailable, "Dependent systems are currently not responding.")
-
+  val correlationIdRegex = "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+  val ninoRegex = "^((?!(BG|GB|KN|NK|NT|TN|ZZ)|(D|F|I|Q|U|V)[A-Z]|[A-Z](D|F|I|O|Q|U|V))[A-Z]{2})[0-9]{6}[A-D ]$"
+  val dateRegex = "^(((19|20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((19|20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(19|20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(19|20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$"
+  val stringRegex = "^[a-zA-Z &`\\-\\'\\.^]{1,35}$"
+  val genderRegex = "^[MF]$"
 }

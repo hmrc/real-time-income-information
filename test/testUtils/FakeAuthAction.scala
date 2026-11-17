@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package config
+package testUtils
 
 import com.google.inject.Inject
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.client.HttpClientV2
+import controllers.actions.AuthAction
+import models.AuthenticatedRequest
+import play.api.mvc.{BodyParsers, Request, Result}
+import uk.gov.hmrc.auth.core.Enrolments
 
-class RTIIAuthConnector @Inject() (appConfig: ApplicationConfig, override val httpClientV2: HttpClientV2)
-    extends PlayAuthConnector {
-  val serviceUrl: String = appConfig.authBaseUrl
+import scala.concurrent.{ExecutionContext, Future}
+
+class FakeAuthAction @Inject() (val parser: BodyParsers.Default)(val executionContext: ExecutionContext)
+    extends AuthAction {
+
+  override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] =
+    block(AuthenticatedRequest(request, Enrolments(Set.empty)))
 }

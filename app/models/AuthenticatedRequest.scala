@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
-package config
+package models
 
-case class ApiField(id: Int, name: String)
+import play.api.mvc.{Request, WrappedRequest}
+import uk.gov.hmrc.auth.core.Enrolments
+
+final case class AuthenticatedRequest[A](request: Request[A], authEnrolments: Enrolments) extends WrappedRequest[A](request)

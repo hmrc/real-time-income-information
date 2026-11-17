@@ -31,4 +31,7 @@ case class DesMatchingRequest(
 
 object DesMatchingRequest {
   implicit val formats: OFormat[DesMatchingRequest] = Json.format[DesMatchingRequest]
+  
+  def apply(r: RequestDetails): DesMatchingRequest =
+    DesMatchingRequest(r.fromDate, r.toDate, r.surname, r.firstName, r.middleName, r.gender, r.initials, r.dateOfBirth)
 }

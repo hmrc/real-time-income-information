@@ -16,127 +16,89 @@
 
 package connectors
 
+import com.google.inject.name.Named
 import com.google.inject.{Inject, Singleton}
 import config.ApplicationConfig
 import models.*
-import play.api.Logger
-import play.api.http.Status.OK
 import play.api.libs.json.*
 import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
+import repositories.RTIICacheRepository
 import uk.gov.hmrc.http.*
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.mongo.cache.CacheIdType.SimpleCacheId
-import uk.gov.hmrc.mongo.cache.{DataKey, MongoCacheRepository}
-import uk.gov.hmrc.mongo.{CurrentTimestampSupport, MongoComponent}
+import uk.gov.hmrc.mongo.cache.DataKey
+import uk.gov.hmrc.http.HttpReads.Implicits.*
 
 import java.util.UUID
-import scala.concurrent.duration.*
+import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{ExecutionContext, Future}
 
+trait DesConnector {
+  def retrieveCitizenIncome(
+                             nino: String,
+                             matchingRequest: DesMatchingRequest
+                           )(implicit
+                             hc: HeaderCarrier
+                           ): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]]
+}
+
+class CachingDesConnector @Inject() (
+                                      @Named("default") underlying: DesConnector,
+                                      cacheRepo: RTIICacheRepository
+                                    )(implicit
+                                      ec: ExecutionContext
+                                    ) extends DesConnector {
+  override def retrieveCitizenIncome(nino: String, matchingRequest: DesMatchingRequest)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]] = {
+    val id = nino + matchingRequest.hashCode()
+    val dataKey = DataKey[RTIISuccessResponse]("desResponse")
+    for{
+      repoData <- cacheRepo.get[RTIISuccessResponse](id)(dataKey)
+      rtiiData <- repoData match {
+        case Some(data) => Future(Right[UpstreamErrorResponse, RTIISuccessResponse](data))
+        case None => for {
+          apiData <- underlying.retrieveCitizenIncome(nino, matchingRequest)
+          _ = apiData match {
+            case Right(data) => cacheRepo.put[RTIISuccessResponse](id)(dataKey, data)
+            case _ => identity
+          }
+        } yield apiData
+      }
+    } yield rtiiData
+
+  }
+
+}
+
 @Singleton
-class DesCache @Inject() (config: ApplicationConfig, mongoComponent: MongoComponent)(implicit
-    ec: ExecutionContext
-) extends MongoCacheRepository(
-      mongoComponent = mongoComponent,
-      collectionName = "des-cache",
-      ttl = config.cacheExpireAfter,
-      timestampSupport = new CurrentTimestampSupport(),
-      cacheIdType = SimpleCacheId
+class DefaultDesConnector @Inject() (
+                                      httpClient: HttpClientV2,
+                                      appConfig: ApplicationConfig,
+                                      httpClientResponse: HttpClientResponse
+                                    )(implicit
+                                      ec: ExecutionContext
+                                    ) extends DesConnector {
+
+  private def buildHeaders(implicit hc: HeaderCarrier): Seq[(String, String)] =
+    Seq(
+      "Environment" -> appConfig.environment,
+      HeaderNames.xSessionId -> hc.sessionId.fold("-")(_.value),
+      HeaderNames.xRequestId -> hc.requestId.fold("-")(_.value),
+      HeaderNames.authorisation -> appConfig.authorization,
+      "CorrelationId" -> UUID.randomUUID().toString
     )
 
-@Singleton
-class DesConnector @Inject() (
-    httpClient: HttpClientV2,
-    desConfig: ApplicationConfig,
-    mongoCache: DesCache
-)(implicit
-    ec: ExecutionContext
-) {
-
-  private val logger: Logger = Logger(this.getClass)
-
-  implicit val desReponseReads: HttpReads[DesResponse] = new HttpReads[DesResponse] {
-
-    override def read(method: String, url: String, httpResponse: HttpResponse): DesResponse =
-      httpResponse.status match {
-        case OK => parseDesResponse[DesSuccessResponse](httpResponse)
-        case status =>
-          logger.warn(s"Non-OK response from DES. status=$status")
-          parseDesResponse[DesErrorResponse](httpResponse)
-      }
-
-  }
-
-  private def parseDesResponse[A <: DesResponse](httpResponse: HttpResponse)(implicit
-      reads: Reads[A]
-  ): DesResponse = {
-    val handleError
-        : scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])] => DesUnexpectedResponse = errors =>
-      {
-        val extractValidationErrors
-            : scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])] => String = errors => {
-          //$COVERAGE-OFF$
-          errors
-            .map { error =>
-              error._2.map(jsonValError => s"${error._1}: ${jsonValError.message}")
-            }
-            .mkString(", ")
-            .trim
-        }
-        logger.error(
-          s"Not able to parse the response received from DES, validation errors=${extractValidationErrors(errors)}"
-        )
-
-        //$COVERAGE-ON$
-        DesUnexpectedResponse()
-      }
-
-    httpResponse.json
-      .validate[A]
-      .fold(
-        invalid = handleError,
-        valid = identity
-      )
-  }
-
-  def cache[A](id: String)(body: => Future[A])(implicit
-      ev: Format[A]
-  ): Future[A] = {
-    val dataKey = DataKey[A]("desResponse")
-
-    mongoCache.get[A](id)(dataKey).flatMap {
-      case Some(v) => Future.successful(v)
-      case None    => body.flatMap(r => mongoCache.put(id)(dataKey, r).map(_ => r))
-    }
-  }
-
   def retrieveCitizenIncome(
-      nino: String,
-      matchingRequest: DesMatchingRequest
-  )(implicit
-      hc: HeaderCarrier
-  ): Future[DesResponse] =
-    cache[DesResponse](nino + matchingRequest.hashCode()) {
-
-      val postUrl: String = s"${desConfig.hodUrl}/individuals/$nino/income"
-
+                             nino: String,
+                             matchingRequest: DesMatchingRequest
+                           )(implicit
+                             hc: HeaderCarrier
+                           ): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]] = {
+    httpClientResponse.read(
       httpClient
-        .post(url"$postUrl")
+        .post(url"${appConfig.hodUrl}/individuals/$nino/income")
         .withBody(Json.toJson(matchingRequest))
-        .setHeader(HeaderNames.authorisation -> desConfig.authorization)
-        .setHeader(HeaderNames.xRequestId -> hc.requestId.fold("-")(_.value))
-        .setHeader(HeaderNames.xSessionId -> hc.sessionId.fold("-")(_.value))
-        .setHeader("Environment" -> desConfig.environment)
-        .setHeader("CorrelationId" -> UUID.randomUUID().toString)
-        .transform(_.withRequestTimeout(desConfig.timeoutInSeconds.seconds))
-        .execute[DesResponse] recover {
-        case e: GatewayTimeoutException =>
-          logger.warn(s"Gateway timeout from DES:", e)
-          DesNoResponse()
-        case e: BadGatewayException =>
-          logger.warn(s"Bad gateway response from DES:", e)
-          DesNoResponse()
-      }
-    }
-
+        .setHeader(buildHeaders*)
+        .transform(_.withRequestTimeout(Duration(appConfig.timeoutInSeconds, SECONDS)))
+        .execute[Either[UpstreamErrorResponse, RTIISuccessResponse]]
+    )
+  }
 }

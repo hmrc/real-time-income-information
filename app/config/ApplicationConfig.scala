@@ -32,4 +32,6 @@ class ApplicationConfig @Inject() (sc: ServicesConfig, configuration: Configurat
   val authorization: String      = "Bearer " + sc.getConfString("des-hod.authorizationToken", "local")
   val authBaseUrl: String        = sc.baseUrl("auth")
   val cacheExpireAfter: Duration = sc.getConfDuration("mongodb.cacheExpireAfter", 15.minutes)
+  val apiAccessType: String = configuration.get[String]("api.access")
+  val apiContext: String = configuration.get[String]("api.context")
 }

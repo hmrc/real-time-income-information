@@ -31,30 +31,21 @@ class AuditService @Inject() (connector: AuditConnector, @Named("appName") appNa
     ec: ExecutionContext
 ) {
 
-  def audit(auditType: String, path: String, auditData: Map[String, String])(implicit
+  def rtiiAudit(correlationId: String, body: RequestDetails)(implicit
       hc: HeaderCarrier
   ): Future[AuditResult] = {
+    val auditType = "ServiceRequestReceived"
     val event = DataEvent(
       auditSource = appName,
       auditType = auditType,
-      tags = hc.toAuditTags(auditType, path),
-      detail = hc.toAuditDetails() ++ auditData
-    )
-
-    connector.sendEvent(event)
-  }
-
-  def rtiiAudit(correlationId: String, body: RequestDetails)(implicit
-      hc: HeaderCarrier
-  ): Future[AuditResult] =
-    audit(
-      "ServiceRequestReceived",
-      s"/individuals/$correlationId/income",
-      auditData = Map(
+      tags = hc.toAuditTags(auditType, s"/individuals/$correlationId/income"),
+      detail = hc.toAuditDetails() ++ Map(
         "correlationId" -> correlationId,
         "serviceName"   -> body.serviceName,
         "filterFields"  -> body.filterFields.toString()
       )
     )
+    connector.sendEvent(event)
+  }
 
 }

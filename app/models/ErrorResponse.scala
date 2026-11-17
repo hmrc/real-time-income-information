@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package utils
+package models
 
-import uk.gov.hmrc.domain.NinoGenerator
+import models.ErrorCode.*
+import play.api.libs.json.{Json, OFormat}
 
-import java.util.UUID
-import scala.concurrent.duration.*
-import scala.concurrent.{Await, Future}
-import scala.language.postfixOps
+case class ErrorResponse(code: ErrorCode, reason: String)
 
-trait BaseSpec extends UnitSpec with ResourceProvider {
-  def generateUUId: String           = UUID.randomUUID().toString
-  def generateNino: String           = NinoGenerator().nextNino.toString()
-  def await[A](future: Future[A]): A = Await.result(future, 5 seconds)
+object ErrorResponse {
+  implicit val errorResponseFormat: OFormat[ErrorResponse]                   = Json.format[ErrorResponse]
+  
+  val serviceUnavailableError = ErrorResponse(SERVICE_UNAVAILABLE, "Dependent systems are currently not responding.")
+  
+  def invalidPayloadWithMsg(msg: String) = ErrorResponse(INVALID_PAYLOAD, msg)
+  
 }

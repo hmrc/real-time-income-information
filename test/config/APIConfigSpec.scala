@@ -16,75 +16,125 @@
 
 package config
 
-import org.scalatest.matchers.must.Matchers._
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Configuration
-import utils.BaseSpec
+import testUtils.BaseSpec
 
-import java.util.UUID
-import scala.reflect.ClassTag
 
-class APIConfigSpec extends BaseSpec with GuiceOneAppPerSuite {
-
-  def injected[T](implicit evidence: ClassTag[T]): T = app.injector.instanceOf[T]
-  lazy val apiConfig: APIConfig = injected[APIConfig]
+class APIConfigSpec extends BaseSpec {
 
   val filterFullAccessScope = "filter:real-time-income-information-full"
   val filterSgAccessScope = "filter:real-time-income-information-sg"
   val filterCspAccessScope = "filter:real-time-income-information-csp"
 
-  "apiScope" must {
+  private lazy val fullScope: Set[String] = Set(
+    "annualAmountOfOccupationalPension",
+    "apiAvailableTimestamp",
+    "bacsPaymentAmount",
+    "benefitsTaxedViaPayroll",
+    "benefitsTaxedYeartoDate",
+    "dateOfBirth",
+    "directorsNIC",
+    "earningsPeriodsCovered",
+    "employeePensionContributions",
+    "employeePensionContributionsNotPaid",
+    "employeesContributionsInPeriod",
+    "employeesContributionsYearToDate",
+    "employerName1",
+    "employerName2",
+    "employerPayeRef",
+    "employerTradeName1",
+    "employerTradeName2",
+    "employmentEndDate",
+    "employmentStartDate",
+    "flexibleDrawdownNonTaxablePayment",
+    "flexibleDrawdownTaxablePayment",
+    "flexiblyAccessingPensionRights",
+    "forename",
+    "gender",
+    "grossEarningsForNICs",
+    "grossEarningsForNICsYearToDate",
+    "hmrcOfficeNumber",
+    "hmrcReceiptTimestamp",
+    "initials",
+    "irregularPayment",
+    "itemsSubjectToClass1NIC",
+    "latePayeReportingReason",
+    "monthlyPeriodNumber",
+    "multipleIPSIndicator",
+    "nationalInsuranceNumber",
+    "niLetter",
+    "numberOfNormalHoursWorked",
+    "occPenIndicator",
+    "onStrikeWithinPayPeriod",
+    "partnerForenameOrGivenName",
+    "partnerInitials",
+    "partnerNINO",
+    "partnerSecondForename",
+    "partnerSurnameOrFamilyName",
+    "payAfterStatutoryDeductions",
+    "payFrequency",
+    "paymentAfterLeaving",
+    "paymentConfidenceStatus",
+    "paymentDate",
+    "paymentNoLongerValid",
+    "paymentsNotSubjectToTaxOrNICS",
+    "payrollId",
+    "pensionContributionsNotPaidYeartoDate",
+    "pensionContributionsYearToDate",
+    "pensionsDeathBenefit",
+    "rtiReceivedDate",
+    "schemeExemptFromElectronicFiling",
+    "secondForename",
+    "seriousillHealthLumpSum",
+    "sharedParentalPayYearToDate",
+    "statutoryMaternityPayYeartoDate",
+    "statutoryPaternityPayYearToDate",
+    "surname",
+    "taxCode",
+    "taxCodeBasisisNonCumulative",
+    "taxDeductedOrRefunded",
+    "taxRegime",
+    "taxWeekNumberOfAppointmentOfDirector",
+    "taxYear",
+    "taxYearIndicator",
+    "taxablePayInPeriod",
+    "taxablePayToDate",
+    "totalEmployerNIContributionsInPeriod",
+    "totalTaxToDate",
+    "trivialCommutationPaymentTypeA",
+    "trivialCommutationPaymentTypeB",
+    "trivialCommutationPaymentTypeC",
+    "uniqueEmploymentSequenceNumber",
+    "uniquePaymentId",
+    "unpaidAbsencePayPeriod",
+    "valueOfDeductions",
+    "valueofStatutoryAdoptionPayYearToDate",
+    "weeklyPeriodNumber"
+  )
+
+  private lazy val limitedScopeFields : Set[String] = Set("employmentEndDate", "payFrequency", "paymentDate", "taxablePayInPeriod")
+
+  "APIConfig" must {
     "return scope" when {
       "findScope with full filters" in {
-        apiConfig.findScope(filterFullAccessScope) shouldBe APIConfigFixture.fullScope
+        val result = APIConfig.findScope(filterFullAccessScope).get
+        result.name mustBe filterFullAccessScope
+        result.fields must contain theSameElementsAs fullScope
       }
       "findScope with sg filters" in {
-        apiConfig.findScope(filterSgAccessScope) shouldBe APIConfigFixture.sgScope
+        val result = APIConfig.findScope(filterSgAccessScope).get
+        result.name  mustBe filterSgAccessScope
+        result.fields must contain theSameElementsAs limitedScopeFields
       }
       "findScope with csp filters" in {
-        apiConfig.findScope(filterCspAccessScope) shouldBe APIConfigFixture.cspScope
+        val result = APIConfig.findScope(filterCspAccessScope).get
+        result.name  mustBe filterCspAccessScope
+        result.fields must contain theSameElementsAs limitedScopeFields
       }
     }
 
     "return none" when {
       "scopeName does not exist" in {
-        val scopeName = "Test"
-        val scope = apiConfig.findScope(scopeName)
-
-        scope.isDefined mustBe false
-      }
-    }
-  }
-
-  "apiTypeAccess" must {
-
-    def SUT(accessType: Option[String] = None): APIConfig =
-      accessType.fold(new APIConfig(Configuration())) { _type =>
-        new APIConfig(
-          Configuration("api.access" -> _type)
-        )
-      }
-
-    "return PRIVATE" when {
-      "there is no configuration" in {
-        val config = SUT().apiAccessType
-
-        config mustBe "INTERNAL"
-      }
-
-      "INTERNAL is configured" in {
-        val config = SUT(Some("INTERNAL")).apiAccessType
-
-        config mustBe "INTERNAL"
-      }
-    }
-
-    "return the config" when {
-      "something other than PRIVATE is configured" in {
-        val randConfigValue = UUID.randomUUID().toString
-        val config          = SUT(Some(randConfigValue)).apiAccessType
-
-        config mustBe randConfigValue
+        APIConfig.findScope("Test").isDefined mustBe false
       }
     }
   }

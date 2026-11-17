@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package utils
+package testUtils
 
-import com.google.inject.Inject
-import controllers.actions.{AuthenticatedRequest, ValidateCorrelationId, ValidateCorrelationIdAction}
-import play.api.mvc.Result
+import play.api.libs.json.JsNull
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FakeValidateCorrelationId @Inject() (ec: ExecutionContext)
-    extends ValidateCorrelationId {
+object FakeAuthConnector extends AuthConnector {
 
-  override def apply(correlationId: String): ValidateCorrelationIdAction =
-    new ValidateCorrelationIdAction {
-
-      override protected def executionContext: ExecutionContext = ec
-
-      override protected def filter[A](request: AuthenticatedRequest[A]): Future[Option[Result]] = Future.successful(None)
-    }
+  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext
+  ): Future[A] =
+    Future.successful(JsNull.as[A](using retrieval.reads))
 
 }

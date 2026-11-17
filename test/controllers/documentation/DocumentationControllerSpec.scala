@@ -18,15 +18,11 @@ package controllers.documentation
 
 import controllers.documentation.DocumentationController
 import org.apache.pekko.stream.Materializer
-import org.scalatest.matchers.must.Matchers.*
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status.*
-import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, defaultAwaitTimeout}
 import play.api.test.{FakeRequest, Injecting}
-import utils.BaseSpec
-
-import scala.concurrent.Future
+import testUtils.BaseSpec
 
 class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with Injecting {
 
@@ -37,9 +33,9 @@ class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
 
   "DocumentationController" must {
     "return OK status with application.yaml in the body" in {
-      val result: Future[Result] =
-        controller.conf("1.0", "application.yaml")(FakeRequest("GET", "/api/conf/1.0/application.yaml"))
-      status(result) mustBe OK
+      val result =
+        await(controller.conf("1.0", "application.yaml")(FakeRequest("GET", "/api/conf/1.0/application.yaml")))
+      result.header.status mustBe OK
       contentAsString(result) mustBe applicationRamlContent
     }
   }
