@@ -42,17 +42,13 @@ class HttpClientResponseSpec
   "read" must {
     behave like clientResponseLogger(
       httpClientResponseUsingMockLogger.read,
-      infoLevel = Set(),
-      warnLevel = Set(),
-      errorLevel = Set(UNAUTHORIZED, FORBIDDEN, BAD_REQUEST, GATEWAY_TIMEOUT, SERVICE_UNAVAILABLE)
+      warnLevel = Set(UNAUTHORIZED, FORBIDDEN, BAD_REQUEST, GATEWAY_TIMEOUT, SERVICE_UNAVAILABLE)
     )
   }
 
   private def clientResponseLogger(
                                     block: Future[Either[UpstreamErrorResponse, RTIISuccessResponse]] => Future[Either[UpstreamErrorResponse, RTIISuccessResponse]],
-                                    infoLevel: Set[Int],
-                                    warnLevel: Set[Int],
-                                    errorLevel: Set[Int]
+                                    warnLevel: Set[Int]
                                   ): Unit = {
 
     def testLogLevel(httpResponseCode: Int, logLevel: String): Unit =
@@ -70,9 +66,7 @@ class HttpClientResponseSpec
         }
       }
 
-    infoLevel.foreach(testLogLevel(_, "INFO"))
     warnLevel.foreach(testLogLevel(_, "WARN"))
-    errorLevel.foreach(testLogLevel(_, "ERROR"))
 
     "log message: ERROR level when future failed with HttpException & report as BAD GATEWAY" in {
       withCaptureOfLoggingFrom(getLogger) { capturedLogs =>
