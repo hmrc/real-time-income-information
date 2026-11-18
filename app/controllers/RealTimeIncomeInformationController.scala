@@ -45,13 +45,13 @@ class RealTimeIncomeInformationController @Inject() (
       request.body.validate[RequestDetails] match {
         case JsSuccess(requestDetails, _) =>
           val validationErrors = rtiiService.validateRequestDetails(requestDetails)
-          validationErrors.length match {
-            case 0 =>
+          validationErrors match {
+            case Nil =>
               rtiiService.retrieveCitizenIncome(correlationId, requestDetails).map {
                 case Right(successResponse) => Ok(Json.toJson(successResponse))
                 case Left(e) => errorToResponse(e)
               }
-            case 1 => Future.successful(BadRequest(Json.toJson(validationErrors.head)))
+            case List(singleError) => Future.successful(BadRequest(Json.toJson(singleError)))
             case _ => Future.successful(BadRequest(Json.toJson(MultipleFailureResponse(validationErrors))))
           }
         case JsError(errors) =>  
@@ -65,13 +65,13 @@ class RealTimeIncomeInformationController @Inject() (
 
   private def errorToResponse(error: UpstreamErrorResponse): Result =
     error match {
-      case e if e.statusCode == NOT_FOUND =>
-        if(e.message.contains(NOT_FOUND_NINO.toString))
+      case UpstreamErrorResponse(message, NOT_FOUND, _, _) =>
+        if(message.contains(NOT_FOUND_NINO.toString))
           NotFound(Json.toJson(ErrorResponse(NOT_FOUND_NINO, "The remote endpoint has indicated that the Nino cannot be found.")))
         else
           NotFound(Json.toJson(ErrorResponse(ErrorCode.NOT_FOUND, "The remote endpoint has indicated that there is no data for the Nino.")))
-      case e if e.statusCode == SERVICE_UNAVAILABLE => ServiceUnavailable(Json.toJson(serviceUnavailableError))
-      case e if e.statusCode == TOO_MANY_REQUESTS    => TooManyRequests
+      case UpstreamErrorResponse(_, SERVICE_UNAVAILABLE, _, _) => ServiceUnavailable(Json.toJson(serviceUnavailableError))
+      case UpstreamErrorResponse(_, TOO_MANY_REQUESTS, _, _)    => TooManyRequests
       case _ => InternalServerError(Json.toJson(ErrorResponse(SERVER_ERROR, "Internal server error")))
     }
 }
