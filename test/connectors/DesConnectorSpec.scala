@@ -39,17 +39,17 @@ class DesConnectorSpec extends BaseSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino: String               = generateNino
   val correlationId: String      = generateUUId
-  val mockDefaultDesConnector: DefaultDesConnector = mock[DefaultDesConnector]
+  val mockDefaultDesConnector: DefaultRTIIConnector = mock[DefaultRTIIConnector]
   val mockRepo: RTIICacheRepository = mock[RTIICacheRepository]
   def fakeApplication(): Application =
     new GuiceApplicationBuilder()
       .overrides(
         bind[RTIICacheRepository].toInstance(mockRepo),
-        bind[DefaultDesConnector].toInstance(mockDefaultDesConnector)
+        bind[DefaultRTIIConnector].toInstance(mockDefaultDesConnector)
       )
       .build()
   
-  def connector: DesConnector = new CachingDesConnector(mockDefaultDesConnector, mockRepo)
+  def connector: RTIIConnector = new CachingRTIIConnector(mockDefaultDesConnector, mockRepo)
 
   val taxYear: JsValue = Json.parse("""{
                              |      "taxYear": "16-17",
@@ -90,7 +90,7 @@ class DesConnectorSpec extends BaseSpec {
         val expectedResponse = RTIISuccessResponse(63, Some(List(taxYear)))
         when(mockRepo.get[RTIISuccessResponse](any())(any())(using any))
           .thenReturn(Future(Some(expectedResponse)))
-        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DownstreamRequest]))
         result.isRight mustBe true
         result mustBe Right(expectedResponse)
       }
@@ -103,7 +103,7 @@ class DesConnectorSpec extends BaseSpec {
           .thenReturn(Future(Right(expectedResponse)))
         when(mockRepo.put[RTIISuccessResponse](any())(any(), any())(using any))
           .thenReturn(Future.successful(Ok))
-        val result =await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
+        val result =await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DownstreamRequest]))
         result.isRight mustBe true
         result mustBe Right(expectedResponse)
         verify(mockRepo, times(1)).put[RTIISuccessResponse](any())(any(), any())(using any)
@@ -116,7 +116,7 @@ class DesConnectorSpec extends BaseSpec {
           .thenReturn(Future(None))
         when(mockDefaultDesConnector.retrieveCitizenIncome(any(), any())(using any))
           .thenReturn(Future(Left(expectedResponse)))
-        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DownstreamRequest]))
         result.isRight mustBe false
         result mustBe Left(expectedResponse)
         verify(mockRepo, times(0)).put[RTIISuccessResponse](any())(any(), any())(using any)

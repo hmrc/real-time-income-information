@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.{Inject, Singleton}
 import config.APIConfig
-import connectors.DesConnector
+import connectors.RTIIConnector
 import models.*
 import models.ErrorCode.{INVALID_DATES_EQUAL, INVALID_DATE_RANGE}
 import models.ErrorResponse.*
@@ -30,16 +30,17 @@ import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RealTimeIncomeInformationService @Inject() (desConnector: DesConnector,
-                                                  auditService: AuditService)(implicit
+class RealTimeIncomeInformationService @Inject() (RTIIConnector: RTIIConnector,
+                                                  auditService: AuditService,
+                                                  apiConfig: APIConfig)(implicit
     ec: ExecutionContext
 ) {
 
   private def usableFields(filterFields: List[String])(implicit ar: AuthenticatedRequest[?]): List[String] = {
     val enrolments = ar.authEnrolments.enrolments.map(_.key)
-    val scopes = enrolments.flatMap(APIConfig.findScope) //finds scopes that match enrolment
+    val scopes = enrolments.flatMap(apiConfig.findScope) //finds scopes that match enrolment
     val accessibleFields = scopes.flatMap(_.fields) //gets accessible filter fields for valid scopes
-    filterFields.filter(accessibleFields.contains) //finds all the fiter fields in the request that are accessible
+    filterFields.filter(accessibleFields.contains) //finds all the filter fields in the request that are accessible
   }
 
   def validateRequestDetails(r: RequestDetails)(implicit ar: AuthenticatedRequest[?]): List[ErrorResponse] = {
@@ -53,7 +54,7 @@ class RealTimeIncomeInformationService @Inject() (desConnector: DesConnector,
       "gender" -> r.gender.forall(_.matches(genderRegex)),
       "initials" -> r.initials.forall(_.matches(stringRegex)),
       "dateOfBirth" -> r.dateOfBirth.forall(_.matches(dateRegex)),
-      "serviceName" -> APIConfig.serviceNames.contains(r.serviceName),
+      "serviceName" -> apiConfig.serviceNames.contains(r.serviceName),
       "filter-fields" -> usableFields(r.filterFields).nonEmpty
     )
 
@@ -88,7 +89,7 @@ class RealTimeIncomeInformationService @Inject() (desConnector: DesConnector,
   ): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]] =
     for {
       _ <-auditService.rtiiAudit(correlationId, requestDetails)
-      data <-  desConnector.retrieveCitizenIncome(requestDetails.nino, DesMatchingRequest(requestDetails))
+      data <-  RTIIConnector.retrieveCitizenIncome(requestDetails.nino, DownstreamRequest(requestDetails))
       transformedData = data.map(rtii => transform(usableFields(requestDetails.filterFields), rtii))
     } yield transformedData
 

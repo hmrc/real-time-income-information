@@ -16,6 +16,7 @@
 
 package config
 
+import play.api.Configuration
 import testUtils.BaseSpec
 
 
@@ -113,20 +114,26 @@ class APIConfigSpec extends BaseSpec {
 
   private lazy val limitedScopeFields : Set[String] = Set("employmentEndDate", "payFrequency", "paymentDate", "taxablePayInPeriod")
 
+  val apiConfig:APIConfig = new APIConfig(Configuration(
+    "api.access" -> "INTERNAL",
+    "api.context" -> "real-time-income-information",
+    "api.serviceName" -> Seq("searchlight", "cmg2012", "carers-digital", "kickstart", "scotgov-jsp", "maternity-allowance", "pension-credit", "scotgov-csp", "vep")
+  ))
+
   "APIConfig" must {
     "return scope" when {
       "findScope with full filters" in {
-        val result = APIConfig.findScope(filterFullAccessScope).get
+        val result = apiConfig.findScope(filterFullAccessScope).get
         result.name mustBe filterFullAccessScope
         result.fields must contain theSameElementsAs fullScope
       }
       "findScope with sg filters" in {
-        val result = APIConfig.findScope(filterSgAccessScope).get
+        val result = apiConfig.findScope(filterSgAccessScope).get
         result.name  mustBe filterSgAccessScope
         result.fields must contain theSameElementsAs limitedScopeFields
       }
       "findScope with csp filters" in {
-        val result = APIConfig.findScope(filterCspAccessScope).get
+        val result = apiConfig.findScope(filterCspAccessScope).get
         result.name  mustBe filterCspAccessScope
         result.fields must contain theSameElementsAs limitedScopeFields
       }
@@ -134,7 +141,7 @@ class APIConfigSpec extends BaseSpec {
 
     "return none" when {
       "scopeName does not exist" in {
-        APIConfig.findScope("Test").isDefined mustBe false
+        apiConfig.findScope("Test").isDefined mustBe false
       }
     }
   }

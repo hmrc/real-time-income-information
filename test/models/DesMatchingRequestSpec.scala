@@ -38,7 +38,7 @@ class DesMatchingRequestSpec extends BaseSpec {
         filterFields = List("surname", "nationalInsuranceNumber")
       )
 
-      val expectedMatchingDESRequest = DesMatchingRequest(
+      val expectedMatchingDESRequest = DownstreamRequest(
         fromDate = "2016-12-31",
         toDate = "2017-12-31",
         surname = "Smith",
@@ -49,7 +49,7 @@ class DesMatchingRequestSpec extends BaseSpec {
         dateOfBirth = Some("2050-03-04")
       )
 
-      DesMatchingRequest(requestDetails) mustBe expectedMatchingDESRequest
+      DownstreamRequest(requestDetails) mustBe expectedMatchingDESRequest
     }
   }
 }

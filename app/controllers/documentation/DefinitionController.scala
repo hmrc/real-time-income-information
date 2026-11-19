@@ -16,7 +16,7 @@
 
 package controllers.documentation
 
-import config.ApplicationConfig
+import config.APIConfig
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import views.txt
@@ -24,7 +24,7 @@ import views.txt
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class DefinitionController @Inject() (config: ApplicationConfig, cc: ControllerComponents) extends BackendController(cc) {
+class DefinitionController @Inject() (config: APIConfig, cc: ControllerComponents) extends BackendController(cc) {
 
   def get(): Action[AnyContent] =
     Action {

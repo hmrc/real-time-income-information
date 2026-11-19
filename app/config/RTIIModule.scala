@@ -25,8 +25,8 @@ class RTIIModule extends Module {
 
   override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[?]] =
     Seq(
-      bind[DesConnector].to[CachingDesConnector],
-      bind[DesConnector].qualifiedWith("default").to[DefaultDesConnector],
+      bind[RTIIConnector].to[CachingRTIIConnector],
+      bind[RTIIConnector].qualifiedWith("default").to[DefaultRTIIConnector],
       bind[AuthConnector].to[RTIIAuthConnector]
     )
 

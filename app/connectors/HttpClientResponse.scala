@@ -32,12 +32,10 @@ class HttpClientResponse @Inject() ()(implicit ec: ExecutionContext) extends Log
   }
 
   private val recoverHttpException: PartialFunction[Throwable, Either[UpstreamErrorResponse, RTIISuccessResponse]] = {
-    case e: GatewayTimeoutException =>
-      Left(UpstreamErrorResponse(message = e.message, SERVICE_UNAVAILABLE))
-    case e: BadGatewayException =>
-      Left(UpstreamErrorResponse(message = e.message, SERVICE_UNAVAILABLE))
+    case e: (GatewayTimeoutException | BadGatewayException) =>
+      Left(UpstreamErrorResponse(e.message, SERVICE_UNAVAILABLE))
     case e: HttpException =>
-      Left(UpstreamErrorResponse(message = e.message, INTERNAL_SERVER_ERROR))
+      Left(UpstreamErrorResponse(e.message, INTERNAL_SERVER_ERROR))
   }
 
   def read(

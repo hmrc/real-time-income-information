@@ -32,22 +32,22 @@ import java.util.UUID
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{ExecutionContext, Future}
 
-trait DesConnector {
+trait RTIIConnector {
   def retrieveCitizenIncome(
                              nino: String,
-                             matchingRequest: DesMatchingRequest
+                             matchingRequest: DownstreamRequest
                            )(implicit
                              hc: HeaderCarrier
                            ): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]]
 }
 
-class CachingDesConnector @Inject() (
-                                      @Named("default") underlying: DesConnector,
+class CachingRTIIConnector @Inject()(
+                                      @Named("default") underlying: RTIIConnector,
                                       cacheRepo: RTIICacheRepository
                                     )(implicit
                                       ec: ExecutionContext
-                                    ) extends DesConnector {
-  override def retrieveCitizenIncome(nino: String, matchingRequest: DesMatchingRequest)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]] = {
+                                    ) extends RTIIConnector {
+  override def retrieveCitizenIncome(nino: String, matchingRequest: DownstreamRequest)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]] = {
     val id = nino + matchingRequest.hashCode()
     val dataKey = DataKey[RTIISuccessResponse]("desResponse")
     for{
@@ -69,13 +69,13 @@ class CachingDesConnector @Inject() (
 }
 
 @Singleton
-class DefaultDesConnector @Inject() (
+class DefaultRTIIConnector @Inject()(
                                       httpClient: HttpClientV2,
                                       appConfig: ApplicationConfig,
                                       httpClientResponse: HttpClientResponse
                                     )(implicit
                                       ec: ExecutionContext
-                                    ) extends DesConnector {
+                                    ) extends RTIIConnector {
 
   private def buildHeaders(implicit hc: HeaderCarrier): Seq[(String, String)] =
     Seq(
@@ -88,7 +88,7 @@ class DefaultDesConnector @Inject() (
 
   def retrieveCitizenIncome(
                              nino: String,
-                             matchingRequest: DesMatchingRequest
+                             matchingRequest: DownstreamRequest
                            )(implicit
                              hc: HeaderCarrier
                            ): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]] = {

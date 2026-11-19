@@ -16,9 +16,14 @@
 
 package config
 
+import com.google.inject.Inject
 import models.ApiScope
+import play.api.Configuration
 
-object APIConfig {
+class APIConfig @Inject() (configuration: Configuration) {
+  val apiAccessType: String = configuration.get[String]("api.access")
+  val apiContext: String = configuration.get[String]("api.context")
+  val serviceNames: Seq[String] = configuration.get[Seq[String]]("api.serviceName")
 
   private lazy val apiFields: Set[String] = Set(
     "annualAmountOfOccupationalPension",
@@ -114,7 +119,7 @@ object APIConfig {
     ApiScope("filter:real-time-income-information-csp", limitedApiFields)
   )
   
-  val serviceNames: Set[String] = Set("searchlight", "cmg2012", "carers-digital", "kickstart", "scotgov-jsp", "maternity-allowance", "pension-credit", "scotgov-csp", "vep")
 
-  def findScope(scopeName: String): Option[ApiScope] = apiScopes.find(apiScope => apiScope.name == scopeName)
+  def findScope(scopeName: String): Option[ApiScope] = apiScopes.find(_.name == scopeName)
+  
 }
