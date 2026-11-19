@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package utils
+package testUtils
 
 import com.google.inject.Inject
-import controllers.actions.{AuthenticatedRequest, ValidateCorrelationId, ValidateCorrelationIdAction}
-import play.api.mvc.Result
+import controllers.actions.AuthAction
+import models.AuthenticatedRequest
+import play.api.mvc.{BodyParsers, Request, Result}
+import uk.gov.hmrc.auth.core.Enrolments
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FakeValidateCorrelationId @Inject() (ec: ExecutionContext)
-    extends ValidateCorrelationId {
+class FakeAuthAction @Inject() (val parser: BodyParsers.Default)(val executionContext: ExecutionContext)
+    extends AuthAction {
 
-  override def apply(correlationId: String): ValidateCorrelationIdAction =
-    new ValidateCorrelationIdAction {
-
-      override protected def executionContext: ExecutionContext = ec
-
-      override protected def filter[A](request: AuthenticatedRequest[A]): Future[Option[Result]] = Future.successful(None)
-    }
-
+  override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] =
+    block(AuthenticatedRequest(request, Enrolments(Set.empty)))
 }

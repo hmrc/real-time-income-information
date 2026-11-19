@@ -7,7 +7,6 @@ object CodeCoverageSettings {
     "<empty>",
     "Reverse.*",
     "view.*",
-    "config.*",
     ".*(BuildInfo|Routes).*",
     "controllers.javascript",
     ".*Reverse.*Controller"
@@ -17,21 +16,15 @@ object CodeCoverageSettings {
   // other than default Reads, Writes or Format
   private val implicitOFormatObjects: Seq[String] = Seq(
     ".*DesMatchingRequest.*",
-    ".*DesSingleFailureResponse.*",
-    ".*DesMultipleFailureResponse.*",
+    ".*ErrorResponse.*",
+    ".*MultipleFailureResponse.*",
+    ".*RTIISuccesssResponse.*",
     ".*RequestDetails.*"
-  )
-
-  private val coverageExcludedFiles = Seq(
-    "<empty>",
-    ".*DesResponse.*",
-    ".*DesConnector.*"
   )
 
   val settings: Seq[Setting[?]] = Seq(
     ScoverageKeys.coverageExcludedPackages := (excludedPackages ++ implicitOFormatObjects).mkString(";"),
-    ScoverageKeys.coverageExcludedFiles := coverageExcludedFiles.mkString(";"),
-    ScoverageKeys.coverageMinimumStmtTotal := 90,
+    ScoverageKeys.coverageMinimumStmtTotal := 97,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )

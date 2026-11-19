@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,39 +17,80 @@
 package services
 
 import com.google.inject.{Inject, Singleton}
-import connectors.DesConnector
-import models.{DesFilteredSuccessResponse, DesResponse, DesSuccessResponse, RequestDetails}
+import config.APIConfig
+import connectors.RTIIConnector
+import models.*
+import models.ErrorCode.{INVALID_DATES_EQUAL, INVALID_DATE_RANGE}
+import models.ErrorResponse.*
 import play.api.libs.json.*
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
+import utils.Constants.*
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RealTimeIncomeInformationService @Inject() (desConnector: DesConnector)(implicit
+class RealTimeIncomeInformationService @Inject() (RTIIConnector: RTIIConnector,
+                                                  auditService: AuditService,
+                                                  apiConfig: APIConfig)(implicit
     ec: ExecutionContext
 ) {
 
-  private[services] def pickOneValue(key: String, taxYear: JsValue): Option[(String, JsValue)] =
-    taxYear.transform((__ \\ key).json.pick[JsValue]).asOpt.map(key -> _)
+  private def usableFields(filterFields: List[String])(implicit ar: AuthenticatedRequest[?]): List[String] = {
+    val enrolments = ar.authEnrolments.enrolments.map(_.key)
+    val scopes = enrolments.flatMap(apiConfig.findScope) //finds scopes that match enrolment
+    val accessibleFields = scopes.flatMap(_.fields) //gets accessible filter fields for valid scopes
+    filterFields.filter(accessibleFields.contains) //finds all the filter fields in the request that are accessible
+  }
 
-  private[services] def pickAll(keys: List[String], desSuccessResponse: DesSuccessResponse): List[JsValue] =
-    desSuccessResponse.taxYears.toList.flatten.map { taxYear =>
-      Json.toJson(keys.flatMap(key => pickOneValue(key, taxYear)).toMap)
-    }
+  def validateRequestDetails(r: RequestDetails)(implicit ar: AuthenticatedRequest[?]): List[ErrorResponse] = {
+    val validations: Map[String, Boolean] = Map(
+      "nino" -> r.nino.matches(ninoRegex),
+      "toDate" -> r.toDate.matches(dateRegex),
+      "fromDate" -> r.fromDate.matches(dateRegex),
+      "surname" -> r.surname.matches(stringRegex),
+      "middleName" -> r.middleName.forall(_.matches(stringRegex)),
+      "firstName" -> r.firstName.forall(_.matches(stringRegex)),
+      "gender" -> r.gender.forall(_.matches(genderRegex)),
+      "initials" -> r.initials.forall(_.matches(stringRegex)),
+      "dateOfBirth" -> r.dateOfBirth.forall(_.matches(dateRegex)),
+      "serviceName" -> apiConfig.serviceNames.contains(r.serviceName),
+      "filter-fields" -> usableFields(r.filterFields).nonEmpty
+    )
 
-  def retrieveCitizenIncome(requestDetails: RequestDetails)(implicit
-      hc: HeaderCarrier
-  ): Future[DesResponse] =
-    desConnector.retrieveCitizenIncome(
-      requestDetails.nino,
-      RequestDetails.toMatchingRequest(requestDetails)
-    ) map {
-      case desSuccess: DesSuccessResponse =>
-        if (desSuccess.taxYears.isDefined)
-          DesFilteredSuccessResponse(desSuccess.matchPattern, pickAll(requestDetails.filterFields, desSuccess))
-        else
-          DesSuccessResponse(desSuccess.matchPattern, None)
-      case failure: DesResponse => failure
+    val errorFields:List[String] = validations.collect { case (key, false) => key }.toList
+
+    if (errorFields.nonEmpty)
+      errorFields.map(field => invalidPayloadWithMsg(s"requirement failed: Submission has not passed validation. Invalid $field in payload."))
+    else
+      //validates date
+      val endDate = LocalDate.parse(r.toDate)
+      val startDate = LocalDate.parse(r.fromDate)
+      if (endDate.isBefore(startDate))
+        List(ErrorResponse(INVALID_DATE_RANGE,"The remote endpoint has indicated that the date range is invalid."))
+      else if (endDate.isEqual(startDate))
+        List(ErrorResponse(INVALID_DATES_EQUAL, "The remote endpoint has indicated that the from and to dates are the same."))
+      else
+        List.empty
+  }
+  
+  private[services] def transform(keys: List[String], successResponse: RTIISuccessResponse): RTIISuccessResponse = {
+    val transformedTaxYears = successResponse.taxYears.toList.flatten.map { taxYear =>
+      Json.toJson(keys.flatMap(key => taxYear.transform((__ \\ key).json.pick[JsValue]).asOpt.map(key -> _)).toMap)
     }
+    if(transformedTaxYears.isEmpty)
+      RTIISuccessResponse(successResponse.matchPattern, None)
+    else
+      RTIISuccessResponse(successResponse.matchPattern, Some(transformedTaxYears))
+  }
+
+  def retrieveCitizenIncome(correlationId: String, requestDetails: RequestDetails)(implicit
+      hc: HeaderCarrier, ar: AuthenticatedRequest[?]
+  ): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]] =
+    for {
+      _ <-auditService.rtiiAudit(correlationId, requestDetails)
+      data <-  RTIIConnector.retrieveCitizenIncome(requestDetails.nino, DownstreamRequest(requestDetails))
+      transformedData = data.map(rtii => transform(usableFields(requestDetails.filterFields), rtii))
+    } yield transformedData
 
 }

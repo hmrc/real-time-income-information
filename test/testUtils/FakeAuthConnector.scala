@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package utils
+package testUtils
 
-import com.google.inject.Inject
-import controllers.actions.{AuthAction, AuthDetails, AuthenticatedRequest}
-import play.api.mvc.{BodyParsers, Request, Result}
-import uk.gov.hmrc.auth.core.Enrolments
+import play.api.libs.json.JsNull
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FakeAuthAction @Inject() (val parser: BodyParsers.Default)(val executionContext: ExecutionContext)
-    extends AuthAction {
+object FakeAuthConnector extends AuthConnector {
 
-  override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]): Future[Result] =
-    block(AuthenticatedRequest(request, AuthDetails(Enrolments(Set.empty))))
+  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit
+      hc: HeaderCarrier,
+      ec: ExecutionContext
+  ): Future[A] =
+    Future.successful(JsNull.as[A](using retrieval.reads))
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-package config
+package models
 
-import com.google.inject.Inject
-import uk.gov.hmrc.auth.core.PlayAuthConnector
-import uk.gov.hmrc.http.client.HttpClientV2
-
-class RTIIAuthConnector @Inject() (appConfig: ApplicationConfig, override val httpClientV2: HttpClientV2)
-    extends PlayAuthConnector {
-  val serviceUrl: String = appConfig.authBaseUrl
-}
+case class ApiScope(name: String, fields: Set[String])

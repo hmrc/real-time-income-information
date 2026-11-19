@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,20 @@
 package controllers.actions
 
 import com.google.inject.{ImplementedBy, Inject}
+import models.{AuthenticatedRequest, ErrorResponse}
+import models.ErrorCode.NON_PRIVILEGED_APPLICATION
 import play.api.Logging
 import play.api.libs.json.Json.toJson
 import play.api.mvc.Results.{Forbidden, InternalServerError}
-import play.api.mvc._
+import play.api.mvc.*
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
-import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.*
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{GatewayTimeoutException, HeaderCarrier}
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
-import utils.Constants._
+import models.ErrorResponse.*
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.control.NonFatal
-
-final case class AuthDetails(enrolments: Enrolments)
-final case class AuthenticatedRequest[A](request: Request[A], authDetails: AuthDetails) extends WrappedRequest[A](request)
 
 @ImplementedBy(classOf[AuthActionImpl])
 trait AuthAction extends ActionBuilder[AuthenticatedRequest, AnyContent] with ActionFunction[Request, AuthenticatedRequest]
@@ -47,19 +45,23 @@ class AuthActionImpl @Inject()(override val authConnector: AuthConnector, val pa
 
     authorised(AuthProviders(PrivilegedApplication))
       .retrieve(Retrievals.allEnrolments) { enrolments =>
-        block(AuthenticatedRequest(request, AuthDetails(enrolments)))
+        block(AuthenticatedRequest(request, enrolments))
     } recover {
-      case _: UnsupportedAuthProvider => Forbidden(toJson(responseNonPrivilegedApplication))
+      case e: UnsupportedAuthProvider =>
+        //$COVERAGE-OFF$
+        logger.warn(s"The request has not passed authentication: ${e.reason}")
+        //$COVERAGE-ON$
+        Forbidden(toJson(ErrorResponse(NON_PRIVILEGED_APPLICATION, "The remote endpoint has indicated the request has not passed authentication.")))
       case e: AuthorisationException  =>
         //$COVERAGE-OFF$
         logger.warn(s"Authorisation failed: ${e.reason}")
         //$COVERAGE-ON$
-        Forbidden(toJson(forbiddenWithMsg(s"Authorisation failed: ${e.reason}")))
-      case NonFatal(e) =>
+        Forbidden(toJson(ErrorResponse(NON_PRIVILEGED_APPLICATION, s"Authorisation failed: ${e.reason}")))
+      case e: GatewayTimeoutException =>
         //$COVERAGE-OFF$
         logger.error("Unexpected exception when authorising", e)
         //$COVERAGE-ON$
-        InternalServerError(toJson(responseServiceUnavailable))
+        InternalServerError(toJson(serviceUnavailableError))
     }
   }
 }

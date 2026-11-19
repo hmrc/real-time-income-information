@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package controllers.main
+package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
+import models.ErrorResponse.serviceUnavailableError
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers.*
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -99,9 +100,7 @@ class TimeoutsISpec extends IntegrationBaseSpec with GuiceOneAppPerSuite with Wi
 
       val res = route(fakeApplication(), request).get
       status(res) mustBe SERVICE_UNAVAILABLE
-      Await.result(jsonBodyOf(res), Duration.Inf) mustBe Json.parse(
-        """{"code":"BAD_GATEWAY","reason":"Bad gateway calling des"}"""
-      )
+      Await.result(jsonBodyOf(res), Duration.Inf) mustBe Json.toJson(serviceUnavailableError)
     }
   }
 }

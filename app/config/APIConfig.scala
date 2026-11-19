@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,70 +16,110 @@
 
 package config
 
-import com.google.inject.{Inject, Singleton}
-import com.typesafe.config.Config
-import play.api.{ConfigLoader, Configuration}
-import play.twirl.api.TwirlHelperImports.twirlJavaCollectionToScala
+import com.google.inject.Inject
+import models.ApiScope
+import play.api.Configuration
 
-@Singleton
 class APIConfig @Inject() (configuration: Configuration) {
-  private val apiAccessTypeKey = "api.access"
-  private val apiContextKey = "api.context"
-  private val apiFieldsKey = "api.fields"
-  private val apiScopesKey = "api.scopes"
-  private val internalAccessKey = "INTERNAL"
+  val apiAccessType: String = configuration.get[String]("api.access")
+  val apiContext: String = configuration.get[String]("api.context")
+  val serviceNames: Seq[String] = configuration.get[Seq[String]]("api.serviceName")
 
-  private lazy val apiFields: List[ApiField] = getOptional[List[ApiField]](apiFieldsKey).getOrElse(throw apiConfigException(apiFieldsKey))
+  private lazy val apiFields: Set[String] = Set(
+    "annualAmountOfOccupationalPension",
+    "apiAvailableTimestamp",
+    "bacsPaymentAmount",
+    "benefitsTaxedViaPayroll",
+    "benefitsTaxedYeartoDate",
+    "dateOfBirth",
+    "directorsNIC",
+    "earningsPeriodsCovered",
+    "employeePensionContributions",
+    "employeePensionContributionsNotPaid",
+    "employeesContributionsInPeriod",
+    "employeesContributionsYearToDate",
+    "employerName1",
+    "employerName2",
+    "employerPayeRef",
+    "employerTradeName1",
+    "employerTradeName2",
+    "employmentEndDate",
+    "employmentStartDate",
+    "flexibleDrawdownNonTaxablePayment",
+    "flexibleDrawdownTaxablePayment",
+    "flexiblyAccessingPensionRights",
+    "forename",
+    "gender",
+    "grossEarningsForNICs",
+    "grossEarningsForNICsYearToDate",
+    "hmrcOfficeNumber",
+    "hmrcReceiptTimestamp",
+    "initials",
+    "irregularPayment",
+    "itemsSubjectToClass1NIC",
+    "latePayeReportingReason",
+    "monthlyPeriodNumber",
+    "multipleIPSIndicator",
+    "nationalInsuranceNumber",
+    "niLetter",
+    "numberOfNormalHoursWorked",
+    "occPenIndicator",
+    "onStrikeWithinPayPeriod",
+    "partnerForenameOrGivenName",
+    "partnerInitials",
+    "partnerNINO",
+    "partnerSecondForename",
+    "partnerSurnameOrFamilyName",
+    "payAfterStatutoryDeductions",
+    "payFrequency",
+    "paymentAfterLeaving",
+    "paymentConfidenceStatus",
+    "paymentDate",
+    "paymentNoLongerValid",
+    "paymentsNotSubjectToTaxOrNICS",
+    "payrollId",
+    "pensionContributionsNotPaidYeartoDate",
+    "pensionContributionsYearToDate",
+    "pensionsDeathBenefit",
+    "rtiReceivedDate",
+    "schemeExemptFromElectronicFiling",
+    "secondForename",
+    "seriousillHealthLumpSum",
+    "sharedParentalPayYearToDate",
+    "statutoryMaternityPayYeartoDate",
+    "statutoryPaternityPayYearToDate",
+    "surname",
+    "taxCode",
+    "taxCodeBasisisNonCumulative",
+    "taxDeductedOrRefunded",
+    "taxRegime",
+    "taxWeekNumberOfAppointmentOfDirector",
+    "taxYear",
+    "taxYearIndicator",
+    "taxablePayInPeriod",
+    "taxablePayToDate",
+    "totalEmployerNIContributionsInPeriod",
+    "totalTaxToDate",
+    "trivialCommutationPaymentTypeA",
+    "trivialCommutationPaymentTypeB",
+    "trivialCommutationPaymentTypeC",
+    "uniqueEmploymentSequenceNumber",
+    "uniquePaymentId",
+    "unpaidAbsencePayPeriod",
+    "valueOfDeductions",
+    "valueofStatutoryAdoptionPayYearToDate",
+    "weeklyPeriodNumber"
+  )
 
-  private lazy val apiScopes: List[ApiScope] = getOptional[List[ApiScope]](apiScopesKey).getOrElse(throw apiConfigException(apiScopesKey))
+  private lazy val limitedApiFields : Set[String] = Set("employmentEndDate", "payFrequency", "paymentDate", "taxablePayInPeriod")
 
-  val serviceNames: Seq[String] = getOptional[Seq[String]]("api.serviceName").getOrElse(Nil)
+  private lazy val apiScopes: List[ApiScope] = List(
+    ApiScope("filter:real-time-income-information-full", apiFields),
+    ApiScope("filter:real-time-income-information-sg", limitedApiFields),
+    ApiScope("filter:real-time-income-information-csp", limitedApiFields)
+  )
+  
 
-  private def apiConfigException(key: String) = new IllegalStateException(s"$key is not configured")
-
-  private def getOptional[A](key: String)(implicit configLoader: ConfigLoader[A]): Option[A] = configuration.getOptional[A](key)
-
-  private def getField(id: Int): Option[ApiField] = apiFields.find(c => c.id == id)
-
-  implicit val apiFieldsConfigLoader: ConfigLoader[List[ApiField]] = new ConfigLoader[List[ApiField]] {
-    override def load(rootConfig: Config, path: String): List[ApiField] = {
-      val fieldsConfig = rootConfig.getConfig(apiFieldsKey)
-      val fields = fieldsConfig.entrySet.map { entry => {
-        ApiField(entry.getKey.toInt, fieldsConfig.getString(entry.getKey))
-      }}.toList
-
-      fields
-    }
-  }
-
-  implicit val apiScopesConfigLoader: ConfigLoader[List[ApiScope]] = new ConfigLoader[List[ApiScope]] {
-    override def load(rootConfig: Config, path: String): List[ApiScope] = {
-
-      def generateScopeName(entryKey: String) = {
-        entryKey.replace(".fields", "").replace("\"", "")
-      }
-
-      val scopesConfig = rootConfig.getConfig(apiScopesKey)
-
-      val scopes = scopesConfig.entrySet.map { entry =>
-
-      val fields = scopesConfig.getIntList(entry.getKey).map { key =>
-        val value = getField(key).getOrElse(throw apiConfigException(apiFieldsKey))
-        val apiField = ApiField(key, value.name)
-        apiField
-      }.toList
-
-      val scopeName = generateScopeName(entry.getKey)
-      val apiScope = ApiScope(scopeName, fields)
-        apiScope
-      }.toList
-      scopes
-    }
-  }
-
-  lazy val apiAccessType: String = getOptional[String](apiAccessTypeKey).getOrElse(internalAccessKey)
-
-  lazy val apiContext: String = getOptional[String](apiContextKey).getOrElse(throw apiConfigException(apiContextKey))
-
-  def findScope(scopeName: String): Option[ApiScope] = apiScopes.find(apiScope => apiScope.name == scopeName)
+  def findScope(scopeName: String): Option[ApiScope] = apiScopes.find(_.name == scopeName)
+  
 }

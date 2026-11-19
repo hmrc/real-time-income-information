@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package utils
+package connectors
 
-import uk.gov.hmrc.domain.NinoGenerator
+import com.google.inject.Inject
+import config.ApplicationConfig
+import uk.gov.hmrc.auth.core.PlayAuthConnector
+import uk.gov.hmrc.http.client.HttpClientV2
 
-import java.util.UUID
-import scala.concurrent.duration.*
-import scala.concurrent.{Await, Future}
-import scala.language.postfixOps
-
-trait BaseSpec extends UnitSpec with ResourceProvider {
-  def generateUUId: String           = UUID.randomUUID().toString
-  def generateNino: String           = NinoGenerator().nextNino.toString()
-  def await[A](future: Future[A]): A = Await.result(future, 5 seconds)
+class RTIIAuthConnector @Inject() (appConfig: ApplicationConfig, override val httpClientV2: HttpClientV2)
+    extends PlayAuthConnector {
+  val serviceUrl: String = appConfig.authBaseUrl
 }
