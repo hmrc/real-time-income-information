@@ -17,7 +17,7 @@
 package services
 
 import config.APIConfig
-import connectors.RTIIConnector
+import connectors.RTIConnector
 import models.*
 import models.ErrorCode.*
 import org.mockito.ArgumentMatchers.{any, eq as meq}
@@ -39,10 +39,10 @@ import scala.concurrent.Future
 class RealTimeIncomeInformationServiceSpec extends BaseSpec with BeforeAndAfterEach{
 
   implicit val hc: HeaderCarrier                = HeaderCarrier()
-  val mockRTIIConnector: RTIIConnector            = mock[RTIIConnector]
+  val mockRTIConnector: RTIConnector            = mock[RTIConnector]
   val mockAuditService: AuditService  = mock[AuditService]
   val mockAPIConfig: APIConfig = mock[APIConfig]
-  val service: RealTimeIncomeInformationService = new RealTimeIncomeInformationService(mockRTIIConnector, mockAuditService, mockAPIConfig)
+  val service: RealTimeIncomeInformationService = new RealTimeIncomeInformationService(mockRTIConnector, mockAuditService, mockAPIConfig)
 
   val correlationId: String                     = generateUUId
   val nino: String                              = generateNino
@@ -90,7 +90,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with BeforeAndAfterE
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockAuditService)
-    reset(mockRTIIConnector)
+    reset(mockRTIConnector)
   }
 
   "transform" when {
@@ -123,7 +123,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with BeforeAndAfterE
   "retrieveCitizenIncome" when {
     "given a success response with a tax year" must {
       "retrieve and filter data to return as a filtered success response" in {
-        when(mockRTIIConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any()))
+        when(mockRTIConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any()))
           .thenReturn(Future.successful(Right(RTIISuccessResponse(63, Some(List(taxYear))))))
         when(mockAuditService.rtiiAudit(any(), any())(using any())).thenReturn(Future.successful(AuditResult.Success))
         when(mockAPIConfig.findScope(meq("filter:real-time-income-information-sg")))
@@ -137,13 +137,13 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with BeforeAndAfterE
                                                                    |"taxablePayInPeriod": 999999.99
                                                                    |}
     """.stripMargin))
-        verify(mockRTIIConnector, times(1)).retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any())
+        verify(mockRTIConnector, times(1)).retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any())
         verify(mockAuditService, times(1)).rtiiAudit(meq(correlationId), meq(requestDetails))(using any())
       }
     }
     "given a DES success response with no tax years" must {
       "return an unfiltered RTIISuccessResponse" in {
-        when(mockRTIIConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any()))
+        when(mockRTIConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any()))
           .thenReturn(Future.successful(Right(RTIISuccessResponse(0, Some(List.empty)))))
         when(mockAuditService.rtiiAudit(any(), any())(using any())).thenReturn(Future.successful(AuditResult.Success))
         when(mockAPIConfig.findScope(meq("filter:real-time-income-information-sg")))
@@ -152,12 +152,12 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with BeforeAndAfterE
         result.isRight mustBe true
         result.toOption.get.matchPattern mustBe 0
         result.toOption.get.taxYears mustBe None
-        verify(mockRTIIConnector, times(1)).retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any())
+        verify(mockRTIConnector, times(1)).retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any())
         verify(mockAuditService, times(1)).rtiiAudit(meq(correlationId), meq(requestDetails))(using any())
       }
     }
     "given a DES failure response return an appropriate error message" in {
-      when(mockRTIIConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any())).thenReturn(
+      when(mockRTIConnector.retrieveCitizenIncome(meq(nino), meq(desMatchingRequest))(using any())).thenReturn(
         Future.successful(Left[UpstreamErrorResponse, RTIISuccessResponse](UpstreamErrorResponse("Not found", NOT_FOUND)))
         )
       when(mockAuditService.rtiiAudit(any(), any())(using any())).thenReturn(Future.successful(AuditResult.Success))
@@ -174,7 +174,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with BeforeAndAfterE
     "given a valid request" must {
       "return an empty list" in {
         when(mockAPIConfig.serviceNames)
-          .thenReturn(Seq("service"))
+          .thenReturn(Set("service"))
         val result = service.validateRequestDetails(requestDetails)(using authenticatedRequest)
         result mustBe List.empty
       }
@@ -182,7 +182,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with BeforeAndAfterE
     "given a request with invalid and unequal date range" must {
       "return invalid date range error" in {
         when(mockAPIConfig.serviceNames)
-          .thenReturn(Seq("service"))
+          .thenReturn(Set("service"))
         val requestDetails1 = requestDetails.copy(fromDate = "2018-12-31", toDate = "2017-12-31")
         val result = service.validateRequestDetails(requestDetails1)(using authenticatedRequest)
         result mustBe List(ErrorResponse(INVALID_DATE_RANGE, "The remote endpoint has indicated that the date range is invalid."))
@@ -191,7 +191,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with BeforeAndAfterE
     "given a request with equal date range" must {
       "return invalid date range error" in {
         when(mockAPIConfig.serviceNames)
-          .thenReturn(Seq("service"))
+          .thenReturn(Set("service"))
         val requestDetails1 = requestDetails.copy(fromDate = "2018-12-31", toDate = "2018-12-31")
         val result = service.validateRequestDetails(requestDetails1)(using authenticatedRequest)
         result mustBe List(ErrorResponse(INVALID_DATES_EQUAL, "The remote endpoint has indicated that the from and to dates are the same."))
@@ -200,7 +200,7 @@ class RealTimeIncomeInformationServiceSpec extends BaseSpec with BeforeAndAfterE
     "given a request with invalid field" must {
       "return a list of all the errors" in {
         when(mockAPIConfig.serviceNames)
-          .thenReturn(Seq("service"))
+          .thenReturn(Set("service"))
         val requestDetails = RequestDetails(
           nino = "test",
           serviceName = "test",

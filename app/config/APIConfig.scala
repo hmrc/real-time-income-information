@@ -23,7 +23,7 @@ import play.api.Configuration
 class APIConfig @Inject() (configuration: Configuration) {
   val apiAccessType: String = configuration.get[String]("api.access")
   val apiContext: String = configuration.get[String]("api.context")
-  val serviceNames: Seq[String] = configuration.get[Seq[String]]("api.serviceName")
+  val serviceNames: Set[String] = configuration.get[Seq[String]]("api.serviceName").toSet
 
   private lazy val apiFields: Set[String] = Set(
     "annualAmountOfOccupationalPension",

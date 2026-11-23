@@ -39,17 +39,17 @@ class DesConnectorSpec extends BaseSpec {
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino: String               = generateNino
   val correlationId: String      = generateUUId
-  val mockDefaultDesConnector: DefaultRTIIConnector = mock[DefaultRTIIConnector]
+  val mockDefaultDesConnector: DefaultRTIConnector = mock[DefaultRTIConnector]
   val mockRepo: RTIICacheRepository = mock[RTIICacheRepository]
   def fakeApplication(): Application =
     new GuiceApplicationBuilder()
       .overrides(
         bind[RTIICacheRepository].toInstance(mockRepo),
-        bind[DefaultRTIIConnector].toInstance(mockDefaultDesConnector)
+        bind[DefaultRTIConnector].toInstance(mockDefaultDesConnector)
       )
       .build()
   
-  def connector: RTIIConnector = new CachingRTIIConnector(mockDefaultDesConnector, mockRepo)
+  def connector: RTIConnector = new CachingRTIConnector(mockDefaultDesConnector, mockRepo)
 
   val taxYear: JsValue = Json.parse("""{
                              |      "taxYear": "16-17",

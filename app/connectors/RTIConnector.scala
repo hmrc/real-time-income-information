@@ -32,7 +32,7 @@ import java.util.UUID
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{ExecutionContext, Future}
 
-trait RTIIConnector {
+trait RTIConnector {
   def retrieveCitizenIncome(
                              nino: String,
                              matchingRequest: DownstreamRequest
@@ -41,12 +41,12 @@ trait RTIIConnector {
                            ): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]]
 }
 
-class CachingRTIIConnector @Inject()(
-                                      @Named("default") underlying: RTIIConnector,
+class CachingRTIConnector @Inject()(
+                                      @Named("default") underlying: RTIConnector,
                                       cacheRepo: RTIICacheRepository
                                     )(implicit
                                       ec: ExecutionContext
-                                    ) extends RTIIConnector {
+                                    ) extends RTIConnector {
   override def retrieveCitizenIncome(nino: String, matchingRequest: DownstreamRequest)(implicit hc: HeaderCarrier): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]] = {
     val id = nino + matchingRequest.hashCode()
     val dataKey = DataKey[RTIISuccessResponse]("desResponse")
@@ -69,13 +69,13 @@ class CachingRTIIConnector @Inject()(
 }
 
 @Singleton
-class DefaultRTIIConnector @Inject()(
+class DefaultRTIConnector @Inject()(
                                       httpClient: HttpClientV2,
                                       appConfig: ApplicationConfig,
                                       httpClientResponse: HttpClientResponse
                                     )(implicit
                                       ec: ExecutionContext
-                                    ) extends RTIIConnector {
+                                    ) extends RTIConnector {
 
   private def buildHeaders(implicit hc: HeaderCarrier): Seq[(String, String)] =
     Seq(

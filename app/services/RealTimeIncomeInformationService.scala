@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.{Inject, Singleton}
 import config.APIConfig
-import connectors.RTIIConnector
+import connectors.RTIConnector
 import models.*
 import models.ErrorCode.{INVALID_DATES_EQUAL, INVALID_DATE_RANGE}
 import models.ErrorResponse.*
@@ -30,7 +30,7 @@ import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RealTimeIncomeInformationService @Inject() (RTIIConnector: RTIIConnector,
+class RealTimeIncomeInformationService @Inject() (RTIConnector: RTIConnector,
                                                   auditService: AuditService,
                                                   apiConfig: APIConfig)(implicit
     ec: ExecutionContext
@@ -89,7 +89,7 @@ class RealTimeIncomeInformationService @Inject() (RTIIConnector: RTIIConnector,
   ): Future[Either[UpstreamErrorResponse, RTIISuccessResponse]] =
     for {
       _ <-auditService.rtiiAudit(correlationId, requestDetails)
-      data <-  RTIIConnector.retrieveCitizenIncome(requestDetails.nino, DownstreamRequest(requestDetails))
+      data <-  RTIConnector.retrieveCitizenIncome(requestDetails.nino, DownstreamRequest(requestDetails))
       transformedData = data.map(rtii => transform(usableFields(requestDetails.filterFields), rtii))
     } yield transformedData
 
