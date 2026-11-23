@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package modules
+package models
 
-import com.google.inject.AbstractModule
-import config.RTIIAuthConnector
-import uk.gov.hmrc.auth.core.AuthConnector
+import models.ErrorCode.*
+import play.api.libs.json.{Json, OFormat}
 
-class Module extends AbstractModule {
+case class ErrorResponse(code: ErrorCode, reason: String)
 
-  override def configure(): Unit = {
-    bind(classOf[AuthConnector]).to(classOf[RTIIAuthConnector])
-    ()
-  }
-
+object ErrorResponse {
+  implicit val errorResponseFormat: OFormat[ErrorResponse]                   = Json.format[ErrorResponse]
+  
+  val serviceUnavailableError = ErrorResponse(SERVICE_UNAVAILABLE, "Dependent systems are currently not responding.")
+  
+  def invalidPayloadWithMsg(msg: String) = ErrorResponse(INVALID_PAYLOAD, msg)
+  
 }

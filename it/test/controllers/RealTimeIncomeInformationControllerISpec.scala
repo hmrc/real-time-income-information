@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package controllers.main
+package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock.*
+import models.ErrorResponse.serviceUnavailableError
 import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers.*
@@ -24,14 +25,13 @@ import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.Play.materializer
-import play.api.http.Status.{OK, SERVICE_UNAVAILABLE}
+import play.api.http.Status.{SERVICE_UNAVAILABLE, OK}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.test.Helpers.{POST, contentAsJson, defaultAwaitTimeout, route}
 import play.api.test.{FakeHeaders, FakeRequest}
 import test_utils.{IntegrationBaseSpec, WiremockHelper}
 import uk.gov.hmrc.domain.NinoGenerator
-import utils.Constants.responseServiceUnavailable
 
 import java.util.UUID
 
@@ -80,7 +80,7 @@ class RealTimeIncomeInformationControllerISpec extends IntegrationBaseSpec with 
       )
 
       val result = route(fakeApplication(), request)
-      val expected = Some(Json.toJson(responseServiceUnavailable))
+      val expected = Some(Json.toJson(serviceUnavailableError))
 
       eventually(timeout(Span(30, Seconds))) {
         result.map(status) mustBe Some(SERVICE_UNAVAILABLE)

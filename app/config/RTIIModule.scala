@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package utils
+package config
 
-import play.api.libs.json.JsNull
+import connectors.*
+import play.api.inject.{Binding, Module}
+import play.api.{Configuration, Environment}
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.Retrieval
-import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+class RTIIModule extends Module {
 
-object FakeAuthConnector extends AuthConnector {
-
-  override def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit
-      hc: HeaderCarrier,
-      ec: ExecutionContext
-  ): Future[A] =
-    Future.successful(JsNull.as[A](using retrieval.reads))
+  override def bindings(environment: Environment, configuration: Configuration): Seq[Binding[?]] =
+    Seq(
+      bind[RTIConnector].to[CachingRTIConnector],
+      bind[RTIConnector].qualifiedWith("default").to[DefaultRTIConnector],
+      bind[AuthConnector].to[RTIIAuthConnector]
+    )
 
 }

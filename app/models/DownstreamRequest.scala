@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class DesMatchingRequest(
+case class DownstreamRequest(
     fromDate: String,
     toDate: String,
     surname: String,
@@ -29,6 +29,9 @@ case class DesMatchingRequest(
     dateOfBirth: Option[String]
 )
 
-object DesMatchingRequest {
-  implicit val formats: OFormat[DesMatchingRequest] = Json.format[DesMatchingRequest]
+object DownstreamRequest {
+  implicit val formats: OFormat[DownstreamRequest] = Json.format[DownstreamRequest]
+  
+  def apply(r: RequestDetails): DownstreamRequest =
+    DownstreamRequest(r.fromDate, r.toDate, r.surname, r.firstName, r.middleName, r.gender, r.initials, r.dateOfBirth)
 }

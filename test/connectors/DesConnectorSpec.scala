@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,66 +16,40 @@
 
 package connectors
 
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
-import com.github.tomakehurst.wiremock.client.WireMock.*
-import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import config.ApplicationConfig
 import models.*
-import org.scalatest.concurrent.Eventually.eventually
-import org.scalatest.matchers.must.Matchers.*
-import org.scalatest.time.{Seconds, Span}
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import org.apache.pekko.http.scaladsl.model.HttpHeader.ParsingResult.Ok
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.*
-import play.api.test.Injecting
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
-import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.cache.CacheItem
-import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
-import utils.{BaseSpec, WireMockHelper}
+import repositories.RTIICacheRepository
+import testUtils.BaseSpec
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Try
+import scala.concurrent.Future
 
-class DesConnectorSpec
-    extends BaseSpec
-    with GuiceOneAppPerSuite
-    with Injecting
-    with WireMockHelper
-    with DefaultPlayMongoRepositorySupport[CacheItem] {
+class DesConnectorSpec extends BaseSpec {
 
   val testAuthToken              = "TestAuthToken"
   val testEnv                    = "TestEnv"
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino: String               = generateNino
   val correlationId: String      = generateUUId
-
-  override def fakeApplication(): Application =
+  val mockDefaultDesConnector: DefaultRTIConnector = mock[DefaultRTIConnector]
+  val mockRepo: RTIICacheRepository = mock[RTIICacheRepository]
+  def fakeApplication(): Application =
     new GuiceApplicationBuilder()
-      .configure(
-        "microservice.services.des-hod.port"               -> server.port().toString,
-        "microservice.services.auth.port"                  -> server.port().toString,
-        "auditing.enabled"                                 -> false,
-        "metrics.enabled"                                  -> false,
-        "microservice.services.des-hod.authorizationToken" -> testAuthToken,
-        "microservice.services.des-hod.env"                -> testEnv,
-        "play.ws.timeout.request"                          -> "2.seconds"
-      )
       .overrides(
-        bind[MongoComponent].toInstance(mongoComponent)
+        bind[RTIICacheRepository].toInstance(mockRepo),
+        bind[DefaultRTIConnector].toInstance(mockDefaultDesConnector)
       )
       .build()
-
-  server.start()
-
-  override protected val repository = new DesCache(app.injector.instanceOf[ApplicationConfig], mongoComponent)
-
-  def connector: DesConnector = inject[DesConnector]
-
-  def stubPostServer(willReturn: ResponseDefinitionBuilder): StubMapping =
-    stubPostServer(willReturn, s"/individuals/$nino/income")
+  
+  def connector: RTIConnector = new CachingRTIConnector(mockDefaultDesConnector, mockRepo)
 
   val taxYear: JsValue = Json.parse("""{
                              |      "taxYear": "16-17",
@@ -104,202 +78,48 @@ class DesConnectorSpec
                              |      "apiAvailableTimestamp": "2018-04-16T09:23:55Z"
                              |}""".stripMargin)
 
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockDefaultDesConnector)
+    reset(mockRepo)
+  }
+
   "retrieveCitizenIncome" must {
-    "return a DesSuccessResponse" when {
-      "successfully retrieved citizen income data" in {
-        val expectedResponse = DesSuccessResponse(63, Some(List(taxYear)))
-
-        stubPostServer(ok(successMatchOneYear.toString))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe expectedResponse
-        }
+    "return a RTIISuccessResponse" when {
+      "data is available in the cache repository" in {
+        val expectedResponse = RTIISuccessResponse(63, Some(List(taxYear)))
+        when(mockRepo.get[RTIISuccessResponse](any())(any())(using any))
+          .thenReturn(Future(Some(expectedResponse)))
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DownstreamRequest]))
+        result.isRight mustBe true
+        result mustBe Right(expectedResponse)
       }
 
-      "use cache data" in {
-        val expectedResponse = DesSuccessResponse(63, Some(List(taxYear)))
-
-        stubPostServer(ok(successMatchOneYear.toString))
-        await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-
-        stubPostServer(notFound())
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe expectedResponse
-        }
-
-      }
-
-      "received a 200 No match response from DES" in {
-        val expectedResponse = DesSuccessResponse(0, None)
-
-        stubPostServer(ok(successNoMatch.toString))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe expectedResponse
-        }
-      }
-
-      "received a 200 No match response with match pattern less than 63 from DES" in {
-        val expectedResponse = DesSuccessResponse(62, None)
-        stubPostServer(ok(successNoMatchGreaterThanZero.toString))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe expectedResponse
-        }
-      }
-
-      "send the correct headers to DES" in {
-        val url = s"/individuals/$nino/income"
-
-        stubPostServer(aResponse().withBody("{}"), url)
-
-        await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-
-        server.verify(
-          postRequestedFor(urlEqualTo(url))
-            .withHeader(HeaderNames.authorisation, equalTo(s"Bearer $testAuthToken"))
-            .withHeader("Environment", equalTo(testEnv))
-            .withHeader(
-              "CorrelationId",
-              matching("[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}")
-            )
-            .withHeader(HeaderNames.xRequestId, equalTo("-"))
-            .withHeader(HeaderNames.xSessionId, equalTo("-"))
-        )
+      "data is not available in cache but downstream connector sends a successful response" in {
+        val expectedResponse = RTIISuccessResponse(63, Some(List(taxYear)))
+        when(mockRepo.get[RTIISuccessResponse](any())(any())(using any))
+          .thenReturn(Future(None))
+        when(mockDefaultDesConnector.retrieveCitizenIncome(any(), any())(using any))
+          .thenReturn(Future(Right(expectedResponse)))
+        when(mockRepo.put[RTIISuccessResponse](any())(any(), any())(using any))
+          .thenReturn(Future.successful(Ok))
+        val result =await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DownstreamRequest]))
+        result.isRight mustBe true
+        result mustBe Right(expectedResponse)
+        verify(mockRepo, times(1)).put[RTIISuccessResponse](any())(any(), any())(using any)
       }
     }
-
-    "return a single DesFailureResponse with the appropriate code and reason" when {
-      "the remote endpoint has indicated that there is no data for the Nino" in {
-        val expectedResponse =
-          DesSingleFailureResponse("NOT_FOUND", "The remote endpoint has indicated that there is no data for the Nino.")
-        stubPostServer(notFound().withBody(noDataFoundNinoJson.toString))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe expectedResponse
-        }
-      }
-
-      "the remote endpoint has indicated that the Nino cannot be found" in {
-        val expectedResponse =
-          DesSingleFailureResponse("NOT_FOUND_NINO", "The remote endpoint has indicated that the Nino cannot be found.")
-        stubPostServer(notFound().withBody(notFoundNinoJson.toString))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe expectedResponse
-        }
-      }
-
-      "the remote endpoint has indicated that the correlation Id is invalid" in {
-        val expectedResponse = DesSingleFailureResponse(
-          "INVALID_CORRELATION_ID",
-          "Submission has not passed validation. Invalid header CorrelationId."
-        )
-        stubPostServer(badRequest().withBody(invalidCorrelationIdJson.toString))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result = await(
-            connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])
-          )
-          result mustBe expectedResponse
-        }
-      }
-
-      "DES is currently experiencing problems that require live service intervention" in {
-        val expectedResponse = DesSingleFailureResponse(
-          "SERVER_ERROR",
-          "DES is currently experiencing problems that require live service intervention."
-        )
-        stubPostServer(serverError().withBody(serverErrorJson.toString))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe expectedResponse
-        }
-      }
-
-      "Dependent systems are currently not responding" in {
-        val expectedResponse =
-          DesSingleFailureResponse("SERVICE_UNAVAILABLE", "Dependent systems are currently not responding.")
-        stubPostServer(serviceUnavailable().withBody(serviceUnavailableJson.toString))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe expectedResponse
-        }
-      }
-    }
-
-    "Return multiple DESFailureResponse" when {
-      "the DES response contains a list of failures" in {
-        val responses = DesMultipleFailureResponse(
-          List(
-            DesSingleFailureResponse("INVALID_NINO", "Submission has not passed validation. Invalid parameter nino."),
-            DesSingleFailureResponse("INVALID_PAYLOAD", "Submission has not passed validation. Invalid Payload.")
-          )
-        )
-
-        stubPostServer(badRequest().withBody(multipleErrors.toString))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe responses
-        }
-      }
-    }
-
-    "Return a DES unexpected response" when {
-      "the DES response doesn't match the schema" in {
-        val response = DesUnexpectedResponse()
-        stubPostServer(serviceUnavailable().withBody("{}"))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe response
-        }
-      }
-
-      "the status returned is OK but fails to parse as a DESSuccessResponse" in {
-
-        val response = DesUnexpectedResponse()
-        stubPostServer(ok().withBody("{}"))
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest]))
-          result mustBe response
-        }
-      }
-
-      "a bad gateway exception occurs" in {
-        val response = DesNoResponse()
-
-        server.stop()
-
-        eventually(timeout(Span(30, Seconds))) {
-          val result =
-            Try(await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DesMatchingRequest])))
-          result.get mustBe response
-        }
-
-        server.start()
+    "return an upstream error response" when {
+      "an error response is returned from downstream connector" in {
+        val expectedResponse = UpstreamErrorResponse("SampleErrorResponse", 500)
+        when(mockRepo.get[RTIISuccessResponse](any())(any())(using any))
+          .thenReturn(Future(None))
+        when(mockDefaultDesConnector.retrieveCitizenIncome(any(), any())(using any))
+          .thenReturn(Future(Left(expectedResponse)))
+        val result = await(connector.retrieveCitizenIncome(nino, exampleDesRequest.as[DownstreamRequest]))
+        result.isRight mustBe false
+        result mustBe Left(expectedResponse)
+        verify(mockRepo, times(0)).put[RTIISuccessResponse](any())(any(), any())(using any)
       }
     }
   }

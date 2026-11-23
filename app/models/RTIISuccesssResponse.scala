@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package config
+package models
 
-case class ApiScope(name: String, fields: List[ApiField])
-{
-  def getFieldNames() = fields.map(_.name)
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
+
+class RTIISuccessResponse(val matchPattern: Int, val taxYears: Option[List[JsValue]])
+object RTIISuccessResponse {
+  implicit val format: OFormat[RTIISuccessResponse]                 =
+    ((JsPath \ "matchPattern").format[Int] and
+      (JsPath \ "taxYears").formatNullable[List[JsValue]]) (RTIISuccessResponse.apply, rtii => (rtii.matchPattern, rtii.taxYears))
 }

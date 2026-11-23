@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,11 @@ import views.txt
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class DefinitionController @Inject() (apiConfig: APIConfig, cc: ControllerComponents) extends BackendController(cc) {
-
-  private val apiAccess: String = apiConfig.apiAccessType
+class DefinitionController @Inject() (config: APIConfig, cc: ControllerComponents) extends BackendController(cc) {
 
   def get(): Action[AnyContent] =
     Action {
-      Ok(txt.definition(apiAccess, apiConfig.apiContext))
+      Ok(txt.definition(config.apiAccessType, config.apiContext))
         .as(contentType = "application/json")
         .withHeaders(CONTENT_TYPE -> JSON)
     }

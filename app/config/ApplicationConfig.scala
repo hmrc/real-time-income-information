@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,4 +32,5 @@ class ApplicationConfig @Inject() (sc: ServicesConfig, configuration: Configurat
   val authorization: String      = "Bearer " + sc.getConfString("des-hod.authorizationToken", "local")
   val authBaseUrl: String        = sc.baseUrl("auth")
   val cacheExpireAfter: Duration = sc.getConfDuration("mongodb.cacheExpireAfter", 15.minutes)
+
 }

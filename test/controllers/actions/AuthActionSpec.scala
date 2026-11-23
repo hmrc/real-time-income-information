@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,22 @@
 
 package controllers.actions
 
+import models.ErrorCode.NON_PRIVILEGED_APPLICATION
+import models.ErrorResponse
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.scalatest.matchers.must.Matchers._
+import org.scalatestplus.mockito.MockitoSugar.mock
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Results}
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import play.api.test.{FakeRequest, Injecting}
-import uk.gov.hmrc.auth.core.{AuthConnector, Enrolments, InternalError, UnsupportedAuthProvider}
-import utils.{BaseSpec, Constants}
+import testUtils.BaseSpec
+import uk.gov.hmrc.auth.core.{AuthConnector, Enrolments, InsufficientEnrolments, InternalError, UnsupportedAuthProvider}
+import uk.gov.hmrc.http.GatewayTimeoutException
 
 import scala.concurrent.Future
 
@@ -45,7 +48,6 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
 
   object Harness extends Results {
     val authAction: AuthAction = inject[AuthAction]
-
     def test(): Action[AnyContent] = authAction(_ => Ok)
   }
 
@@ -65,7 +67,7 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
         val result = Harness.test()(FakeRequest())
 
         status(result) mustBe FORBIDDEN
-        contentAsJson(result) mustBe Json.toJson(Constants.responseNonPrivilegedApplication)
+        contentAsJson(result) mustBe Json.toJson(ErrorResponse(NON_PRIVILEGED_APPLICATION, "The remote endpoint has indicated the request has not passed authentication."))
       }
 
       "unexpected unauthenticated" in {
@@ -74,17 +76,26 @@ class AuthActionSpec extends BaseSpec with Injecting with GuiceOneAppPerSuite {
         val result = Harness.test()(FakeRequest())
 
         status(result) mustBe FORBIDDEN
-        contentAsJson(result) mustBe Json.toJson(Constants.forbiddenWithMsg("Authorisation failed: some error message"))
+        contentAsJson(result) mustBe Json.toJson(ErrorResponse(NON_PRIVILEGED_APPLICATION, s"Authorisation failed: some error message"))
+      }
+      "an AuthorisationException is thrown" in {
+        when(mockAuthConnector.authorise[Unit](any(), any())(using any(), any()))
+          .thenReturn(Future.failed(new InsufficientEnrolments))
+        val result = Harness.test()(FakeRequest())
+        status(result) mustBe FORBIDDEN
+        contentAsJson(result) mustBe Json.toJson(ErrorResponse(NON_PRIVILEGED_APPLICATION, s"Authorisation failed: Insufficient Enrolments"))
       }
     }
 
     "return internal server error" when {
-      "Unexpected exception when authorising" in {
-        when(mockAuthConnector.authorise[Unit](any(), any())(using any(), any()))
-          .thenReturn(Future.failed(new Exception()))
-        val result = Harness.test()(FakeRequest())
-
-        status(result) mustBe INTERNAL_SERVER_ERROR
+      "return internal server error" when {
+        "an AuthorisationException is thrown" in {
+          when(mockAuthConnector.authorise[Unit](any(), any())(using any(), any()))
+            .thenReturn(Future.failed(new GatewayTimeoutException("")))
+          val result = Harness.test()(FakeRequest())
+          status(result) mustBe INTERNAL_SERVER_ERROR
+          contentAsJson(result) mustBe Json.toJson(serviceUnavailableJson)
+        }
       }
     }
   }
