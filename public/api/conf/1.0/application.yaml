@@ -730,7 +730,7 @@ components:
           minimum: 0
           type: number
         niLetter:
-          pattern: ^[A-Z]{1,2}$
+          pattern: ^[ABCDEGHIJKLMNOPQRTVWXYZ]$
           type: string
           description: NI Letter
         directorsNIC:
