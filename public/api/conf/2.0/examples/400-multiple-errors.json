@@ -1,0 +1,12 @@
+{
+  "failures": [
+    {
+      "code": "INVALID_DATE_RANGE",
+      "reason": "The remote endpoint has indicated that the date range is invalid."
+    },
+    {
+      "code": "INVALID_PAYLOAD",
+      "reason": "Submission has not passed validation. Invalid Payload."
+    }
+  ]
+}

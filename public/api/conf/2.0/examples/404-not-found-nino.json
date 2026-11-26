@@ -1,0 +1,4 @@
+{
+  "code": "NOT_FOUND_NINO",
+  "reason": "The remote endpoint has indicated that the Nino cannot be found."
+}
