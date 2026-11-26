@@ -1,0 +1,4 @@
+{
+  "code": "NON_PRIVILEGED_APPLICATION",
+  "reason": "The remote endpoint has indicated the request has not passed authentication."
+}

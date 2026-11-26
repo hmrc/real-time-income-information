@@ -1,0 +1,4 @@
+{
+  "code": "INVALID_DATES_EQUAL",
+  "reason": "The remote endpoint has indicated that the from and to dates are the same."
+}
